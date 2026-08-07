@@ -1,0 +1,2296 @@
+<title>Next Step Fair 2026 — System Map</title>
+<style>
+<!--FONTS-->
+
+:root {
+    color-scheme: light dark;
+
+    /* Brand, taken from the product it documents. Track colour is information:
+       magenta is the fair, cobalt the conference, teal the exhibitors, amber the
+       gate. The same hue means the same thing in every diagram on this page. */
+    --fair: #b64698;
+    --conf: #2c4be0;
+    --inst: #0e9b94;
+    --ops:  #c98a2c;
+    --stop: #8a1b3c;
+
+    --ground: #f4f1ee;
+    --raised: #fbfaf9;
+    --edge: rgba(12, 10, 8, 0.14);
+    --edge-firm: rgba(12, 10, 8, 0.28);
+    --text: #191b1c;
+    --text-soft: #4d4a46;
+    --text-faint: #7d7871;
+
+    /* The drafting sheet. Diagrams stay dark-on-paper in both themes — they are
+       drawings pinned to the page, not panels that invert with it. */
+    --sheet: #fbfaf9;
+    --sheet-edge: rgba(12, 10, 8, 0.16);
+    --sheet-ink: #191b1c;
+    --sheet-soft: #6b6660;
+
+    --display: 'SpaceGrotesk', ui-sans-serif, system-ui, sans-serif;
+    --body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ground: #131517;
+        --raised: #1b1e21;
+        --edge: rgba(244, 241, 238, 0.14);
+        --edge-firm: rgba(244, 241, 238, 0.3);
+        --text: #eceae7;
+        --text-soft: #b3aea8;
+        --text-faint: #8a847c;
+        --fair: #d777bf;
+        --conf: #7f92f0;
+        --inst: #35bdb5;
+        --ops:  #e8ab4e;
+        --stop: #d8698c;
+    }
+}
+
+:root[data-theme='dark'] {
+    --ground: #131517;
+    --raised: #1b1e21;
+    --edge: rgba(244, 241, 238, 0.14);
+    --edge-firm: rgba(244, 241, 238, 0.3);
+    --text: #eceae7;
+    --text-soft: #b3aea8;
+    --text-faint: #8a847c;
+    --fair: #d777bf;
+    --conf: #7f92f0;
+    --inst: #35bdb5;
+    --ops:  #e8ab4e;
+    --stop: #d8698c;
+}
+
+:root[data-theme='light'] {
+    --ground: #f4f1ee;
+    --raised: #fbfaf9;
+    --edge: rgba(12, 10, 8, 0.14);
+    --edge-firm: rgba(12, 10, 8, 0.28);
+    --text: #191b1c;
+    --text-soft: #4d4a46;
+    --text-faint: #7d7871;
+    --fair: #b64698;
+    --conf: #2c4be0;
+    --inst: #0e9b94;
+    --ops:  #c98a2c;
+    --stop: #8a1b3c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------------- shell -- */
+
+.shell {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: clamp(28px, 4vw, 64px);
+    max-width: 1420px;
+    margin: 0 auto;
+    padding: 0 clamp(18px, 3vw, 44px) 120px;
+}
+
+.rail {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+    padding: 34px 0 40px;
+}
+
+.rail-mark {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    margin-bottom: 4px;
+}
+
+.rail-sub {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-bottom: 22px;
+}
+
+.rail nav { display: flex; flex-direction: column; gap: 1px; }
+
+.rail a {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    text-decoration: none;
+    color: var(--text-soft);
+    font-size: 13.5px;
+    line-height: 1.35;
+    padding: 6px 10px 6px 0;
+    border-left: 2px solid transparent;
+    padding-left: 12px;
+    transition: color .12s, border-color .12s;
+}
+
+.rail a:hover, .rail a:focus-visible { color: var(--text); border-left-color: var(--fair); }
+
+.rail a .n {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+    flex: 0 0 auto;
+}
+
+.rail-group {
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 20px 0 7px 12px;
+}
+
+main { padding-top: 34px; min-width: 0; }
+
+/* -------------------------------------------------------- masthead -- */
+
+.masthead { padding: clamp(18px, 4vw, 46px) 0 clamp(30px, 4vw, 52px); }
+
+.eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--display);
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fair);
+    margin-bottom: 16px;
+}
+
+.eyebrow::before {
+    content: '';
+    width: 26px;
+    height: 7px;
+    background: var(--fair);
+    flex: 0 0 auto;
+}
+
+h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(34px, 5.2vw, 58px);
+    line-height: 1.03;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    margin: 0 0 18px;
+}
+
+.lede {
+    font-size: clamp(17px, 1.6vw, 19.5px);
+    line-height: 1.6;
+    color: var(--text-soft);
+    max-width: 64ch;
+    margin: 0 0 30px;
+}
+
+.counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border-top: 1px solid var(--edge);
+    border-bottom: 1px solid var(--edge);
+}
+
+.counts div {
+    flex: 1 1 130px;
+    padding: 16px 20px 16px 0;
+}
+
+.counts .v {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 27px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+.counts .k {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 5px;
+}
+
+/* --------------------------------------------------------- sections -- */
+
+section { padding-top: clamp(46px, 6vw, 78px); scroll-margin-top: 20px; }
+
+.sec-head { display: flex; gap: 16px; align-items: baseline; margin-bottom: 12px; }
+
+.sec-n {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+    padding-top: 6px;
+    flex: 0 0 auto;
+}
+
+h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(23px, 2.7vw, 31px);
+    line-height: 1.15;
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+    margin: 0;
+}
+
+h3 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 16.5px;
+    letter-spacing: -0.005em;
+    margin: 30px 0 8px;
+}
+
+p { max-width: 68ch; margin: 0 0 15px; }
+
+.note { color: var(--text-soft); font-size: 15px; }
+
+strong { font-weight: 700; }
+
+code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--raised);
+    border: 1px solid var(--edge);
+    padding: 1px 5px;
+    white-space: nowrap;
+}
+
+a.link { color: var(--fair); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+/* ------------------------------------------------- drafting sheets -- */
+
+figure {
+    margin: 24px 0 26px;
+    background: var(--sheet);
+    border: 1px solid var(--sheet-edge);
+    box-shadow: 0 1px 0 rgba(12, 10, 8, .04), 0 14px 34px -22px rgba(12, 10, 8, .5);
+}
+
+figure .sheet-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--sheet-edge);
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--sheet-soft);
+}
+
+figure .sheet-body { overflow-x: auto; padding: 22px 18px 10px; }
+
+pre.mermaid {
+    margin: 0;
+    text-align: center;
+    min-width: 0;
+}
+
+/* The diagram source sits in a <pre>, and a <pre> is monospace by default. The
+   rendered labels inherit that, while mermaid sizes every box from a measurement
+   taken in this stack — so unless the two agree, every label overflows its box. */
+pre.mermaid, pre.mermaid * {
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+figcaption {
+    padding: 0 18px 16px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--sheet-soft);
+    max-width: 78ch;
+}
+
+/* ------------------------------------------------------ code index -- */
+
+.files {
+    border: 1px solid var(--edge);
+    background: var(--raised);
+    margin: 18px 0 6px;
+}
+
+.files-head {
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--edge);
+}
+
+.files ul { list-style: none; margin: 0; padding: 0; }
+
+.files li {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--edge);
+    font-size: 13px;
+}
+
+.files li:last-child { border-bottom: 0; }
+
+.files .path {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text);
+    flex: 1 1 330px;
+    word-break: break-all;
+}
+
+.files .what { color: var(--text-faint); flex: 1 1 200px; }
+
+/* ---------------------------------------------------------- tables -- */
+
+.tw { overflow-x: auto; margin: 20px 0; border: 1px solid var(--edge); }
+
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+
+th, td {
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--edge);
+    vertical-align: top;
+}
+
+th {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    background: var(--raised);
+    white-space: nowrap;
+}
+
+tbody tr:last-child td { border-bottom: 0; }
+
+td.r { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; }
+
+td.num { font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ----------------------------------------------------------- chips -- */
+
+.track {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+}
+
+.track::before {
+    content: '';
+    width: 11px;
+    height: 11px;
+    background: currentColor;
+    flex: 0 0 auto;
+}
+
+.track.f { color: var(--fair); }
+.track.c { color: var(--conf); }
+.track.i { color: var(--inst); }
+.track.o { color: var(--ops); }
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 26px;
+    padding: 15px 0 4px;
+    border-top: 1px solid var(--edge);
+    margin-top: 26px;
+}
+
+.callout {
+    border-left: 4px solid var(--fair);
+    background: var(--raised);
+    padding: 15px 20px;
+    margin: 20px 0;
+    font-size: 14.5px;
+    max-width: 72ch;
+}
+
+.callout p { margin: 0 0 8px; max-width: none; }
+.callout p:last-child { margin: 0; }
+
+.callout .lbl {
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fair);
+    display: block;
+    margin-bottom: 6px;
+}
+
+footer {
+    margin-top: 80px;
+    padding-top: 22px;
+    border-top: 1px solid var(--edge);
+    font-size: 13px;
+    color: var(--text-faint);
+    max-width: 72ch;
+}
+
+:focus-visible { outline: 2px solid var(--fair); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}
+
+/* --------------------------------------------------------- narrow -- */
+
+@media (max-width: 960px) {
+    .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+
+    .rail {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        max-height: none;
+        padding: 12px 0 10px;
+        background: var(--ground);
+        border-bottom: 1px solid var(--edge);
+    }
+
+    .rail-mark, .rail-sub, .rail-group { display: none; }
+
+    .rail nav {
+        flex-direction: row;
+        gap: 0;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    .rail a {
+        white-space: nowrap;
+        border-left: 0;
+        border-bottom: 2px solid transparent;
+        padding: 5px 14px 5px 0;
+    }
+
+    .rail a:hover, .rail a:focus-visible { border-left-color: transparent; border-bottom-color: var(--fair); }
+
+    .rail a .n { display: none; }
+}
+</style>
+
+<div class="shell">
+
+<aside class="rail">
+    <div class="rail-mark">Next Step Fair 2026</div>
+    <div class="rail-sub">System map</div>
+    <nav>
+        <div class="rail-group">Ground</div>
+        <a href="#glance"><span class="n">01</span><span>The whole thing at a glance</span></a>
+        <a href="#urls"><span class="n">02</span><span>URLs and language</span></a>
+        <div class="rail-group">Getting a badge</div>
+        <a href="#doors"><span class="n">03</span><span>Three doors, one badge</span></a>
+        <a href="#fair"><span class="n">04</span><span>Fair registration</span></a>
+        <a href="#upgrade"><span class="n">05</span><span>Completing a visitor pass</span></a>
+        <a href="#duplicate"><span class="n">06</span><span>One number, one badge</span></a>
+        <a href="#conference"><span class="n">07</span><span>Conference RSVP</span></a>
+        <div class="rail-group">After registering</div>
+        <a href="#account"><span class="n">08</span><span>Account and agenda</span></a>
+        <a href="#opportunities"><span class="n">09</span><span>Opportunities board</span></a>
+        <a href="#scholarship"><span class="n">10</span><span>The scholarship program</span></a>
+        <a href="#matching"><span class="n">11</span><span>Interests and matching</span></a>
+        <div class="rail-group">The other side</div>
+        <a href="#portal"><span class="n">12</span><span>Exhibitor portal</span></a>
+        <a href="#leads"><span class="n">13</span><span>Booth scans and leads</span></a>
+        <div class="rail-group">Event days</div>
+        <a href="#gate"><span class="n">14</span><span>Gate check-in</span></a>
+        <a href="#messaging"><span class="n">15</span><span>Messaging</span></a>
+        <a href="#qr"><span class="n">16</span><span>Campaign QR codes</span></a>
+        <div class="rail-group">Behind it</div>
+        <a href="#admin"><span class="n">17</span><span>The dashboard</span></a>
+        <a href="#data"><span class="n">18</span><span>Data model</span></a>
+        <a href="#calendar"><span class="n">19</span><span>What runs when</span></a>
+        <a href="#guards"><span class="n">20</span><span>Guards and limits</span></a>
+        <a href="#routes"><span class="n">21</span><span>Every URL</span></a>
+    </nav>
+</aside>
+
+<main>
+
+<header class="masthead">
+    <div class="eyebrow">System map</div>
+    <h1>Every page, every flow, and what happens in between</h1>
+    <p class="lede">
+        The site has four audiences, three ways in, two sides of a matching engine and
+        one badge that ties them together. This is all of it, drawn — one diagram per
+        flow, each with the files it lives in underneath.
+    </p>
+
+    <div class="counts">
+        <div><div class="v">4</div><div class="k">audiences</div></div>
+        <div><div class="v">3</div><div class="k">languages, full RTL</div></div>
+        <div><div class="v">4</div><div class="k">ways to get a badge</div></div>
+        <div><div class="v">22</div><div class="k">dashboard sections</div></div>
+        <div><div class="v">48</div><div class="k">database tables</div></div>
+        <div><div class="v">285</div><div class="k">tests</div></div>
+    </div>
+
+    <div class="legend">
+        <span class="track f">Fair track</span>
+        <span class="track c">Conference track</span>
+        <span class="track i">Exhibitors</span>
+        <span class="track o">Operations</span>
+    </div>
+</header>
+
+<!-- ===================================================== 01 glance -- -->
+<section id="glance">
+    <div class="sec-head"><span class="sec-n">01</span><h2>The whole thing at a glance</h2></div>
+
+    <p>
+        Four kinds of people use this, and each has their own front door and their own
+        login. They never see each other's screens, but everything they do lands in the
+        same three places: the registration record, the shared taxonomy of subjects, and
+        the message log.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 01</span><span>Actors, surfaces, core</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart LR
+    subgraph WHO["Who"]
+        V(["Visitor"])
+        S(["Student or parent"])
+        G(["Government or official"])
+        U(["University recruiter"])
+        T(["Next Step staff"])
+    end
+
+    subgraph WHERE["Where they go"]
+        PUB["Public site<br/>pages, agenda, speakers,<br/>universities, all forms"]
+        ME["My Next Step<br/>badge, agenda,<br/>interests, matches"]
+        POR["Exhibitor portal<br/>programmes, students,<br/>leads, booth scanner"]
+        ADM["Dashboard"]
+        GATE["Gate scanner"]
+    end
+
+    CORE[("Registrations · Taxonomy<br/>Matches · Interactions · Messages")]
+
+    V -->|"visitor pass"| PUB
+    S -->|"registers"| PUB
+    G -->|"RSVPs"| PUB
+    S -->|"phone + code"| ME
+    U -->|"email + code"| POR
+    T --> ADM
+    T --> GATE
+
+    PUB --> CORE
+    ME --> CORE
+    POR --> CORE
+    ADM --> CORE
+    GATE --> CORE
+    CORE -->|"programme, speakers,<br/>exhibitor list"| PUB
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef conf fill:#2c4be0,stroke:#2139b0,color:#fff
+    classDef inst fill:#0e9b94,stroke:#0b7a74,color:#fff
+    classDef ops fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+
+    class S,V fair
+    class G conf
+    class U inst
+    class T ops
+    class CORE core
+    class PUB,ME,POR,ADM,GATE plain
+</pre>
+        </div>
+        <figcaption>
+            Every arrow into the core is a write. The single arrow back out is the only
+            thing the public site reads: the programme, the speakers and the exhibitor
+            directory are the same records the exhibitors and staff maintain.
+        </figcaption>
+    </figure>
+
+    <div class="files">
+        <div class="files-head">In the code</div>
+        <ul>
+            <li><span class="path">routes/site.php</span><span class="what">Everything under a language prefix</span></li>
+            <li><span class="path">routes/web.php</span><span class="what">Tickets, check-in, webhooks, QR</span></li>
+            <li><span class="path">config/auth.php</span><span class="what">The three separate logins</span></li>
+        </ul>
+    </div>
+</section>
+
+<!-- ======================================================= 02 urls -- -->
+<section id="urls">
+    <div class="sec-head"><span class="sec-n">02</span><h2>URLs and language</h2></div>
+
+    <p>
+        Every readable page lives under a language segment — <code>/en/agenda</code>,
+        <code>/ku/agenda</code>, <code>/ar/agenda</code> — so a link can be shared without
+        losing the language it was read in. English is what a first-time visitor gets;
+        after that the choice is remembered for a year.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 02</span><span>How a request finds its language</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart LR
+    REQ(["Request"]) --> Q{"Starts with<br/>/en /ku /ar ?"}
+
+    Q -->|"yes"| SET["SetLocale middleware"]
+    Q -->|"no, and path is /"| CK{"Language<br/>cookie set?"}
+    Q -->|"no, but path exists<br/>e.g. /privacy"| RED["301 to /en/privacy"]
+    Q -->|"no, and nothing matches"| E404["404"]
+
+    CK -->|"yes"| USE["Redirect to that language"]
+    CK -->|"no"| EN["Redirect to /en"]
+
+    RED --> SET
+    USE --> SET
+    EN --> SET
+
+    SET --> A["App locale set"]
+    SET --> B["route helper keeps<br/>the language"]
+    SET --> C["dir=rtl for ku and ar,<br/>numerals stay Latin"]
+    SET --> D["Cookie refreshed,<br/>one year"]
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef stop fill:#8a1b3c,stroke:#6d1530,color:#fff
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+
+    class SET fair
+    class E404 stop
+    class Q,CK q
+    class REQ,RED,USE,EN,A,B,C,D plain
+</pre>
+        </div>
+        <figcaption>
+            The middle branch is the one that stops 404s: a bare <code>/privacy</code> or
+            <code>/terms</code> redirects into the reader's language instead of failing,
+            while a genuine typo still 404s.
+        </figcaption>
+    </figure>
+
+    <div class="files">
+        <div class="files-head">In the code</div>
+        <ul>
+            <li><span class="path">app/Http/Middleware/SetLocale.php</span><span class="what">Resolves and remembers the language</span></li>
+            <li><span class="path">app/Http/Controllers/LocaleController.php</span><span class="what">Switcher and the redirect fallback</span></li>
+            <li><span class="path">lang/en · lang/ku · lang/ar</span><span class="what">Every string, three times</span></li>
+        </ul>
+    </div>
+</section>
+
+<!-- ====================================================== 03 doors -- -->
+<section id="doors">
+    <div class="sec-head"><span class="sec-n">03</span><h2>Three doors, one badge</h2></div>
+
+    <p>
+        Someone who wants to walk in should not have to fill in four steps, and a
+        government delegate should not be sent a WhatsApp code. So there are four
+        doors — but they all end at the same thing: one row in
+        <code>registrations</code>, one ticket reference, one QR that the gate can scan.
+    </p>
+
+    <p>
+        Only one of them opens an account. A student is registering and creating a
+        Next Step ID in the same form, because everything else Next Step runs — the
+        agenda, the seminars, Zankoline, the scholarship — reads that one record. A
+        parent, a visitor and a delegate get a badge and are left alone.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 03</span><span>Three entry paths converging</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart LR
+    QP["Visitor pass<br/>/register/quick<br/><br/>name + phone"]
+    PR["Parent<br/>/register/fair<br/><br/>name, phone, city"]
+    FR["Student<br/>/register/fair<br/><br/>short form + account"]
+    CF["Conference RSVP<br/>/register/conference<br/><br/>seven fields"]
+
+    OTP{"Phone proved<br/>by 6-digit code"}
+    MAIL{"Institutional<br/>email address?"}
+    REV["Protocol team reviews"]
+
+    BADGE[("One registration<br/>ticket + signed QR")]
+
+    WA["WhatsApp:<br/>badge image"]
+    EM["Email:<br/>A6 PDF badge<br/>+ calendar invite"]
+    ACC["Signed in to /me"]
+    ID["Next Step ID:<br/>expo, seminars, Zankoline,<br/>scholarship"]
+
+    QP --> OTP
+    PR --> OTP
+    FR --> OTP
+    FR -->|"email + password"| ID
+    OTP -->|"verified"| BADGE
+    CF --> MAIL
+    MAIL -->|"yes"| BADGE
+    MAIL -->|"free mail"| REV
+    REV -->|"approved in the dashboard"| BADGE
+
+    BADGE --> WA
+    BADGE --> EM
+    BADGE --> ACC
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef conf fill:#2c4be0,stroke:#2139b0,color:#fff
+    classDef ops fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+
+    class QP,PR,FR fair
+    class ID fair
+    class CF,EM conf
+    class REV ops
+    class BADGE core
+    class OTP,MAIL q
+    class WA,ACC plain
+</pre>
+        </div>
+        <figcaption>
+            A visitor pass is a real registration underneath, so the headcount, the gate
+            scanner and the capacity figures all include it. Only the conference track
+            can be held for review; a phone number that answers its code is confirmed
+            immediately.
+        </figcaption>
+    </figure>
+
+    <div class="tw">
+    <table>
+        <thead><tr><th>Door</th><th>Asks for</th><th>Proves identity by</th><th>Badge arrives</th><th>Gets an account</th></tr></thead>
+        <tbody>
+            <tr><td><span class="track f">Visitor pass</span></td><td>Name, phone</td><td>WhatsApp code</td><td>WhatsApp image</td><td>No</td></tr>
+            <tr><td><span class="track f">Parent</span></td><td>Name, phone, city</td><td>WhatsApp code</td><td>WhatsApp image</td><td>No</td></tr>
+            <tr><td><span class="track f">Student</span></td><td>One short form, plus email and password</td><td>WhatsApp code</td><td>WhatsApp image</td><td>Yes — the Next Step ID</td></tr>
+            <tr><td><span class="track c">Conference</span></td><td>Seven fields</td><td>Email domain</td><td>Email PDF + ICS</td><td>No</td></tr>
+        </tbody>
+    </table>
+    </div>
+</section>
+
+<!-- ======================================================= 04 fair -- -->
+<section id="fair">
+    <div class="sec-head"><span class="sec-n">04</span><h2>Expo registration</h2></div>
+
+    <p>
+        One page each. A student answers seven things and sets a password, because they
+        are creating the account the rest of the programme runs on. A parent answers
+        three and gets a badge.
+    </p>
+
+    <p>
+        Gone from both: gender, stream, subject chips, why you are coming, which days,
+        where you heard about us, and which seminars — asked later in the place they
+        matter, or not worth asking. Every badge is valid for all three days, so nobody
+        picks days at all. Nothing is written to the database until the form is
+        submitted, and no badge exists until the phone number answers.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 04</span><span>Form to badge</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    T{"Student<br/>or parent?"}
+    ST["Student, one page<br/>name, birth date, phone, city,<br/>where you are now, school<br/>+ email and password"]
+    PA["Parent, one page<br/>name, phone, city"]
+    CN["One tick box:<br/>terms, privacy, WhatsApp"]
+
+    CHK{"Server checks<br/>the answers"}
+    DUP{"Phone or email<br/>already used?"}
+    ROW[("Row created<br/>all three days<br/>status: awaiting code")]
+    SEND["6-digit code<br/>sent on WhatsApp"]
+    CODE{"Code correct?<br/>10 min, 5 tries"}
+    CONF[("Confirmed and verified<br/>badge PNG + PDF<br/>signed QR issued")]
+    DONE["Badge page,<br/>signed in to /me"]
+    SVC["Student: agenda, seminars,<br/>Zankoline, scholarship"]
+
+    T -->|"student"| ST
+    T -->|"parent"| PA
+    ST --> CN
+    PA --> CN
+    CN --> CHK
+    CHK -->|"something missing"| T
+    CHK -->|"valid"| DUP
+    DUP -->|"yes"| SEE["Message: already registered<br/>see section 06"]
+    DUP -->|"no"| ROW
+    ROW --> SEND
+    SEND --> CODE
+    CODE -->|"wrong or expired"| SEND
+    CODE -->|"correct"| CONF
+    CONF --> DONE
+    DONE --> SVC
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+    classDef warn fill:#f2a93b,stroke:#c98a2c,color:#241a06
+
+    class ST,PA,SVC fair
+    class ROW,CONF core
+    class T,CHK,DUP,CODE q
+    class CN,SEND,DONE plain
+    class SEE warn
+</pre>
+        </div>
+        <figcaption>
+            The student form and the parent form are separate pages rather than a
+            toggle, because a parent should never see a password field at all.
+            Verifying the code both issues the badge and marks the account verified,
+            which is what opens everything on the right.
+        </figcaption>
+    </figure>
+
+    <div class="files">
+        <div class="files-head">In the code</div>
+        <ul>
+            <li><span class="path">app/Http/Controllers/Registration/FairRegistrationController.php</span><span class="what">The whole flow</span></li>
+            <li><span class="path">app/Http/Requests/StoreFairRegistrationRequest.php</span><span class="what">Server-side rules</span></li>
+            <li><span class="path">app/Services/Messaging/OtpService.php</span><span class="what">Codes, expiry, resend cooldown</span></li>
+            <li><span class="path">app/Services/BadgeService.php</span><span class="what">Badge artwork</span></li>
+        </ul>
+    </div>
+</section>
+
+<!-- ==================================================== 05 upgrade -- -->
+<section id="upgrade">
+    <div class="sec-head"><span class="sec-n">05</span><h2>Completing a visitor pass</h2></div>
+
+    <p>
+        Someone who took the quick route can come back and finish. The point of the flow
+        is that nothing is asked twice: the pass already carries a name and a phone
+        number that answered a code, so the form starts from what is known and the badge
+        never changes.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 05</span><span>The same row, filled in</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    ME["/me shows:<br/>You have a visitor pass"]
+    CTA(["Complete my registration"])
+    FORM["/register/fair opens in<br/>upgrade mode"]
+
+    subgraph PRE["Already filled in"]
+        P1["Name"]
+        P2["Phone, locked"]
+        P3["All three days ticked"]
+        P4["City, language, email"]
+    end
+
+    ASK["Only the new questions:<br/>school, subjects, reasons,<br/>seminars, consents"]
+    SAVE{"Same row updated"}
+    KEEP["Ticket reference: unchanged<br/>QR: unchanged<br/>Type: visitor becomes student or parent<br/>No second code"]
+    OUT["Badge page<br/>agenda and matches now open"]
+
+    ME --> CTA --> FORM
+    FORM --> PRE
+    FORM --> ASK
+    PRE --> SAVE
+    ASK --> SAVE
+    SAVE --> KEEP --> OUT
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+    classDef good fill:#0e9b94,stroke:#0b7a74,color:#fff
+
+    class CTA,FORM fair
+    class SAVE core
+    class KEEP good
+    class ME,ASK,P1,P2,P3,P4,OUT plain
+</pre>
+        </div>
+        <figcaption>
+            The phone is read from the pass, never from the submitted form — so the
+            locked field cannot be edited in the browser to move a live badge onto
+            somebody else's number.
+        </figcaption>
+    </figure>
+
+    <div class="callout">
+        <span class="lbl">Why it matters</span>
+        <p>
+            A visitor pass that becomes a full registration keeps its place in every
+            count that has already been taken — no duplicate row, no second badge at the
+            gate, and any check-in already recorded still belongs to the same person.
+        </p>
+    </div>
+</section>
+
+<!-- ================================================== 06 duplicate -- -->
+<section id="duplicate">
+    <div class="sec-head"><span class="sec-n">06</span><h2>One number, one badge</h2></div>
+
+    <p>
+        Both fair forms check the phone number against the list before creating anything.
+        A number that is already registered gets told so, on the page it was typed on,
+        with a way forward rather than a dead end.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 06</span><span>What a repeat number gets</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    SUB(["Form submitted"])
+    NORM["Number normalised:<br/>digits only, leading zero dropped"]
+    HASH["Looked up by keyed hash<br/>the stored number is encrypted"]
+    Q{"Already on<br/>the list?"}
+    MINE{"Is it the person's<br/>own visitor pass?"}
+    NEW["Create the registration"]
+    UP["Complete that pass<br/>see section 05"]
+    MSG["Back to the form:<br/>This phone number is already registered"]
+
+    A1(["Resend that badge<br/>on WhatsApp"])
+    A2(["Sign in to open it"])
+
+    SUB --> NORM --> HASH --> Q
+    Q -->|"no"| NEW
+    Q -->|"yes"| MINE
+    MINE -->|"yes"| UP
+    MINE -->|"no"| MSG
+    MSG --> A1
+    MSG --> A2
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef warn fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+
+    class MSG warn
+    class Q,MINE q
+    class NEW,UP fair
+    class SUB,NORM,HASH,A1,A2 plain
+</pre>
+        </div>
+        <figcaption>
+            Which ticket the number belongs to is never printed on the page — it is held
+            server-side for the duration of the message. Typing a stranger's number tells
+            you it is taken; it does not hand you their badge.
+        </figcaption>
+    </figure>
+</section>
+
+<!-- ================================================= 07 conference -- -->
+<section id="conference">
+    <div class="sec-head"><span class="sec-n">07</span><h2>Conference RSVP</h2></div>
+
+    <p>
+        The conference is a one-day event for ministries, embassies, agencies, press,
+        companies and individuals. It is not a phone-and-QR flow: delegates are
+        confirmed by their institutional email address, and the badge arrives as an A6
+        PDF with a calendar invite attached.
+    </p>
+
+    <p>
+        Seven fields and a tick box. Dietary requirements, interpretation, delegation
+        size, invitation letters, speaking slots and press accreditation are all
+        conversations to have with the handful of delegates they concern, not a wall of
+        questions in front of everybody else.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 07</span><span>Delegate path, including review</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    WHO{"Attending as"}
+    F1["One page<br/>name, position, organisation,<br/>email, phone, city"]
+    IND["Individual:<br/>no organisation asked"]
+
+    DUP{"Email already<br/>on the list?"}
+    DOM{"Institutional<br/>domain?"}
+
+    OK[("Confirmed<br/>badge PDF generated")]
+    PEND[("Pending review")]
+    ADMIN["Protocol team in /admin<br/>approves or declines"]
+
+    MAILC["Email: confirmation,<br/>badge PDF, calendar invite"]
+    MAILP["Email: received,<br/>we will confirm"]
+    MANAGE["Signed link to change<br/>or cancel the RSVP"]
+
+    WHO -->|"government"| F1
+    WHO -->|"official"| F1
+    WHO -->|"private sector"| F1
+    WHO -->|"individual"| IND --> DUP
+    F1 --> DUP
+    DUP -->|"yes"| SEEN["Message: already registered"]
+    DUP -->|"no"| DOM
+    DOM -->|"yes"| OK --> MAILC --> MANAGE
+    DOM -->|"gmail and similar"| PEND --> MAILP
+    PEND --> ADMIN -->|"approved"| OK
+
+    classDef conf fill:#2c4be0,stroke:#2139b0,color:#fff
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef ops fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+
+    class F1,IND conf
+    class OK,PEND core
+    class ADMIN,SEEN ops
+    class DUP,DOM,WHO q
+    class MAILC,MAILP,MANAGE plain
+</pre>
+        </div>
+        <figcaption>
+            The badge follows the approval, not the RSVP — a free-mail address gets a
+            polite holding message and no QR until a person has looked at it.
+        </figcaption>
+    </figure>
+
+    <div class="files">
+        <div class="files-head">In the code</div>
+        <ul>
+            <li><span class="path">app/Http/Controllers/Registration/ConferenceRsvpController.php</span><span class="what">One form, review split</span></li>
+            <li><span class="path">app/Mail/RsvpConfirmation.php</span><span class="what">Email with PDF and ICS</span></li>
+            <li><span class="path">app/Http/Controllers/TicketController.php</span><span class="what">Manage and cancel by signed link</span></li>
+        </ul>
+    </div>
+</section>
+
+<!-- ==================================================== 08 account -- -->
+<section id="account">
+    <div class="sec-head"><span class="sec-n">08</span><h2>The Next Step ID</h2></div>
+
+    <p>
+        Students get an account; nobody else does. A scholarship application runs for
+        months and has to be reachable from a school computer or a sibling's laptop, so
+        a student signs in with the email and password they set when they registered.
+    </p>
+
+    <p>
+        A parent, a visitor or a delegate has nothing to sign into. If they lose the
+        WhatsApp message they ask for the badge again by phone number and a code —
+        the same check that issued it. That is also what connects the agenda to
+        registration: a guest who presses <em>add to my agenda</em> does not lose the
+        click.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 08</span><span>Guest click to saved session</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    BROWSE(["Guest browsing /agenda"])
+    ADD(["Presses add to my agenda"])
+    HOLD["Choice held in the session"]
+    JOIN["/join — register, or sign in"]
+
+    R1["Register as a student<br/>section 04"]
+    R2["Sign in<br/>email + password"]
+
+    IN[("Signed in")]
+    ATTACH["The held session is attached"]
+    BACK(["Back on the agenda,<br/>session saved"])
+
+    BROWSE --> ADD --> HOLD --> JOIN
+    JOIN --> R1
+    JOIN --> R2
+    R1 --> IN
+    R2 --> IN
+    IN --> ATTACH --> BACK
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+
+    class ADD,JOIN,R1,R2 fair
+    class IN core
+    class BROWSE,HOLD,ATTACH,BACK plain
+</pre>
+        </div>
+        <figcaption>
+            The held choice survives the whole detour, including the registration form
+            and the code screen — which is what makes the agenda feel part of
+            registration rather than a separate toy.
+        </figcaption>
+    </figure>
+
+    <h3>What /me holds</h3>
+
+    <div class="tw">
+    <table>
+        <thead><tr><th>Page</th><th>Shows</th><th>Visitor pass sees it?</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/me</td><td>Badge and QR, ticket, everything the registration opens, attendance, every message sent</td><td>Yes, minus the agenda</td></tr>
+            <tr><td class="r">/me/agenda</td><td>The full programme, add and remove</td><td>No — offered the upgrade</td></tr>
+            <tr><td class="r">/me/interests</td><td><strong>Optional.</strong> Eight questions, offered from the account and never during registration</td><td>No</td></tr>
+            <tr><td class="r">/me/matches</td><td>Ranked universities with the reason for each score</td><td>No</td></tr>
+            <tr><td class="r">/me/edit</td><td>Their own details, and a photo. Everything the short form left out, at their own pace</td><td>Yes</td></tr>
+            <tr><td class="r">/me/share</td><td>The card to post and the caption to go with it — section 09</td><td>Yes</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <div class="files">
+        <div class="files-head">In the code</div>
+        <ul>
+            <li><span class="path">app/Http/Controllers/Attendee/SignInController.php</span><span class="what">Email and password, or a code for the badge</span></li>
+            <li><span class="path">app/Http/Controllers/Attendee/ProfileController.php</span><span class="what">/me, the agenda, and editing their own details</span></li>
+            <li><span class="path">app/Models/Registration.php</span><span class="what">Also the authenticatable record</span></li>
+        </ul>
+    </div>
+</section>
+
+
+<!-- ============================================== 09 opportunities -- -->
+<section id="opportunities">
+    <div class="sec-head"><span class="sec-n">09</span><h2>What registering is worth</h2></div>
+
+    <p>
+        A registration form is a cost paid up front against a promise. The board under
+        <code>/{lang}/opportunities</code> is where that promise is paid back: scholarships
+        the ministry has opened, a tuition reduction a university negotiated with Next Step,
+        a free summer school, a place on a programme. They are put there by partners and
+        they are only shown to somebody who has a badge.
+    </p>
+
+    <p>
+        That is also why the home page is not the same page twice. Signed out, it sells
+        the fair and its one large button says <em>register</em>. Signed in, that button
+        is already spent — the hero greets the person by name and by ticket, and the space
+        the registration pitch used to hold now carries their agenda, the scholarship, the
+        opportunities, Zankoline, the exhibitor list and the seminars.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 09</span><span>Partner offer to a matching badge</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    P(["Partner: ministry,<br/>university, sponsor"])
+    ADM["Dashboard — Opportunities<br/>title, summary, body, eligibility<br/>in all three languages"]
+    WIN["Window and audience<br/>opens_at · closes_at · places"]
+    PUB{"Published<br/>and open today?"}
+
+    SEEN(["/opportunities — the board"])
+    HOME(["Home page, signed in"])
+    LOCK["Not registered:<br/>told what is behind it,<br/>shown nothing"]
+
+    A1["Everyone"]
+    A2["Students"]
+    A3["Parents"]
+    A4["Grade 12<br/>and leavers"]
+
+    ONE(["One opportunity"])
+    GO["Follow it out<br/>/opportunities/{slug}/go"]
+    COUNT[("Follow counted<br/>for the partner")]
+    OUT(["The partner's own form"])
+
+    P --> ADM --> WIN --> PUB
+    PUB -->|"no"| HIDE["Off the board,<br/>its page 404s"]
+    PUB -->|"yes"| A1 & A2 & A3 & A4
+    A1 & A2 & A3 & A4 --> SEEN
+    SEEN --> ONE --> GO --> COUNT --> OUT
+    SEEN -.->|"no badge"| LOCK
+    ONE --> HOME
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef inst fill:#0e9b94,stroke:#0b7a74,color:#fff
+    classDef ops fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+
+    class P,ADM inst
+    class SEEN,HOME,ONE,GO fair
+    class PUB q
+    class COUNT core
+    class LOCK,HIDE ops
+    class WIN,A1,A2,A3,A4,OUT plain
+</pre>
+        </div>
+        <figcaption>
+            An opportunity closes itself. Once <code>closes_at</code> is behind us it
+            leaves the board and its own page returns 404, so nobody applies to something
+            that stopped taking applications and no one has to remember to take it down.
+        </figcaption>
+    </figure>
+
+    <h3>Who is shown what</h3>
+
+    <div class="tw">
+    <table>
+        <thead><tr><th>Audience</th><th>Reaches</th><th>Used for</th></tr></thead>
+        <tbody>
+            <tr><td class="r">everyone</td><td>Anyone with a badge</td><td>Sponsor programmes, open days, prize draws</td></tr>
+            <tr><td class="r">students</td><td>Student accounts</td><td>Tuition reductions, summer schools, competitions</td></tr>
+            <tr><td class="r">grade12</td><td>Grade 12 and recent leavers</td><td>Scholarships and admissions, where anyone else would be applying to something they cannot take</td></tr>
+            <tr><td class="r">parents</td><td>Parents registered for the expo</td><td>Financing talks, parent evenings</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p class="note">
+        A countdown is only printed inside the last fortnight. On something six months
+        away it is noise; on something closing next week it is the reason to read on.
+        Reads and follows are counted separately — how many opened the record, and how
+        many went on to the partner's own form. The second is what a partner is owed at
+        the end of the season; one column for both would flatter every placement.
+    </p>
+
+    <h3>Telling people you are coming</h3>
+
+    <p>
+        Most people who find this fair hear about it from somebody they know, so
+        the moment a registration is confirmed the confirmation page asks for a post
+        — and hands over both halves of it. A picture at the size the platform wants
+        (1080×1080 for a feed, 1080×1920 for a story) and a caption already written
+        in the first person, for that particular person: a grade 12 student is
+        choosing a life, a parent is helping somebody else choose one, a director
+        general is representing an institution. One line for all three would be
+        posted by none of them.
+    </p>
+
+    <div class="tw">
+    <table>
+        <thead><tr><th>Channel</th><th>How</th></tr></thead>
+        <tbody>
+            <tr><td>WhatsApp</td><td>Opens with the caption already in it — the channel that matters most here</td></tr>
+            <tr><td>Facebook · LinkedIn</td><td>Share dialog with the tagged link</td></tr>
+            <tr><td>Instagram feed and story</td><td>No web composer exists. The page says so and offers the picture to save</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p class="note">
+        <strong>Nothing offered for sharing carries the badge QR.</strong> That code is
+        the entry credential: on a public feed it is a free pass for whoever
+        screenshots it first. The cards carry the event, the dates and the partnership
+        marks, and nothing that identifies one person.
+    </p>
+
+    <p class="note">
+        <strong>The link in the post is <code>/{lang}/attending/{who}</code>, not the
+        home page.</strong> It carries the Open Graph tags LinkedIn and Facebook read,
+        pointing at a 1200×630 render of the same card, so the post shows a real
+        preview rather than a logo on a white square — and somebody who clicked
+        because a friend is going lands on a page about that, with a register button
+        on it. None of this needs an account on either platform, an app, or a key: a
+        share button is a plain link and the preview is read off the page.
+    </p>
+
+    <p class="note">
+        <strong>The person's name is drawn onto the card in their own browser</strong>,
+        on a canvas, and never written to disk. There are as many names as there are
+        people, and a Kurdish or Arabic one needs shaping and bidi that a browser does
+        correctly and PHP's image libraries do not. If the script does not run, the
+        download falls back to the plain card. The slot geometry lives in
+        <code>ShareKit::nameSlot()</code> and is read by both the page and the script,
+        so the two cannot drift apart.
+    </p>
+
+    <p class="note">
+        The twenty-seven cards — three languages, three audiences, three shapes — are
+        pre-rendered PNGs under <code>public/assets/share</code>, screenshots of a real
+        page at <code>/{lang}/share/card/{variant}/{format}</code> taken by
+        <code>tools/build-share-cards.cjs</code>. Rendering them at build time rather
+        than on the server settles the hard part for good: Kurdish and Arabic need
+        contextual shaping and bidi, which a browser does correctly and PHP's image
+        libraries do not.
+    </p>
+
+    <div class="files">
+        <div class="files-head">In the code</div>
+        <ul>
+            <li><span class="path">app/Services/ShareKit.php</span><span class="what">Which words, which card, which buttons</span></li>
+            <li><span class="path">resources/views/components/ns/share-block.blade.php</span><span class="what">The block on both confirmation pages and /me/share</span></li>
+            <li><span class="path">tools/build-share-cards.cjs</span><span class="what">Renders the eighteen cards</span></li>
+            <li><span class="path">app/Models/Opportunity.php</span><span class="what">The open window and the audience filter</span></li>
+            <li><span class="path">app/Http/Controllers/OpportunityController.php</span><span class="what">Board, one page, the counted redirect</span></li>
+            <li><span class="path">app/Http/Controllers/HomeController.php</span><span class="what">Decides which home page you get</span></li>
+            <li><span class="path">app/Filament/Resources/Opportunities/OpportunityResource.php</span><span class="what">Where partners' offers are entered</span></li>
+        </ul>
+    </div>
+</section>
+
+<!-- ================================================ 10 scholarship -- -->
+<section id="scholarship">
+    <div class="sec-head"><span class="sec-n">10</span><h2>The National Scholarship Program</h2></div>
+
+    <p>
+        Forty fully funded first degrees, held in regional quotas: eight seats for each
+        of the four provinces, two for each of the four independent administrations. A
+        student from Halabja competes against Halabja, not against Sulaymaniyah — which
+        is the whole point, because a single national ranking would send almost every
+        seat to the largest cities.
+    </p>
+
+    <p>
+        It has its own pages under <code>/{lang}/scholarship</code> and its own place in
+        the main menu, but it is not a separate website: it reads the same Next Step ID,
+        so a student who registered for the expo applies without signing up twice.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 10</span><span>Three gates, then four steps</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    READ(["Anyone reading the programme"])
+    GATE["/scholarship/apply<br/>all three gates, with their state"]
+
+    G1{"A Next Step ID?"}
+    REG["Register as a student<br/>section 04"]
+    G2{"Finishing school?"}
+    NO["Told why not:<br/>the award funds year one"]
+    CHECK["Five questions<br/>grade 12, average, year,<br/>other funding, documents"]
+    V{"Verdict"}
+    STOP["Closed, with the reason<br/>now rather than in November"]
+    WARN["Through, with something<br/>to sort out"]
+
+    F1["1 · Region and district"]
+    F2["2 · Grade 12 record<br/>and university choices"]
+    F3["3 · Statement and proposal"]
+    F4["4 · Review"]
+    SUB[("Submitted<br/>quota fixed, nothing editable")]
+    TRACK["/scholarship/my-application<br/>submitted, screening, shortlisted,<br/>interview, decision"]
+
+    READ --> GATE --> G1
+    G1 -->|"no"| REG --> G1
+    G1 -->|"yes"| G2
+    G2 -->|"no"| NO
+    G2 -->|"yes"| CHECK --> V
+    V -->|"fail"| STOP
+    V -->|"warn"| WARN --> F1
+    V -->|"pass"| F1
+    F1 --> F2 --> F3 --> F4 --> SUB --> TRACK
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+    classDef warn fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef stop fill:#8a1b3c,stroke:#6d1530,color:#fff
+
+    class F1,F2,F3,F4,REG fair
+    class SUB core
+    class G1,G2,V q
+    class READ,GATE,CHECK,TRACK plain
+    class WARN,NO warn
+    class STOP stop
+</pre>
+        </div>
+        <figcaption>
+            The check runs before the form opens so nobody spends an evening on a
+            statement and a proposal only to be closed at screening for something they
+            could have been told in a minute. Every step saves on its own, so a student
+            on a school computer can stop and come back on a phone.
+        </figcaption>
+    </figure>
+
+    <h3>What is published before anyone applies</h3>
+    <p class="note">
+        The quota per region, the participating universities and the departments they
+        have pledged seats to, the scoring weights, the four documents, the dates, and
+        the committee by name. An applicant should be able to see what is judged and
+        what it is worth before writing a word.
+    </p>
+
+    <div class="tw">
+    <table>
+        <thead><tr><th>Scored on</th><th>Weight</th><th>Meaning</th></tr></thead>
+        <tbody>
+            <tr><td>Academic background</td><td class="num">40%</td><td>Exam average, stream and consistency across the years</td></tr>
+            <tr><td>Project feasibility</td><td class="num">35%</td><td>Whether the proposal could actually start here, with what exists</td></tr>
+            <tr><td>Interview</td><td class="num">25%</td><td>Clarity, motivation, commitment to come back and work</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p class="note">
+        Screening comes first and is pass or fail: without the four documents and an
+        average of 85%, a file is closed before any committee member reads it.
+    </p>
+
+    <div class="files">
+        <div class="files-head">In the code</div>
+        <ul>
+            <li><span class="path">config/scholarship.php</span><span class="what">Seats, regions, questions, rubric, universities, dates</span></li>
+            <li><span class="path">app/Http/Controllers/Scholarship/ScholarshipController.php</span><span class="what">The public pages</span></li>
+            <li><span class="path">app/Http/Controllers/Scholarship/ApplicationController.php</span><span class="what">Gate, check, form, status</span></li>
+            <li><span class="path">app/Models/ScholarshipApplication.php</span><span class="what">Verdict, completeness, the stage queue</span></li>
+        </ul>
+    </div>
+</section>
+
+<!-- =================================================== 11 matching -- -->
+<section id="matching">
+    <div class="sec-head"><span class="sec-n">11</span><h2>Interests and matching</h2></div>
+
+    <p>
+        Both sides describe themselves in one shared vocabulary — 12 sectors, 72
+        subjects, in all three languages. That is what makes a student's answers and a
+        university's programmes comparable at all, and it is why demand and supply can be
+        counted against each other later.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 11</span><span>Two-sided scoring</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    subgraph STU["Student says"]
+        A1["Subjects, in preference order"]
+        A2["Level, country, language"]
+        A3["Budget, grades, start year"]
+    end
+
+    subgraph UNI["University says"]
+        B1["Subjects taught, by level"]
+        B2["Country, teaching language"]
+        B3["Tuition range, entry grades,<br/>scholarships"]
+    end
+
+    TAX[("Shared taxonomy<br/>12 sectors · 72 subjects")]
+
+    ENG{"Match engine"}
+    GATE{"Any subject<br/>in common?"}
+    ZERO["Score 0 — not shown"]
+
+    SC["Score out of 100<br/>subject 45 · level 15 · country 15<br/>budget 10 · language 8 · grades 7"]
+    THR{"Score 35<br/>or more?"}
+    DROP["Not stored"]
+    KEEP[("Stored with its reasons")]
+
+    OUT1["Student sees ranked<br/>universities and why"]
+    OUT2["University sees matching<br/>students who opted in"]
+
+    A1 --> TAX
+    B1 --> TAX
+    TAX --> ENG
+    A2 --> ENG
+    A3 --> ENG
+    B2 --> ENG
+    B3 --> ENG
+    ENG --> GATE
+    GATE -->|"no"| ZERO
+    GATE -->|"yes"| SC --> THR
+    THR -->|"below"| DROP
+    THR -->|"at or above"| KEEP
+    KEEP --> OUT1
+    KEEP --> OUT2
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef inst fill:#0e9b94,stroke:#0b7a74,color:#fff
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+    classDef mute fill:#f0eeec,stroke:#b9b3ac,color:#6b6660
+
+    class A1,A2,A3,OUT1 fair
+    class B1,B2,B3,OUT2 inst
+    class TAX,KEEP core
+    class ENG,GATE,THR q
+    class ZERO,DROP mute
+    class SC plain
+</pre>
+        </div>
+        <figcaption>
+            No shared subject means no match at any price — a cheap, nearby university
+            that does not teach what the student wants is not a recommendation. A
+            scholarship half-rescues a budget that is otherwise out of reach.
+        </figcaption>
+    </figure>
+
+    <h3>What is recomputed, and when</h3>
+    <p class="note">
+        Matches are not a nightly batch. Saving interests recomputes that student's
+        matches; saving programmes in the portal recomputes that university's. Changing
+        your mind deletes the recommendations that no longer apply, so the list is never
+        stale.
+    </p>
+
+    <div class="files">
+        <div class="files-head">In the code</div>
+        <ul>
+            <li><span class="path">config/taxonomy.php</span><span class="what">Sectors, subjects, weights, threshold</span></li>
+            <li><span class="path">app/Services/Matching/MatchEngine.php</span><span class="what">Scoring, both directions</span></li>
+            <li><span class="path">app/Http/Controllers/Attendee/InterestsController.php</span><span class="what">The eight questions</span></li>
+        </ul>
+    </div>
+</section>
+
+<!-- ===================================================== 12 portal -- -->
+<section id="portal">
+    <div class="sec-head"><span class="sec-n">12</span><h2>The exhibitor portal</h2></div>
+
+    <p>
+        Universities register themselves. A recruiter claims an institution — or creates
+        one that Next Step then approves — signs in with a code sent to their email, and
+        from there maintains the profile that the public directory shows and the matching
+        engine reads.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 12</span><span>Claim, sign in, maintain</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    START(["Recruiter"])
+    REG["/portal/register"]
+    PICK{"Institution already<br/>in the directory?"}
+    CLAIM["Claim it — marked pending"]
+    MAKE["Create it — unpublished<br/>until Next Step approves"]
+
+    CODE["6-digit code by email"]
+    IN[("Signed in to the portal")]
+
+    PROF["/portal/profile<br/>subjects by level, country,<br/>language, tuition, entry grades,<br/>scholarships, recruitment goals"]
+    RECOMP(["Matches recomputed"])
+    STU["/portal/students<br/>matching students who opted in"]
+    LEAD["/portal/leads<br/>everyone met at the booth"]
+    SCAN["/portal/scanner<br/>scan a visitor badge"]
+
+    START --> REG --> PICK
+    PICK -->|"yes"| CLAIM --> CODE
+    PICK -->|"no"| MAKE --> CODE
+    CODE --> IN
+    IN --> PROF --> RECOMP
+    IN --> STU
+    IN --> LEAD
+    IN --> SCAN
+
+    classDef inst fill:#0e9b94,stroke:#0b7a74,color:#fff
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+
+    class REG,PROF,STU,LEAD,SCAN inst
+    class IN core
+    class PICK q
+    class START,CLAIM,MAKE,CODE,RECOMP plain
+</pre>
+        </div>
+        <figcaption>
+            A newly created institution stays off the public directory until it is
+            approved, so the exhibitor list cannot be edited by whoever fills in the form
+            first.
+        </figcaption>
+    </figure>
+</section>
+
+<!-- ====================================================== 13 leads -- -->
+<section id="leads">
+    <div class="sec-head"><span class="sec-n">13</span><h2>Booth scans, leads and what they answer</h2></div>
+
+    <p>
+        The scanner at a stand is the moment the data becomes real: a badge scanned is a
+        student who physically walked over. Every scan, shortlist and enquiry is stored as
+        an interaction with a weight, which is what separates genuine interest from a page
+        view when the reports are written.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 13</span><span>Interaction to insight</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart LR
+    SCAN(["Badge scanned<br/>at the stand"])
+    SHORT(["Student shortlists<br/>a university"])
+    ENQ(["Enquiry form"])
+    VIEW(["Profile viewed"])
+
+    CHECK{"Signed QR<br/>valid?"}
+    ONCE["Recorded once per<br/>university per day"]
+    RATE["Recruiter adds subject,<br/>rating, notes"]
+
+    INT[("Interactions<br/>scan 40 · enquiry 30<br/>shortlist 20 · brochure 10<br/>view 5")]
+
+    CONSENT{"Student agreed to<br/>share details?"}
+    NAMED["Named lead<br/>with contact details"]
+    COUNT["Counted only,<br/>never named"]
+
+    INS["Reports<br/>which subjects draw interest ·<br/>which countries ·<br/>which universities earned leads ·<br/>where supply is missing"]
+
+    SCAN --> CHECK
+    CHECK -->|"no"| BAD["Rejected"]
+    CHECK -->|"yes"| ONCE --> RATE --> INT
+    SHORT --> INT
+    ENQ --> INT
+    VIEW --> INT
+    INT --> CONSENT
+    CONSENT -->|"yes"| NAMED --> INS
+    CONSENT -->|"no"| COUNT --> INS
+
+    classDef inst fill:#0e9b94,stroke:#0b7a74,color:#fff
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+    classDef stop fill:#8a1b3c,stroke:#6d1530,color:#fff
+
+    class SCAN,RATE,NAMED inst
+    class SHORT,VIEW fair
+    class INT core
+    class CHECK,CONSENT q
+    class ONCE,ENQ,COUNT,INS plain
+    class BAD stop
+</pre>
+        </div>
+        <figcaption>
+            Consent gates the contact details, not the counting. A student who declines
+            still appears in every aggregate — how many, from where, wanting what — but
+            never by name.
+        </figcaption>
+    </figure>
+
+    <div class="tw">
+    <table>
+        <thead><tr><th>The question</th><th>Answered from</th><th>Where to look</th></tr></thead>
+        <tbody>
+            <tr><td>Which fields attract the most interest?</td><td>Stated subjects, weighted by preference order</td><td class="r">/admin/insights</td></tr>
+            <tr><td>Which countries and universities are most popular?</td><td>Country preferences, profile views, shortlists</td><td class="r">/admin/insights</td></tr>
+            <tr><td>Which universities generated the most qualified leads?</td><td>Interactions by weight, per organisation</td><td class="r">/admin/insights</td></tr>
+            <tr><td>What does nobody teach that everybody wants?</td><td>Demand minus supply, per subject</td><td class="r">/admin/insights</td></tr>
+            <tr><td>Did a match turn into a visit?</td><td>Stored matches against booth scans</td><td class="r">/admin/insights</td></tr>
+        </tbody>
+    </table>
+    </div>
+</section>
+
+<!-- ======================================================= 14 gate -- -->
+<section id="gate">
+    <div class="sec-head"><span class="sec-n">14</span><h2>Gate check-in</h2></div>
+
+    <p>
+        The scanner is a small web app that staff open on a phone. It is built to keep
+        working when the hall's wifi does not: it holds the day's expected badges, records
+        arrivals locally, and syncs when the connection returns.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 14</span><span>Online and offline paths</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    STAFF(["Gate staff sign in"])
+    APP["Scanner opens<br/>camera on the QR"]
+    MANUAL["Or search by<br/>name, phone or ticket"]
+
+    NET{"Online?"}
+    POST["Sent to the server"]
+    LOCAL["Held on the device"]
+    SYNC["Synced when<br/>the signal returns"]
+
+    VER{"Signature<br/>valid?"}
+    DUPE{"Already checked in<br/>today?"}
+
+    OK["Green: welcome,<br/>name and ticket shown"]
+    AGAIN["Amber: already in,<br/>with the time"]
+    NO["Red: not recognised"]
+
+    ROW[("check_ins row<br/>day, time, gate, method")]
+
+    STAFF --> APP --> NET
+    STAFF --> MANUAL --> NET
+    NET -->|"yes"| POST --> VER
+    NET -->|"no"| LOCAL --> SYNC --> VER
+    VER -->|"no"| NO
+    VER -->|"yes"| DUPE
+    DUPE -->|"yes"| AGAIN
+    DUPE -->|"no"| OK --> ROW
+    AGAIN --> ROW
+
+    classDef ops fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+    classDef stop fill:#8a1b3c,stroke:#6d1530,color:#fff
+    classDef good fill:#0e9b94,stroke:#0b7a74,color:#fff
+
+    class APP,MANUAL,LOCAL,SYNC ops
+    class ROW core
+    class NET,VER,DUPE q
+    class STAFF,POST plain
+    class OK good
+    class NO stop
+    class AGAIN ops
+</pre>
+        </div>
+        <figcaption>
+            The QR carries a ticket id and a signature — no name, no phone number. A
+            photographed badge on a stranger's phone still checks in as its owner, which
+            is the point: the badge is the ticket, and the gate counts tickets.
+        </figcaption>
+    </figure>
+
+    <div class="files">
+        <div class="files-head">In the code</div>
+        <ul>
+            <li><span class="path">app/Http/Controllers/Checkin/CheckinController.php</span><span class="what">Scan, search, manual, offline sync</span></li>
+            <li><span class="path">app/Services/TicketService.php</span><span class="what">Signing and resolving a ticket</span></li>
+        </ul>
+    </div>
+</section>
+
+<!-- ================================================== 15 messaging -- -->
+<section id="messaging">
+    <div class="sec-head"><span class="sec-n">15</span><h2>Messaging</h2></div>
+
+    <p>
+        Nothing is sent while someone waits. Every message is written to the log first and
+        queued second, so a registrant sees their confirmation page immediately and a
+        failed send can be retried from the dashboard instead of being lost.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 15</span><span>From event to phone</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart LR
+    EV(["Something happened:<br/>registered, confirmed,<br/>reminder due"])
+    DISP["Dispatcher picks the template<br/>for that person's language"]
+    LOG[("messages row<br/>queued")]
+    JOB["Queued job"]
+
+    GATE{"WhatsApp gateway"}
+    LIVE["Meta Cloud API"]
+    TEST["Log driver — code<br/>shown on screen while testing"]
+
+    DEL[("Delivered · read · failed<br/>written back from the webhook")]
+    ADMIN["Visible in /admin/messages<br/>and on the person's own /me"]
+
+    EV --> DISP --> LOG --> JOB --> GATE
+    GATE -->|"live"| LIVE --> DEL
+    GATE -->|"no credentials"| TEST --> DEL
+    DEL --> ADMIN
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef q fill:#eae6e2,stroke:#9a948d,color:#191b1c
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+
+    class DISP fair
+    class LOG,DEL core
+    class GATE q
+    class EV,JOB,LIVE,TEST,ADMIN plain
+</pre>
+        </div>
+        <figcaption>
+            Until the WhatsApp credentials are in place the log driver stands in and shows
+            the code on screen, so the whole flow can be walked end to end without sending
+            anything.
+        </figcaption>
+    </figure>
+
+    <h3>Every message the system can send</h3>
+
+    <div class="tw">
+    <table>
+        <thead><tr><th>Template</th><th>Channel</th><th>Sent when</th></tr></thead>
+        <tbody>
+            <tr><td class="r">otp</td><td>WhatsApp</td><td>Registration or sign-in — 6 digits, 10 minutes, 5 tries</td></tr>
+            <tr><td class="r">registration_confirmed_student</td><td>WhatsApp</td><td>Student verifies, with the badge attached</td></tr>
+            <tr><td class="r">registration_confirmed_parent</td><td>WhatsApp</td><td>Parent verifies, with the badge attached</td></tr>
+            <tr><td class="r">registration_confirmed_visitor</td><td>WhatsApp</td><td>Visitor pass issued, with the badge attached</td></tr>
+            <tr><td class="r">event_reminder_3days</td><td>WhatsApp</td><td>Three days before opening</td></tr>
+            <tr><td class="r">event_reminder_1day</td><td>WhatsApp</td><td>The day before</td></tr>
+            <tr><td class="r">day_of_directions</td><td>WhatsApp</td><td>Morning of each day they chose</td></tr>
+            <tr><td class="r">session_reminder</td><td>WhatsApp</td><td>15 minutes before a saved session</td></tr>
+            <tr><td class="r">post_event_thankyou_survey</td><td>WhatsApp</td><td>After the fair closes</td></tr>
+            <tr><td class="r">rsvp_confirmed · rsvp_pending</td><td>Email</td><td>Conference RSVP, with or without the badge</td></tr>
+            <tr><td class="r">reminder_3days · reminder_1day</td><td>Email</td><td>Delegate reminders</td></tr>
+            <tr><td class="r">badge_resent · thankyou</td><td>Email</td><td>On request, and after the event</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p class="note">
+        Each row exists three times, once per language, and the wording is the same text
+        submitted to Meta for template approval.
+    </p>
+</section>
+
+<!-- ========================================================= 16 qr -- -->
+<section id="qr">
+    <div class="sec-head"><span class="sec-n">16</span><h2>Campaign QR codes</h2></div>
+
+    <p>
+        Separate from badges: these are the codes printed on posters, banners and school
+        handouts. Each is a short link that counts scans before forwarding, so it is
+        possible to say which poster actually worked.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 16</span><span>Poster to registration</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart LR
+    MAKE["Staff create a campaign<br/>in /admin/qr-campaigns"]
+    PRINT(["QR printed on a poster,<br/>banner or handout"])
+    SCAN(["Someone scans it"])
+    HIT["/q/{code}"]
+    REC[("Scan recorded<br/>repeat from the same device<br/>within a day is not a new person")]
+    FWD["Forwarded to the target page<br/>with campaign tags attached"]
+    REG["Registration, tagged<br/>with where it came from"]
+    REP["Reports: scans, unique<br/>scans, registrations per campaign"]
+
+    MAKE --> PRINT --> SCAN --> HIT --> REC --> FWD --> REG --> REP
+    REC --> REP
+
+    classDef ops fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef core fill:#22252a,stroke:#22252a,color:#fff
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+
+    class MAKE,PRINT ops
+    class REC core
+    class REG fair
+    class SCAN,HIT,FWD,REP plain
+</pre>
+        </div>
+        <figcaption>
+            The campaign tags survive into the registration record, which is how a sign-up
+            can be traced back to the poster that produced it.
+        </figcaption>
+    </figure>
+</section>
+
+<!-- ====================================================== 17 admin -- -->
+<section id="admin">
+    <div class="sec-head"><span class="sec-n">17</span><h2>The dashboard</h2></div>
+
+    <p>
+        One section per area, grouped by what the person doing the work is thinking about.
+        Roles decide what is visible: gate staff cannot open registrations, and a content
+        editor cannot read personal details.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 17</span><span>Dashboard structure</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart TB
+    ADM(["/admin"])
+
+    subgraph P["People"]
+        R1["Registrations"]
+        R2["Conference RSVPs"]
+        R3["Leads"]
+        R4["Newsletter"]
+    end
+
+    subgraph M["Talking to them"]
+        M1["Messages"]
+        M2["Templates"]
+        M3["Broadcasts"]
+    end
+
+    subgraph C["Content"]
+        C1["Pages"]
+        C2["News and blog"]
+        C3["Speakers"]
+        C4["Sessions"]
+        C5["Media albums"]
+        C6["Downloads"]
+        C7["Feature cards"]
+        C8["SDG goals"]
+    end
+
+    subgraph E["The event"]
+        E1["Organisations"]
+        E2["Halls"]
+        E3["Editions"]
+        E4["QR campaigns"]
+    end
+
+    subgraph I["Understanding it"]
+        I1["Insights"]
+    end
+
+    subgraph A["Access"]
+        A1["Users and roles"]
+    end
+
+    ADM --> P
+    ADM --> M
+    ADM --> C
+    ADM --> E
+    ADM --> I
+    ADM --> A
+
+    classDef ops fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+
+    class ADM ops
+    class R1,R2,R3,R4,M1,M2,M3,C1,C2,C3,C4,C5,C6,C7,C8,E1,E2,E3,E4,I1,A1 plain
+</pre>
+        </div>
+        <figcaption>
+            Every text area in the content sections is a full editor, and every
+            translatable field carries its own tab per language.
+        </figcaption>
+    </figure>
+</section>
+
+<!-- ======================================================= 18 data -- -->
+<section id="data">
+    <div class="sec-head"><span class="sec-n">18</span><h2>Data model</h2></div>
+
+    <p>
+        The registration is the hub. Everything a person does — sessions saved, days
+        attended, messages received, universities matched and met — hangs off that one
+        row, which is why a visitor pass can become a full registration without anything
+        being orphaned.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 18</span><span>Core tables</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'13px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+erDiagram
+    REGISTRATIONS ||--o{ CHECK_INS : "arrives"
+    REGISTRATIONS ||--o{ MESSAGES : "receives"
+    REGISTRATIONS ||--o{ OTP_VERIFICATIONS : "proves phone with"
+    REGISTRATIONS }o--o{ EVENT_SESSIONS : "saves to agenda"
+    REGISTRATIONS }o--o{ FIELDS : "wants to study"
+    REGISTRATIONS ||--o{ MATCHES : "is matched by"
+    REGISTRATIONS ||--o{ INTERACTIONS : "meets"
+
+    ORGANIZATIONS ||--o{ MATCHES : "is matched to"
+    ORGANIZATIONS ||--o{ INTERACTIONS : "records"
+    ORGANIZATIONS ||--o{ LEADS : "qualifies"
+    ORGANIZATIONS }o--o{ FIELDS : "teaches"
+    ORGANIZATIONS ||--o{ INSTITUTION_USERS : "is run by"
+    ORGANIZATIONS ||--o{ BOOTHS : "stands at"
+
+    SECTORS ||--o{ FIELDS : "groups"
+
+    EVENT_SESSIONS }o--|| HALLS : "held in"
+    EVENT_SESSIONS }o--o{ SPEAKERS : "presented by"
+
+    QR_CAMPAIGNS ||--o{ QR_SCANS : "counts"
+    MESSAGE_TEMPLATES ||--o{ MESSAGES : "renders"
+</pre>
+        </div>
+        <figcaption>
+            <strong>fields</strong> is the join that makes the platform two-sided: the
+            same 72 rows are referenced by what a student wants and by what a university
+            teaches, so the two can be compared directly.
+        </figcaption>
+    </figure>
+
+    <h3>What is protected, and how</h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>Data</th><th>At rest</th><th>Still searchable because</th></tr></thead>
+        <tbody>
+            <tr><td>Phone numbers</td><td>Encrypted</td><td>A keyed hash column sits beside it</td></tr>
+            <tr><td>Email addresses</td><td>Encrypted</td><td>Same</td></tr>
+            <tr><td>QR contents</td><td>Ticket id plus signature only</td><td>Nothing personal is in the code at all</td></tr>
+            <tr><td>Press ID uploads</td><td>Private disk, never public</td><td>Reached only from the dashboard</td></tr>
+        </tbody>
+    </table>
+    </div>
+</section>
+
+<!-- =================================================== 19 calendar -- -->
+<section id="calendar">
+    <div class="sec-head"><span class="sec-n">19</span><h2>What runs when</h2></div>
+
+    <p>
+        Reminders are scheduled commands, not something anyone has to remember to press.
+        Each one skips anybody who has already had that message, so running it twice
+        cannot double-send.
+    </p>
+
+    <figure>
+        <div class="sheet-bar"><span>Figure 19</span><span>The season, in order</span></div>
+        <div class="sheet-body">
+<pre class="mermaid">
+%%{init: {'theme':'base','flowchart':{'htmlLabels':false,'useMaxWidth':false},'er':{'useMaxWidth':false},'themeVariables':{'background':'transparent','fontFamily':'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif','fontSize':'14px','primaryColor':'#ffffff','primaryTextColor':'#191b1c','primaryBorderColor':'#9a948d','secondaryColor':'#eae6e2','tertiaryColor':'#f4f1ee','mainBkg':'#ffffff','nodeBorder':'#9a948d','clusterBkg':'#f4f1ee','clusterBorder':'#cfc9c2','lineColor':'#7d7871','textColor':'#33312e','edgeLabelBackground':'#fbfaf9','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#9a948d'}}}%%
+flowchart LR
+    A["Before<br/>registration opens<br/><br/>content and programme<br/>loaded, QR campaigns<br/>printed"]
+    B["Registration open<br/><br/>badges issued,<br/>universities claim<br/>their profiles"]
+    C["3 days out<br/><br/>reminder wave"]
+    D["1 day out<br/><br/>reminder wave"]
+    E["Each morning<br/><br/>directions to<br/>those attending<br/>that day"]
+    F["During sessions<br/><br/>15-minute reminders<br/>for saved sessions"]
+    G["At the doors<br/><br/>gate scanning,<br/>booth scanning"]
+    H["After<br/><br/>thank-you survey,<br/>reports and exports"]
+
+    A --> B --> C --> D --> E --> F --> G --> H
+
+    classDef fair fill:#b64698,stroke:#8d3376,color:#fff
+    classDef ops fill:#f2a93b,stroke:#c98a2c,color:#241a06
+    classDef plain fill:#fff,stroke:#9a948d,color:#191b1c
+
+    class B fair
+    class E,F,G ops
+    class A,C,D,H plain
+</pre>
+        </div>
+        <figcaption>
+            Every wave is one command that can be run dry first to see the count before
+            anything is sent.
+        </figcaption>
+    </figure>
+
+    <div class="tw">
+    <table>
+        <thead><tr><th>Command</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">nextstep:reminders three-days|one-day|day-of</td><td>Queues that reminder wave, skipping anyone already sent it</td></tr>
+            <tr><td class="r">nextstep:session-reminders</td><td>15-minute nudges for bookmarked sessions</td></tr>
+            <tr><td class="r">nextstep:badges:regenerate</td><td>Re-renders badge artwork after a design or key change</td></tr>
+            <tr><td class="r">nextstep:qr-secret</td><td>Creates or rotates the QR signing secret</td></tr>
+            <tr><td class="r">nextstep:sitemap</td><td>Rebuilds the sitemap across all three languages</td></tr>
+        </tbody>
+    </table>
+    </div>
+</section>
+
+<!-- ===================================================== 20 guards -- -->
+<section id="guards">
+    <div class="sec-head"><span class="sec-n">20</span><h2>Guards and limits</h2></div>
+
+    <p>
+        Three separate logins that cannot be swapped for one another: an attendee session
+        does not open the portal, and a portal session does not open the dashboard.
+    </p>
+
+    <div class="tw">
+    <table>
+        <thead><tr><th>Login</th><th>Who</th><th>Proves it by</th><th>Reaches</th></tr></thead>
+        <tbody>
+            <tr><td class="r">web</td><td>Next Step staff</td><td>Email and password, roles</td><td><span class="track o">/admin, /checkin</span></td></tr>
+            <tr><td class="r">attendee</td><td>Anyone with a badge</td><td>Phone plus WhatsApp code</td><td><span class="track f">/me and everything under it</span></td></tr>
+            <tr><td class="r">institution</td><td>University recruiters</td><td>Email plus code</td><td><span class="track i">/portal</span></td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3>Rate limits</h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>Action</th><th>Limit</th><th>Counted per</th></tr></thead>
+        <tbody>
+            <tr><td>Submitting a registration</td><td class="num">6 / minute, 40 / day</td><td>IP address</td></tr>
+            <tr><td>Entering or resending a code</td><td class="num">5 / minute</td><td>IP address, and per ticket</td></tr>
+            <tr><td>Requesting a sign-in code</td><td class="num">5 / minute, 15 / hour</td><td>IP, and 3 / minute per phone number</td></tr>
+            <tr><td>Lead capture forms</td><td class="num">4 / minute</td><td>IP address</td></tr>
+            <tr><td>Gate scanning</td><td class="num">120 / minute</td><td>Signed-in staff member</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p class="note">
+        Every public form also carries a hidden field a real person never fills in, and a
+        signed session token — so the ordinary bot traffic never reaches the database at
+        all.
+    </p>
+</section>
+
+<!-- ===================================================== 21 routes -- -->
+<section id="routes">
+    <div class="sec-head"><span class="sec-n">21</span><h2>Every URL</h2></div>
+
+    <p>
+        Everything in the first four groups exists three times, once per language. Only
+        the last two groups are language-neutral, because a QR code and a webhook do not
+        read.
+    </p>
+
+    <h3><span class="track f">Public pages</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Page</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}</td><td>Home</td></tr>
+            <tr><td class="r">/{lang}/about</td><td>About Next Step</td></tr>
+            <tr><td class="r">/{lang}/fair</td><td>The Expo</td></tr>
+            <tr><td class="r">/{lang}/conference</td><td>The Conference</td></tr>
+            <tr><td class="r">/{lang}/agenda</td><td>Programme, by day — also .ics and .pdf export</td></tr>
+            <tr><td class="r">/{lang}/seminars</td><td>Seminar listing</td></tr>
+            <tr><td class="r">/{lang}/speakers · /speakers/{slug}</td><td>Speakers and their profiles</td></tr>
+            <tr><td class="r">/{lang}/universities · /exhibitors</td><td>Who is exhibiting</td></tr>
+            <tr><td class="r">/{lang}/floor-plan</td><td>Hall layout</td></tr>
+            <tr><td class="r">/{lang}/partners · /sponsors</td><td>Partners and sponsors</td></tr>
+            <tr><td class="r">/{lang}/scholarships</td><td>Scholarships on offer</td></tr>
+            <tr><td class="r">/{lang}/news · /news/{slug}</td><td>News</td></tr>
+            <tr><td class="r">/{lang}/blog · /blog/{slug}</td><td>Blog</td></tr>
+            <tr><td class="r">/{lang}/media · /media/photos · /media/videos</td><td>Photo albums and video</td></tr>
+            <tr><td class="r">/{lang}/archive · /archive/{year}</td><td>Previous editions</td></tr>
+            <tr><td class="r">/{lang}/sdg</td><td>Sustainable development goals</td></tr>
+            <tr><td class="r">/{lang}/reports</td><td>Reports and downloads</td></tr>
+            <tr><td class="r">/{lang}/press-kit</td><td>Press kit</td></tr>
+            <tr><td class="r">/{lang}/contact</td><td>Contact form</td></tr>
+            <tr><td class="r">/{lang}/exhibit</td><td>Exhibitor enquiry</td></tr>
+            <tr><td class="r">/{lang}/privacy · /terms</td><td>Privacy and terms</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track f">Registration</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}/register/quick</td><td>Visitor pass — name and phone</td></tr>
+            <tr><td class="r">/{lang}/register/fair?type=student</td><td>Student — one page, creates the Next Step ID</td></tr>
+            <tr><td class="r">/{lang}/register/fair?type=parent</td><td>Parent — name, phone, city</td></tr>
+            <tr><td class="r">/{lang}/register/fair/verify/{ticket}</td><td>Enter the code</td></tr>
+            <tr><td class="r">/{lang}/register/fair/resend/{ticket}</td><td>Send the code again</td></tr>
+            <tr><td class="r">/{lang}/register/fair/done/{ticket}</td><td>Badge page</td></tr>
+            <tr><td class="r">/{lang}/register/duplicate/resend</td><td>Resend the badge on a number already registered</td></tr>
+            <tr><td class="r">/{lang}/register/conference</td><td>Delegate RSVP</td></tr>
+            <tr><td class="r">/{lang}/register/conference/done/{ticket}</td><td>Delegate confirmation</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track f">The attendee's own area</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}/signin</td><td>Students: email and password</td></tr>
+            <tr><td class="r">/{lang}/signin/badge · /signin/code</td><td>Everyone else: phone, then a code, to get the badge back</td></tr>
+            <tr><td class="r">/{lang}/join</td><td>The fork after adding a session as a guest</td></tr>
+            <tr><td class="r">/{lang}/me</td><td>Badge, agenda, attendance, messages</td></tr>
+            <tr><td class="r">/{lang}/me/agenda</td><td>Build the personal agenda</td></tr>
+            <tr><td class="r">/{lang}/me/interests</td><td>The eight questions</td></tr>
+            <tr><td class="r">/{lang}/me/matches</td><td>Ranked universities and why</td></tr>
+            <tr><td class="r">/{lang}/agenda/save/{session}</td><td>Add or remove one session</td></tr>
+            <tr><td class="r">/{lang}/opportunities</td><td>The board — everything open to this badge</td></tr>
+            <tr><td class="r">/{lang}/opportunities/{slug}</td><td>One offer in full</td></tr>
+            <tr><td class="r">/{lang}/opportunities/{slug}/go</td><td>Counted, then out to the partner</td></tr>
+            <tr><td class="r">/{lang}/me/edit</td><td>Their own details, and a photo</td></tr>
+            <tr><td class="r">/{lang}/me/share</td><td>The card and the caption</td></tr>
+            <tr><td class="r">/{lang}/share/card/{variant}/{format}</td><td>The artwork itself, as a page</td></tr>
+            <tr><td class="r">/{lang}/attending/{who}</td><td>Where a shared link lands. Public, names nobody</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track f">The scholarship program</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}/scholarship</td><td>The award, the quota, where the seats are</td></tr>
+            <tr><td class="r">/{lang}/scholarship/about</td><td>Why the programme exists</td></tr>
+            <tr><td class="r">/{lang}/scholarship/guidelines</td><td>Who can apply, how it is scored, the documents and dates</td></tr>
+            <tr><td class="r">/{lang}/scholarship/committee</td><td>Who decides, and how</td></tr>
+            <tr><td class="r">/{lang}/scholarship/universities · /universities/{slug}</td><td>Participating universities and their pledged seats</td></tr>
+            <tr><td class="r">/{lang}/scholarship/regions/{code}</td><td>One regional quota and its districts</td></tr>
+            <tr><td class="r">/{lang}/scholarship/recipients</td><td>Published after each cycle closes</td></tr>
+            <tr><td class="r">/{lang}/scholarship/apply</td><td>The three gates</td></tr>
+            <tr><td class="r">/{lang}/scholarship/apply/eligibility</td><td>The five questions</td></tr>
+            <tr><td class="r">/{lang}/scholarship/apply/form</td><td>The four steps</td></tr>
+            <tr><td class="r">/{lang}/scholarship/my-application</td><td>Where it stands</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track i">Exhibitor portal</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}/portal/register</td><td>Claim or create an institution</td></tr>
+            <tr><td class="r">/{lang}/portal/signin · /signin/code</td><td>Email, then the code</td></tr>
+            <tr><td class="r">/{lang}/portal</td><td>Dashboard</td></tr>
+            <tr><td class="r">/{lang}/portal/profile</td><td>Programmes, tuition, scholarships, goals</td></tr>
+            <tr><td class="r">/{lang}/portal/students</td><td>Matching students who opted in</td></tr>
+            <tr><td class="r">/{lang}/portal/leads</td><td>Everyone met at the booth</td></tr>
+            <tr><td class="r">/{lang}/portal/scanner</td><td>Scan a visitor badge at the stand</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track o">Language-neutral</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/verify/{ticket}</td><td>What a scanned QR opens</td></tr>
+            <tr><td class="r">/ticket/{ticket}/qr.svg · badge.png · badge.pdf</td><td>Badge assets</td></tr>
+            <tr><td class="r">/ticket/{ticket}/calendar.ics</td><td>Add the fair to a calendar</td></tr>
+            <tr><td class="r">/rsvp/{ticket}/manage · cancel</td><td>Delegate self-service by signed link</td></tr>
+            <tr><td class="r">/q/{code}</td><td>Campaign QR — counts, then forwards</td></tr>
+            <tr><td class="r">/checkin · /checkin/scan · /checkin/sync</td><td>Gate scanner, including offline sync</td></tr>
+            <tr><td class="r">/webhooks/whatsapp</td><td>Delivery and read receipts</td></tr>
+            <tr><td class="r">/admin · /admin/insights · 20 more</td><td>The dashboard</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p class="note">
+        Framework-internal routes — asset handling, live component updates, file previews
+        — are omitted; they are not pages anybody visits.
+    </p>
+</section>
+
+<footer>
+    Drawn from the code as it stands: routes, controllers, services and migrations.
+    Where a diagram and the code disagree, the code is right and the diagram is a bug.
+</footer>
+
+</main>
+</div>

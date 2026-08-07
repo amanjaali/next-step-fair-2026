@@ -1,0 +1,72 @@
+<?php
+
+/** The exhibitor portal: how a university describes itself and works its leads. */
+return [
+    'nav' => ['portal' => 'Exhibitor portal', 'dashboard' => 'Overview', 'profile' => 'Our programmes',
+        'students' => 'Matched students', 'leads' => 'Our leads', 'scanner' => 'Scan a badge', 'sign_out' => 'Sign out'],
+    'signin' => [
+        'title' => 'Exhibitor sign in', 'lead' => 'Use the e-mail address you registered with. We send a code — there is no password.',
+        'email' => 'Institutional e-mail', 'submit' => 'Send me a code', 'code_title' => 'Enter your code',
+        'code_lead' => 'If :email belongs to a registered exhibitor, a 6-digit code is on its way to it.',
+        'no_account' => 'Not registered as an exhibitor yet?', 'register' => 'Register your institution',
+        'signed_out' => 'You are signed out.', 'errors' => ['email' => 'Enter your institutional e-mail address.'],
+    ],
+    'register' => [
+        'title' => 'Register your institution', 'lead' => 'Tell us who you are. Once approved you can list your programmes, see which students are looking for them, and scan badges at your desk.',
+        'your_details' => 'About you', 'name' => 'Your name', 'email' => 'Institutional e-mail',
+        'email_hint' => 'Use your university address — it is what proves you speak for the institution.',
+        'job_title' => 'Your role', 'phone' => 'Phone', 'institution' => 'Your institution',
+        'existing' => 'Already listed at Next Step?', 'existing_hint' => 'Claim your existing entry instead of creating a second one.',
+        'choose' => 'Choose your institution', 'not_listed' => 'Not listed — register a new one',
+        'institution_name' => 'Institution name', 'kind' => 'Type', 'country' => 'Country',
+        'consent' => 'I confirm I am authorised to represent this institution, and I accept the terms.',
+        'submit' => 'Register', 'already' => 'That address is already registered. Sign in instead.',
+        'errors' => ['email' => 'Enter your institutional e-mail address.', 'institution' => 'Choose your institution or enter its name.'],
+    ],
+    'dashboard' => [
+        'title' => 'Overview', 'welcome' => 'Welcome, :name', 'pending' => 'Your registration is with the Next Step team',
+        'pending_note' => 'You can complete your programme list now. Your entry appears in the public directory once we approve it.',
+        'complete_profile' => 'Your profile is :percent% complete', 'complete_note' => 'Students are only matched to institutions that have listed programmes. Add yours to appear in their recommendations.',
+        'complete_cta' => 'List our programmes',
+        'matches' => 'Students matched', 'strong' => 'Strong matches', 'scans' => 'Badges scanned', 'follow_up' => 'Marked for follow-up',
+        'demand' => 'What your matched students want', 'demand_note' => 'The fields most named by students who match what you teach.',
+        'recent' => 'Recently scanned', 'nothing_yet' => 'Nothing yet.',
+    ],
+    'profile' => [
+        'title' => 'Our programmes', 'lead' => 'This is what students are matched against. The more precisely you fill it in, the better the students who walk to your desk.',
+        'about' => 'About the institution', 'description' => 'Description', 'website' => 'Website', 'city' => 'City',
+        'countries' => 'Where you teach', 'levels' => 'Degree levels offered', 'languages' => 'Languages of instruction',
+        'fields' => 'Programmes', 'fields_hint' => 'Tick each field you teach, and the levels you teach it at.',
+        'tuition' => 'Annual tuition', 'tuition_min' => 'From (USD)', 'tuition_max' => 'To (USD)',
+        'scholarships' => 'We offer scholarships', 'min_grade' => 'Minimum grade accepted',
+        'capacity' => 'Places available this intake', 'deadline' => 'Application deadline',
+        'target' => 'Students you hope to recruit', 'contact' => 'Contact for students',
+        'contact_email' => 'Contact e-mail', 'contact_phone' => 'Contact phone',
+        'save' => 'Save our profile', 'saved' => 'Saved. Your matches have been recalculated.',
+    ],
+    'students' => [
+        'title' => 'Matched students', 'lead' => 'Students whose stated interests fit what you teach, strongest match first.',
+        'shared_note' => ':count of these agreed to be contacted by matched institutions. The rest are counted but not named.',
+        'consented' => 'Agreed to be contacted', 'anonymous' => 'Not shared',
+        'wants' => 'Wants to study', 'level' => 'Level', 'score' => 'Match', 'city' => 'City',
+        'filter_field' => 'Filter by field', 'filter_min' => 'Minimum match', 'none' => 'No matches yet. Add your programmes and they will appear here.',
+    ],
+    'leads' => [
+        'title' => 'Our leads', 'lead' => 'Everyone you actually spoke to, newest first.',
+        'follow_up_only' => 'Follow-up only', 'rating' => 'Interest', 'notes' => 'Notes', 'day' => 'Day',
+        'none' => 'No one scanned yet. Use the scanner at your desk.',
+    ],
+    'scanner' => [
+        'title' => 'Scan a badge', 'lead' => 'Point the camera at a student badge to record that they came to your desk.',
+        'start' => 'Start camera', 'stop' => 'Stop', 'manual' => 'Or enter a ticket reference',
+        'invalid' => 'That badge is not valid for this event.', 'already' => 'Already scanned today',
+        'ok' => 'Recorded', 'match' => 'Match', 'shared' => 'Agreed to be contacted', 'not_shared' => 'Details not shared',
+        'note_placeholder' => 'Note (optional) — what they asked about', 'save_note' => 'Save note',
+    ],
+    'mail' => [
+        'subject' => 'Your Next Step exhibitor code is :code',
+        'greeting' => 'Hello :name,',
+        'body' => 'Your sign-in code for the Next Step exhibitor portal is below. It expires in 10 minutes.',
+        'ignore' => 'If you did not request this, you can ignore this e-mail.',
+    ],
+];

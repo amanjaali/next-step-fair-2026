@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Staff and operational surfaces are not for crawlers.
+Disallow: /admin
+Disallow: /checkin
+Disallow: /verify/
+Disallow: /ticket/
+Disallow: /rsvp/
+Disallow: /q/
+
+Sitemap: https://nextstepfair.com/sitemap.xml

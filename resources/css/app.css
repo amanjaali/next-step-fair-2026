@@ -1,0 +1,894 @@
+@import 'tailwindcss';
+
+/* Self-hosted so the site renders identically with no CDN and on a slow connection. */
+@import '@fontsource/space-grotesk/400.css';
+@import '@fontsource/space-grotesk/500.css';
+@import '@fontsource/space-grotesk/600.css';
+@import '@fontsource/space-grotesk/700.css';
+@import '@fontsource/manrope/400.css';
+@import '@fontsource/manrope/500.css';
+@import '@fontsource/manrope/700.css';
+@import '@fontsource/manrope/800.css';
+@import '@fontsource/noto-kufi-arabic/400.css';
+@import '@fontsource/noto-kufi-arabic/600.css';
+@import '@fontsource/noto-kufi-arabic/700.css';
+@import '@fontsource/noto-sans-arabic/400.css';
+@import '@fontsource/noto-sans-arabic/500.css';
+@import '@fontsource/noto-sans-arabic/600.css';
+@import '@fontsource/noto-sans-arabic/700.css';
+
+@source '../views';
+
+/* ---------------------------------------------------------------------------
+   Brand tokens — Next Step brand guideline.
+   Magenta is the Fair track, Cobalt is the Conference track, everywhere on the
+   site. Neither colour is ever used for a zone, a status or decoration.
+--------------------------------------------------------------------------- */
+@theme {
+    --color-ink: #050708;
+    --color-ink-900: #0d0f10;
+    --color-ink-800: #17191a;
+    --color-ink-700: #25282a;
+    --color-body: #1a1c1d;
+    --color-body-soft: #2a2c2d;
+    --color-slate: #4a4b4d;
+    --color-muted: #828384;
+    --color-disabled: #9b9b9b;
+
+    --color-magenta: #b64698;
+    --color-cobalt: #2c4be0;
+    --color-teal: #0e9b94;
+    --color-amber: #f2a93b;
+    --color-crimson: #8a1b3c;
+    --color-caution: #8a6e12;
+
+    --color-bone: #f4f1ee;
+    --color-bone-200: #eae6e2;
+    --color-bone-300: #e3dfdb;
+    --color-bone-50: #fbfaf9;
+
+    /* Official UN colours, used only in the SDG section. */
+    --color-sdg-4: #c5192d;
+    --color-sdg-8: #a21942;
+    --color-sdg-9: #fd6925;
+    --color-sdg-13: #3f7e44;
+    --color-sdg-17: #19486a;
+
+    --font-display: 'Space Grotesk', 'Noto Kufi Arabic', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Manrope', 'Noto Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+
+    --breakpoint-3xl: 1600px;
+}
+
+:root {
+    --ns-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --ns-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    --ns-hairline: rgba(5, 7, 8, 0.14);
+    --ns-hairline-soft: rgba(5, 7, 8, 0.1);
+    --ns-border: rgba(5, 7, 8, 0.25);
+    --ns-input-border: rgba(5, 7, 8, 0.28);
+    /* Track accent, swapped per page so shared partials pick up the right colour. */
+    --ns-accent: #b64698;
+    --ns-accent-soft: rgba(182, 70, 152, 0.07);
+    --ns-accent-line: rgba(182, 70, 152, 0.4);
+}
+
+/* Kurdish and Arabic take the Noto pairing; numerals stay Latin in all three. */
+[dir='rtl'] {
+    --ns-display: 'Noto Kufi Arabic', 'Space Grotesk', sans-serif;
+    --ns-body: 'Noto Sans Arabic', 'Manrope', sans-serif;
+}
+
+[data-track='conference'] {
+    --ns-accent: #2c4be0;
+    --ns-accent-soft: rgba(44, 75, 224, 0.07);
+    --ns-accent-line: rgba(44, 75, 224, 0.4);
+}
+
+@layer base {
+    body {
+        margin: 0;
+        background: var(--color-bone);
+        color: var(--color-ink);
+        font-family: var(--ns-body);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    /* RTL is a real mirror: line height opens up for Arabic script. */
+    [dir='rtl'] body {
+        line-height: 1.8;
+    }
+
+    a {
+        color: var(--color-cobalt);
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: var(--color-ink);
+    }
+
+    ::selection {
+        background: #b64698;
+        color: #fff;
+    }
+
+    input,
+    select,
+    button,
+    textarea {
+        border-radius: 0;
+        font-family: inherit;
+    }
+
+    /* Visible focus everywhere — WCAG 2.1 AA. */
+    :focus-visible {
+        outline: 3px solid #2c4be0;
+        outline-offset: 2px;
+    }
+
+    [dir='rtl'] .ns-mirror {
+        transform: scaleX(-1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+@layer components {
+    /* ---------------------------------------------------------------- layout */
+    .ns-wrap {
+        max-width: 1440px;
+        margin-inline: auto;
+        padding-inline: clamp(20px, 5vw, 80px);
+    }
+
+    .ns-section {
+        padding-block: clamp(56px, 7vw, 96px);
+    }
+
+    .ns-section-tight {
+        padding-block: clamp(48px, 5.5vw, 80px);
+    }
+
+    .ns-rule {
+        height: 1px;
+        background: var(--ns-hairline);
+        flex: 1;
+    }
+
+    /* Hairline grid: 1px gaps over a rule-coloured ground, as in the prototype. */
+    .ns-hairgrid {
+        display: grid;
+        gap: 1px;
+        background: rgba(5, 7, 8, 0.12);
+    }
+
+    .ns-hairgrid > * {
+        background: #fff;
+    }
+
+    /*
+     * The counters strip under the hero.
+     *
+     * Every cell is indented and carries a dividing rule — except the one that
+     * starts a row. Giving the first cell the same treatment as the rest pushed
+     * its number 26px inside the page and drew a rule at the far left with
+     * nothing on the other side of it, so the figures did not line up with the
+     * headline above them. Logical properties, so it mirrors in Kurdish and
+     * Arabic without a second rule.
+     */
+    .ns-counters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ns-counters > * {
+        padding-block: 30px;
+        padding-inline-start: 26px;
+        border-inline-start: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .ns-counters > :nth-child(2n + 1) {
+        padding-inline-start: 0;
+        border-inline-start: 0;
+    }
+
+    @media (min-width: 1024px) {
+        .ns-counters {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .ns-counters > :nth-child(2n + 1) {
+            padding-inline-start: 26px;
+            border-inline-start: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .ns-counters > :first-child {
+            padding-inline-start: 0;
+            border-inline-start: 0;
+        }
+    }
+
+    /*
+     * Clipped rather than parked at left:-9999px. Off-canvas positioning is
+     * invisible in LTR but in RTL the browser counts it as scrollable width, which
+     * stretched every Kurdish and Arabic page to 11,000px and put a 10,000px empty
+     * gutter beside the content.
+     */
+    .ns-skip {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+        z-index: 999;
+        background: #050708;
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .ns-skip:focus {
+        inset-inline-start: 12px;
+        top: 12px;
+        width: auto;
+        height: auto;
+        padding: 14px 20px;
+        margin: 0;
+        overflow: visible;
+        clip: auto;
+        clip-path: none;
+        color: #fff;
+    }
+
+    /* ------------------------------------------------------------ typography */
+    .ns-eyebrow {
+        font-family: var(--ns-display);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #4a4b4d;
+    }
+
+    [dir='rtl'] .ns-eyebrow {
+        letter-spacing: 0;
+        font-size: 13px;
+        text-transform: none;
+    }
+
+    .ns-display {
+        font-family: var(--ns-display);
+        font-weight: 700;
+        font-size: clamp(44px, 7.2vw, 104px);
+        line-height: 0.94;
+        letter-spacing: -0.03em;
+        margin: 0;
+    }
+
+    .ns-h1 {
+        font-family: var(--ns-display);
+        font-weight: 700;
+        font-size: clamp(34px, 5vw, 56px);
+        line-height: 1.02;
+        letter-spacing: -0.028em;
+        margin: 0;
+    }
+
+    .ns-h2 {
+        font-family: var(--ns-display);
+        font-weight: 700;
+        font-size: clamp(28px, 3.6vw, 42px);
+        line-height: 1.06;
+        letter-spacing: -0.025em;
+        margin: 0;
+    }
+
+    .ns-h3 {
+        font-family: var(--ns-display);
+        font-weight: 600;
+        font-size: clamp(20px, 2vw, 24px);
+        line-height: 1.15;
+        margin: 0;
+    }
+
+    [dir='rtl'] .ns-display,
+    [dir='rtl'] .ns-h1,
+    [dir='rtl'] .ns-h2,
+    [dir='rtl'] .ns-h3 {
+        letter-spacing: 0;
+        line-height: 1.35;
+    }
+
+    .ns-lead {
+        font-family: var(--ns-body);
+        font-size: clamp(16px, 1.3vw, 19px);
+        line-height: 1.65;
+        color: #2a2c2d;
+        margin: 0;
+        text-wrap: pretty;
+    }
+
+    .ns-body {
+        font-family: var(--ns-body);
+        font-size: 16.5px;
+        line-height: 1.7;
+        color: #2a2c2d;
+        margin: 0;
+    }
+
+    .ns-meta {
+        font-family: var(--ns-body);
+        font-size: 13px;
+        color: #4a4b4d;
+    }
+
+    .ns-stat {
+        font-family: var(--ns-display);
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+
+    /* Numerals stay Latin in every language, including RTL. */
+    .ns-num {
+        font-family: 'Space Grotesk', var(--ns-display);
+        direction: ltr;
+        unicode-bidi: isolate;
+    }
+
+    /* --------------------------------------------------------------- buttons */
+    .ns-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-family: var(--ns-body);
+        font-size: 14.5px;
+        font-weight: 700;
+        padding: 17px 28px;
+        min-height: 48px; /* 44px+ tap target on mobile */
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-align: center;
+        transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    }
+
+    .ns-btn-lg {
+        font-size: 15px;
+        padding: 20px 34px;
+    }
+
+    .ns-btn-sm {
+        font-size: 13px;
+        padding: 11px 16px;
+        min-height: 40px;
+    }
+
+    .ns-btn-magenta {
+        background: #b64698;
+        color: #fff;
+    }
+
+    .ns-btn-magenta:hover {
+        background: #a03c86;
+        color: #fff;
+    }
+
+    .ns-btn-cobalt {
+        background: #2c4be0;
+        color: #fff;
+    }
+
+    .ns-btn-cobalt:hover {
+        background: #2440c4;
+        color: #fff;
+    }
+
+    .ns-btn-accent {
+        background: var(--ns-accent);
+        color: #fff;
+    }
+
+    .ns-btn-accent:hover {
+        color: #fff;
+        filter: brightness(0.92);
+    }
+
+    .ns-btn-ink {
+        background: #050708;
+        color: #fff;
+    }
+
+    .ns-btn-ink:hover {
+        background: #1d2224;
+        color: #fff;
+    }
+
+    .ns-btn-ghost {
+        background: transparent;
+        color: #050708;
+        border-color: var(--ns-border);
+    }
+
+    .ns-btn-ghost:hover {
+        background: #050708;
+        color: #fff;
+        border-color: #050708;
+    }
+
+    .ns-btn-ghost-light {
+        background: transparent;
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .ns-btn-ghost-light:hover {
+        background: #fff;
+        color: #050708;
+    }
+
+    .ns-btn-white {
+        background: #fff;
+        color: var(--ns-accent);
+    }
+
+    .ns-btn[disabled],
+    .ns-btn[aria-disabled='true'] {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .ns-link {
+        font-family: var(--ns-body);
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #b64698;
+        border-bottom: 2px solid #b64698;
+        padding-bottom: 2px;
+    }
+
+    .ns-link:hover {
+        color: #050708;
+        border-color: #050708;
+    }
+
+    /* ----------------------------------------------------------------- forms */
+    .ns-label {
+        font-family: var(--ns-body);
+        font-size: 13px;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 8px;
+        color: #050708;
+    }
+
+    .ns-req {
+        color: var(--ns-accent);
+    }
+
+    .ns-input,
+    .ns-select,
+    .ns-textarea {
+        width: 100%;
+        box-sizing: border-box;
+        font-family: var(--ns-body);
+        font-size: 16px; /* 16px stops iOS zooming the form on focus */
+        padding: 14px;
+        border: 1px solid var(--ns-input-border);
+        background: #f4f1ee;
+        color: #050708;
+        min-height: 48px;
+    }
+
+    .ns-textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .ns-input:focus,
+    .ns-select:focus,
+    .ns-textarea:focus {
+        border-color: var(--ns-accent);
+        background: #fff;
+    }
+
+    .ns-input[aria-invalid='true'],
+    .ns-select[aria-invalid='true'],
+    .ns-textarea[aria-invalid='true'] {
+        border-color: #8a1b3c;
+        border-width: 2px;
+    }
+
+    .ns-hint {
+        font-family: var(--ns-body);
+        font-size: 12.5px;
+        color: #4a4b4d;
+        display: block;
+        margin-top: 7px;
+    }
+
+    .ns-error {
+        font-family: var(--ns-body);
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #8a1b3c;
+        display: block;
+        margin-top: 7px;
+    }
+
+    .ns-prefix {
+        font-family: var(--ns-body);
+        font-size: 16px;
+        padding: 14px 12px;
+        border: 1px solid var(--ns-input-border);
+        border-inline-end: 0;
+        background: #eae6e2;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Toggle chips — multi-select options throughout both registration flows. */
+    .ns-chip {
+        font-family: var(--ns-body);
+        font-size: 13.5px;
+        padding: 12px 15px;
+        min-height: 44px;
+        border: 1px solid var(--ns-border);
+        background: transparent;
+        color: #050708;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .ns-chip:hover {
+        border-color: var(--ns-accent);
+    }
+
+    .ns-chip[aria-pressed='true'],
+    .ns-chip.is-on {
+        background: var(--ns-accent);
+        border-color: var(--ns-accent);
+        color: #fff;
+    }
+
+    /* Chips wrap a real checkbox or radio, so multi-select works without JS. */
+    .ns-chip:has(input:checked) {
+        background: var(--ns-accent);
+        border-color: var(--ns-accent);
+        color: #fff;
+    }
+
+    .ns-chip-ink:has(input:checked),
+    .ns-chip-ink[aria-pressed='true'],
+    .ns-chip-ink.is-on {
+        background: #050708;
+        border-color: #050708;
+        color: #fff;
+    }
+
+    .ns-box {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(5, 7, 8, 0.3);
+        background: transparent;
+        flex: none;
+        display: inline-block;
+    }
+
+    .ns-box.is-on,
+    label:has(input:checked) > .ns-box {
+        border-color: var(--ns-accent);
+        background: var(--ns-accent);
+    }
+
+    /* Day cards and option tiles: a bordered block that fills on selection. */
+    .ns-tile {
+        display: block;
+        padding: 18px;
+        border: 1px solid var(--ns-border);
+        background: transparent;
+        cursor: pointer;
+        transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .ns-tile:has(input:checked) {
+        border: 2px solid var(--ns-accent);
+        background: var(--ns-accent-soft);
+        color: var(--ns-accent);
+    }
+
+    .ns-tile:has(input:checked) .ns-tile-title {
+        color: var(--ns-accent);
+    }
+
+    /* Session picker rows. */
+    .ns-pickrow {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: #fff;
+        border: 0;
+        border-bottom: 1px solid var(--ns-hairline-soft);
+        padding: 15px 16px;
+        cursor: pointer;
+        text-align: start;
+    }
+
+    .ns-pickrow:has(input:checked) {
+        background: var(--ns-accent-soft);
+    }
+
+    /* ----------------------------------------------------------------- cards */
+    .ns-card {
+        background: #fff;
+        border: 1px solid var(--ns-hairline);
+        padding: clamp(24px, 3vw, 34px);
+    }
+
+    .ns-card-flat {
+        background: #fff;
+        padding: clamp(24px, 3vw, 34px);
+    }
+
+    .ns-panel-ink {
+        background: #050708;
+        color: #fff;
+        padding: clamp(24px, 3vw, 34px);
+    }
+
+    /* Grey placeholder frames stand in for photography, per the brand guideline. */
+    .ns-frame {
+        background: #e3dfdb;
+        display: flex;
+        align-items: flex-end;
+        padding: 16px;
+        color: #828384;
+        font-family: var(--ns-display);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .ns-frame img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .ns-frame-center {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    /* ------------------------------------------------------------ navigation */
+    .ns-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--ns-hairline);
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .ns-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .ns-tab {
+        font-family: var(--ns-body);
+        font-size: 15px;
+        font-weight: 700;
+        background: transparent;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        color: #4a4b4d;
+        padding: 15px 26px 13px;
+        margin-bottom: -1px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .ns-tab[aria-selected='true'],
+    .ns-tab.is-on {
+        border-bottom-color: var(--ns-accent);
+        color: #050708;
+    }
+
+    .ns-typechip {
+        font-family: var(--ns-display);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        display: inline-block;
+    }
+
+    .ns-typechip-fair {
+        background: rgba(182, 70, 152, 0.1);
+        color: #b64698;
+    }
+
+    .ns-typechip-conf {
+        background: rgba(44, 75, 224, 0.1);
+        color: #2c4be0;
+    }
+
+    /* --------------------------------------------------------------- editor  */
+    /* Output of the admin rich-text editor. */
+    .ns-prose {
+        font-family: var(--ns-body);
+        font-size: 17.5px;
+        line-height: 1.75;
+        color: #1a1c1d;
+    }
+
+    .ns-prose p {
+        max-width: 68ch;
+        margin: 0 0 26px;
+    }
+
+    .ns-prose h2 {
+        font-family: var(--ns-display);
+        font-size: 30px;
+        font-weight: 600;
+        line-height: 1.15;
+        margin: 44px 0 16px;
+    }
+
+    .ns-prose h3 {
+        font-family: var(--ns-display);
+        font-size: 23px;
+        font-weight: 600;
+        margin: 34px 0 12px;
+    }
+
+    .ns-prose ol {
+        max-width: 68ch;
+        padding-inline-start: 22px;
+        margin: 0 0 26px;
+    }
+
+    .ns-prose li {
+        margin-bottom: 10px;
+    }
+
+    .ns-prose ul {
+        list-style: none;
+        padding-inline-start: 0;
+        max-width: 68ch;
+        margin: 0 0 26px;
+    }
+
+    .ns-prose ul > li {
+        display: flex;
+        gap: 14px;
+    }
+
+    .ns-prose ul > li::before {
+        content: '';
+        width: 14px;
+        height: 5px;
+        background: var(--ns-accent);
+        margin-top: 12px;
+        flex: none;
+    }
+
+    .ns-prose blockquote {
+        margin: 40px 0;
+        padding-inline-start: 28px;
+        border-inline-start: 8px solid var(--ns-accent);
+        max-width: 60ch;
+        font-family: var(--ns-display);
+        font-size: 27px;
+        font-weight: 600;
+        line-height: 1.25;
+        letter-spacing: -0.018em;
+    }
+
+    .ns-prose a {
+        border-bottom: 2px solid currentColor;
+    }
+
+    .ns-prose img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .ns-prose table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+    }
+
+    .ns-prose th,
+    .ns-prose td {
+        border: 1px solid var(--ns-hairline);
+        padding: 10px 12px;
+        text-align: start;
+    }
+
+    /* --------------------------------------------------------------- motion  */
+    /* Fade-and-rise on scroll, 300ms, nothing else. */
+    .ns-rise {
+        opacity: 0;
+        transform: translateY(14px);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    }
+
+    .ns-rise.is-visible {
+        opacity: 1;
+        transform: none;
+    }
+
+    .ns-marquee {
+        display: flex;
+        gap: 1px;
+        width: max-content;
+        animation: ns-scroll 50s linear infinite;
+    }
+
+    .ns-marquee:hover {
+        animation-play-state: paused;
+    }
+
+    @keyframes ns-scroll {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(-50%);
+        }
+    }
+}
+
+@layer utilities {
+    .ns-accent-bg {
+        background: var(--ns-accent);
+    }
+
+    .ns-accent-text {
+        color: var(--ns-accent);
+    }
+
+    /* The 10px track rule down the leading edge of dark heroes. */
+    .ns-track-rule::before {
+        content: '';
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: 0;
+        width: 10px;
+        background: var(--ns-accent);
+        z-index: 2;
+    }
+
+    .ns-bar {
+        width: 14px;
+        height: 5px;
+        flex: none;
+        display: inline-block;
+    }
+}

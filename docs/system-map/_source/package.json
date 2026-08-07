@@ -1,0 +1,10 @@
+{
+  "name": "next-step-system-map-source",
+  "private": true,
+  "type": "commonjs",
+  "description": "Renders the map's mermaid blocks to SVG. The repository root is an ES module package; this script is CommonJS, so it declares that here.",
+  "devDependencies": {
+    "mermaid": "^11.6.0",
+    "playwright": "^1.52.0"
+  }
+}

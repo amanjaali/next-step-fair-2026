@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every URL — Next Step Fair 2026 documentation</title>
+<meta name="description" content="The complete reference">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+<aside class="rail">
+    <div class="rail-top">
+        <a class="rail-mark" href="index.html">
+            <span class="rail-name">Next Step Fair 2026</span>
+            <span class="rail-sub">System documentation</span>
+        </a>
+        <button type="button" class="theme" id="theme" aria-label="Switch between light and dark">
+            <span data-when="light">Dark</span><span data-when="dark">Light</span>
+        </button>
+    </div>
+    <form class="find" role="search" onsubmit="return false">
+        <label class="sr-only" for="q">Search the documentation</label>
+        <input id="q" type="search" placeholder="Search — try badge, OTP, matching" autocomplete="off">
+        <ul id="results" hidden></ul>
+    </form>
+    <nav class="nav" aria-label="Documentation">
+<div class="nav-group">
+<a class="nav-page" href="index.html">Start here</a>
+<ul>
+<li><a href="index.html#glance"><span class="n">01</span><span>The whole thing at a glance</span></a></li>
+<li><a href="index.html#urls"><span class="n">02</span><span>URLs and language</span></a></li>
+</ul></div>
+<div class="nav-group">
+<a class="nav-page" href="registration.html">Getting a badge</a>
+<ul>
+<li><a href="registration.html#doors"><span class="n">03</span><span>Three doors, one badge</span></a></li>
+<li><a href="registration.html#fair"><span class="n">04</span><span>Expo registration</span></a></li>
+<li><a href="registration.html#upgrade"><span class="n">05</span><span>Completing a visitor pass</span></a></li>
+<li><a href="registration.html#duplicate"><span class="n">06</span><span>One number, one badge</span></a></li>
+<li><a href="registration.html#conference"><span class="n">07</span><span>Conference RSVP</span></a></li>
+</ul></div>
+<div class="nav-group">
+<a class="nav-page" href="attendees.html">After registering</a>
+<ul>
+<li><a href="attendees.html#account"><span class="n">08</span><span>The Next Step ID</span></a></li>
+<li><a href="attendees.html#opportunities"><span class="n">09</span><span>What registering is worth</span></a></li>
+<li><a href="attendees.html#scholarship"><span class="n">10</span><span>The National Scholarship Program</span></a></li>
+<li><a href="attendees.html#matching"><span class="n">11</span><span>Interests and matching</span></a></li>
+</ul></div>
+<div class="nav-group">
+<a class="nav-page" href="exhibitors.html">Exhibitors</a>
+<ul>
+<li><a href="exhibitors.html#portal"><span class="n">12</span><span>The exhibitor portal</span></a></li>
+<li><a href="exhibitors.html#leads"><span class="n">13</span><span>Booth scans, leads and what they answer</span></a></li>
+</ul></div>
+<div class="nav-group">
+<a class="nav-page" href="operations.html">Event days</a>
+<ul>
+<li><a href="operations.html#gate"><span class="n">14</span><span>Gate check-in</span></a></li>
+<li><a href="operations.html#messaging"><span class="n">15</span><span>Messaging</span></a></li>
+<li><a href="operations.html#qr"><span class="n">16</span><span>Campaign QR codes</span></a></li>
+</ul></div>
+<div class="nav-group">
+<a class="nav-page" href="internals.html">Behind it</a>
+<ul>
+<li><a href="internals.html#admin"><span class="n">17</span><span>The dashboard</span></a></li>
+<li><a href="internals.html#data"><span class="n">18</span><span>Data model</span></a></li>
+<li><a href="internals.html#calendar"><span class="n">19</span><span>What runs when</span></a></li>
+<li><a href="internals.html#guards"><span class="n">20</span><span>Guards and limits</span></a></li>
+</ul></div>
+<div class="nav-group is-here">
+<a class="nav-page" href="routes.html" aria-current=page>Every URL</a>
+<ul>
+<li><a href="#routes"><span class="n">21</span><span>Every URL</span></a></li>
+</ul></div>
+</nav>
+</aside>
+<main id="main">
+<p class="crumb"><a href="index.html">Documentation</a> <span>/</span> Every URL</p>
+<section id="routes">
+    <div class="sec-head"><span class="sec-n">21</span><h2>Every URL</h2></div>
+
+    <p>
+        Everything in the first four groups exists three times, once per language. Only
+        the last two groups are language-neutral, because a QR code and a webhook do not
+        read.
+    </p>
+
+    <h3><span class="track f">Public pages</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Page</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}</td><td>Home</td></tr>
+            <tr><td class="r">/{lang}/about</td><td>About Next Step</td></tr>
+            <tr><td class="r">/{lang}/fair</td><td>The Expo</td></tr>
+            <tr><td class="r">/{lang}/conference</td><td>The Conference</td></tr>
+            <tr><td class="r">/{lang}/agenda</td><td>Programme, by day — also .ics and .pdf export</td></tr>
+            <tr><td class="r">/{lang}/seminars</td><td>Seminar listing</td></tr>
+            <tr><td class="r">/{lang}/speakers · /speakers/{slug}</td><td>Speakers and their profiles</td></tr>
+            <tr><td class="r">/{lang}/universities · /exhibitors</td><td>Who is exhibiting</td></tr>
+            <tr><td class="r">/{lang}/floor-plan</td><td>Hall layout</td></tr>
+            <tr><td class="r">/{lang}/partners · /sponsors</td><td>Partners and sponsors</td></tr>
+            <tr><td class="r">/{lang}/scholarships</td><td>Scholarships on offer</td></tr>
+            <tr><td class="r">/{lang}/news · /news/{slug}</td><td>News</td></tr>
+            <tr><td class="r">/{lang}/blog · /blog/{slug}</td><td>Blog</td></tr>
+            <tr><td class="r">/{lang}/media · /media/photos · /media/videos</td><td>Photo albums and video</td></tr>
+            <tr><td class="r">/{lang}/archive · /archive/{year}</td><td>Previous editions</td></tr>
+            <tr><td class="r">/{lang}/sdg</td><td>Sustainable development goals</td></tr>
+            <tr><td class="r">/{lang}/reports</td><td>Reports and downloads</td></tr>
+            <tr><td class="r">/{lang}/press-kit</td><td>Press kit</td></tr>
+            <tr><td class="r">/{lang}/contact</td><td>Contact form</td></tr>
+            <tr><td class="r">/{lang}/exhibit</td><td>Exhibitor enquiry</td></tr>
+            <tr><td class="r">/{lang}/privacy · /terms</td><td>Privacy and terms</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track f">Registration</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}/register/quick</td><td>Visitor pass — name and phone</td></tr>
+            <tr><td class="r">/{lang}/register/fair?type=student</td><td>Student — one page, creates the Next Step ID</td></tr>
+            <tr><td class="r">/{lang}/register/fair?type=parent</td><td>Parent — name, phone, city</td></tr>
+            <tr><td class="r">/{lang}/register/fair/verify/{ticket}</td><td>Enter the code</td></tr>
+            <tr><td class="r">/{lang}/register/fair/resend/{ticket}</td><td>Send the code again</td></tr>
+            <tr><td class="r">/{lang}/register/fair/done/{ticket}</td><td>Badge page</td></tr>
+            <tr><td class="r">/{lang}/register/duplicate/resend</td><td>Resend the badge on a number already registered</td></tr>
+            <tr><td class="r">/{lang}/register/conference</td><td>Delegate RSVP</td></tr>
+            <tr><td class="r">/{lang}/register/conference/done/{ticket}</td><td>Delegate confirmation</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track f">The attendee's own area</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}/signin</td><td>Students: email and password</td></tr>
+            <tr><td class="r">/{lang}/signin/badge · /signin/code</td><td>Everyone else: phone, then a code, to get the badge back</td></tr>
+            <tr><td class="r">/{lang}/join</td><td>The fork after adding a session as a guest</td></tr>
+            <tr><td class="r">/{lang}/me</td><td>Badge, agenda, attendance, messages</td></tr>
+            <tr><td class="r">/{lang}/me/agenda</td><td>Build the personal agenda</td></tr>
+            <tr><td class="r">/{lang}/me/interests</td><td>The eight questions</td></tr>
+            <tr><td class="r">/{lang}/me/matches</td><td>Ranked universities and why</td></tr>
+            <tr><td class="r">/{lang}/agenda/save/{session}</td><td>Add or remove one session</td></tr>
+            <tr><td class="r">/{lang}/opportunities</td><td>The board — everything open to this badge</td></tr>
+            <tr><td class="r">/{lang}/opportunities/{slug}</td><td>One offer in full</td></tr>
+            <tr><td class="r">/{lang}/opportunities/{slug}/go</td><td>Counted, then out to the partner</td></tr>
+            <tr><td class="r">/{lang}/me/edit</td><td>Their own details, and a photo</td></tr>
+            <tr><td class="r">/{lang}/me/share</td><td>The card and the caption</td></tr>
+            <tr><td class="r">/{lang}/share/card/{variant}/{format}</td><td>The artwork itself, as a page</td></tr>
+            <tr><td class="r">/{lang}/attending/{who}</td><td>Where a shared link lands. Public, names nobody</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track f">The scholarship program</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}/scholarship</td><td>The award, the quota, where the seats are</td></tr>
+            <tr><td class="r">/{lang}/scholarship/about</td><td>Why the programme exists</td></tr>
+            <tr><td class="r">/{lang}/scholarship/guidelines</td><td>Who can apply, how it is scored, the documents and dates</td></tr>
+            <tr><td class="r">/{lang}/scholarship/committee</td><td>Who decides, and how</td></tr>
+            <tr><td class="r">/{lang}/scholarship/universities · /universities/{slug}</td><td>Participating universities and their pledged seats</td></tr>
+            <tr><td class="r">/{lang}/scholarship/regions/{code}</td><td>One regional quota and its districts</td></tr>
+            <tr><td class="r">/{lang}/scholarship/recipients</td><td>Published after each cycle closes</td></tr>
+            <tr><td class="r">/{lang}/scholarship/apply</td><td>The three gates</td></tr>
+            <tr><td class="r">/{lang}/scholarship/apply/eligibility</td><td>The five questions</td></tr>
+            <tr><td class="r">/{lang}/scholarship/apply/form</td><td>The four steps</td></tr>
+            <tr><td class="r">/{lang}/scholarship/my-application</td><td>Where it stands</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track i">Exhibitor portal</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/{lang}/portal/register</td><td>Claim or create an institution</td></tr>
+            <tr><td class="r">/{lang}/portal/signin · /signin/code</td><td>Email, then the code</td></tr>
+            <tr><td class="r">/{lang}/portal</td><td>Dashboard</td></tr>
+            <tr><td class="r">/{lang}/portal/profile</td><td>Programmes, tuition, scholarships, goals</td></tr>
+            <tr><td class="r">/{lang}/portal/students</td><td>Matching students who opted in</td></tr>
+            <tr><td class="r">/{lang}/portal/leads</td><td>Everyone met at the booth</td></tr>
+            <tr><td class="r">/{lang}/portal/scanner</td><td>Scan a visitor badge at the stand</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <h3><span class="track o">Language-neutral</span></h3>
+    <div class="tw">
+    <table>
+        <thead><tr><th>URL</th><th>Does</th></tr></thead>
+        <tbody>
+            <tr><td class="r">/verify/{ticket}</td><td>What a scanned QR opens</td></tr>
+            <tr><td class="r">/ticket/{ticket}/qr.svg · badge.png · badge.pdf</td><td>Badge assets</td></tr>
+            <tr><td class="r">/ticket/{ticket}/calendar.ics</td><td>Add the fair to a calendar</td></tr>
+            <tr><td class="r">/rsvp/{ticket}/manage · cancel</td><td>Delegate self-service by signed link</td></tr>
+            <tr><td class="r">/q/{code}</td><td>Campaign QR — counts, then forwards</td></tr>
+            <tr><td class="r">/checkin · /checkin/scan · /checkin/sync</td><td>Gate scanner, including offline sync</td></tr>
+            <tr><td class="r">/webhooks/whatsapp</td><td>Delivery and read receipts</td></tr>
+            <tr><td class="r">/admin · /admin/insights · 20 more</td><td>The dashboard</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p class="note">
+        Framework-internal routes — asset handling, live component updates, file previews
+        — are omitted; they are not pages anybody visits.
+    </p>
+</section>
+<nav class="pager"><a class="pager-prev" href="internals.html"><span>Previous</span><strong>Behind it</strong></a></nav>
+<footer>
+    Drawn from the code as it stands: routes, controllers, services and migrations.
+    Where a diagram and the code disagree, the code is right and the diagram is a bug.
+    <br>Rebuild the diagrams after changing a flow, or the map starts lying.
+</footer>
+</main>
+</div>
+<script src="assets/docs.js" defer></script>
+</body>
+</html>
