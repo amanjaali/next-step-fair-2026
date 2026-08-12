@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             MediaSeeder::class,
             MessageTemplateSeeder::class,
             OpportunitySeeder::class,
+            OfferPopupSeeder::class,
             DemoDataSeeder::class,
         ]);
 

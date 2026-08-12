@@ -30,11 +30,30 @@
                 </article>
             @endif
 
-            <div class="flex items-end justify-between gap-6 flex-wrap mb-2">
-                <x-ns.filter-chips param="category" :active="$activeCategory"
-                                   :options="collect(['all' => __('site.common.all')])->merge($categories->mapWithKeys(fn ($c) => [$c->slug => $c->t('name')]))->all()" />
-                <x-ns.filter-chips param="year" :active="$activeYear" ink
-                                   :options="collect(['all' => __('site.common.all_years')])->merge($years->mapWithKeys(fn ($y) => [$y => $y]))->all()" />
+            {{-- One labelled row of topics, and the year as a plain menu.
+                 Two unlabelled chip rows side by side, each opening with its own
+                 "All", read as one long undifferentiated strip — the same thing
+                 that made the agenda unreadable. --}}
+            <div class="flex items-center justify-between gap-x-6 gap-y-3 flex-wrap mb-4">
+                <div class="flex items-baseline gap-3 flex-wrap">
+                    <span class="ns-meta text-[12.5px] shrink-0">{{ __('site.pages.agenda.filter_by') }}</span>
+                    <x-ns.filter-chips param="category" :active="$activeCategory"
+                                       :options="collect(['all' => __('site.common.all')])->merge($categories->mapWithKeys(fn ($c) => [$c->slug => $c->t('name')]))->all()" />
+                </div>
+
+                <form method="GET" class="flex items-center gap-2 shrink-0">
+                    @if ($activeCategory !== 'all')
+                        <input type="hidden" name="category" value="{{ $activeCategory }}">
+                    @endif
+                    <label for="ns-news-year" class="ns-meta text-[12.5px]">{{ __('site.pages.news.year') }}</label>
+                    <select id="ns-news-year" name="year" class="ns-select !w-auto !min-h-10 !py-0 !h-10 !text-[13.5px] cursor-pointer"
+                            onchange="this.form.submit()">
+                        <option value="">{{ __('site.common.all_years') }}</option>
+                        @foreach ($years as $y)
+                            <option value="{{ $y }}" @selected((string) $activeYear === (string) $y)>{{ $y }}</option>
+                        @endforeach
+                    </select>
+                </form>
             </div>
 
             <div class="ns-meta border-b border-[rgba(5,7,8,0.14)] pb-5 mb-9">

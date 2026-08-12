@@ -10,6 +10,28 @@
 <?php $component->withAttributes(['title' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($title),'navKey' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($navKey)]); ?>
 
     
+    <?php if (isset($component)) { $__componentOriginal3eb1f7c048162dbd6ed55676eb392c46 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal3eb1f7c048162dbd6ed55676eb392c46 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ns.offer-popup','data' => ['popup' => $popup]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('ns.offer-popup'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['popup' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($popup)]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal3eb1f7c048162dbd6ed55676eb392c46)): ?>
+<?php $attributes = $__attributesOriginal3eb1f7c048162dbd6ed55676eb392c46; ?>
+<?php unset($__attributesOriginal3eb1f7c048162dbd6ed55676eb392c46); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal3eb1f7c048162dbd6ed55676eb392c46)): ?>
+<?php $component = $__componentOriginal3eb1f7c048162dbd6ed55676eb392c46; ?>
+<?php unset($__componentOriginal3eb1f7c048162dbd6ed55676eb392c46); ?>
+<?php endif; ?>
+
+    
     <section class="bg-ink text-white relative overflow-hidden ns-track-rule">
         <div class="absolute inset-0 bg-ink-800 flex items-center justify-center">
             <span class="ns-eyebrow !text-white/25"><?php echo e(__('site.home.hero_media')); ?></span>
@@ -147,7 +169,8 @@
 
         
         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($opportunities->isNotEmpty()): ?>
-            <section class="ns-wrap pt-[clamp(44px,6vw,80px)]">
+            
+            <section class="ns-wrap pt-[clamp(44px,6vw,80px)] pb-[clamp(44px,6vw,80px)]">
                 <div class="flex items-end justify-between gap-6 flex-wrap mb-7">
                     <div>
                         <div class="ns-eyebrow !text-magenta mb-2"><?php echo e(__('opportunities.kicker')); ?></div>
@@ -421,7 +444,7 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-[9px] mb-2 flex-wrap">
-                            <span class="ns-typechip <?php echo e($session->chipClass()); ?>"><?php echo e($session->type); ?></span>
+                            <span class="ns-typechip <?php echo e($session->chipClass()); ?>"><?php echo e($session->typeLabel()); ?></span>
                             <span class="ns-meta text-xs"><?php echo e($session->hallLabel()); ?></span>
                         </div>
                         <div class="font-[family-name:var(--ns-body)] text-base font-bold leading-[1.35] mb-[6px]">

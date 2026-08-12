@@ -6,7 +6,7 @@
 return [
     'kicker' => 'Opportunities',
     'title' => 'Opportunities',
-    'lead' => 'Scholarships, offers and places that our partners bring to Next Step. Universities and the ministry put them here so students can find them in one place and apply through us.',
+    'lead' => 'Scholarships, offers and places that our partners bring to Next Step. Universities and the ministry put them here so students — and the families helping them decide — can find them in one place.',
     'home_title' => 'Open to you right now',
     'home_lead' => 'From the ministry, the universities and the organisations Next Step works with.',
     'see_all' => 'See all opportunities',
@@ -20,11 +20,24 @@ return [
     'related' => 'Other opportunities',
     'closing_title' => 'Closing soon',
     'action_note' => 'This takes you to the partner’s own form. We tell them the application came from Next Step; we do not send them your details.',
-    'locked_title' => 'These are for registered students',
-    'locked_body' => 'Partners bring these to Next Step for our students. Register once — it takes about a minute — and they open, along with the agenda, the seminars and the scholarship.',
-    'locked_cta' => 'Register as a student',
+    'locked_title' => 'These open when you register',
+    'locked_body' => 'Partners bring these to Next Step for the people coming to the fair. Register once — it takes about a minute — and they open, along with the agenda, the seminars and the scholarship. Parents register too, and see what is aimed at families.',
+    'locked_cta' => 'Register for the fair',
     'empty_title' => 'Nothing open just now',
     'empty_body' => 'New scholarships and offers are added through the year, and closing dates are announced here first. We will message you when something opens that fits.',
+
+    /*
+     * Shown to a parent or a delegate on the board. Most of what partners bring
+     * is aimed at students, so say so and give them the one useful action
+     * instead of a page that reads as though they should not be here.
+     */
+    'for_students' => [
+        'title' => 'Most of these are for students',
+        'body' => 'Partners aim their offers at the person who will take them up. Anything meant for parents appears here too — but if you are here for somebody, this is the page to put in front of them.',
+        'send' => 'Send this to your student',
+        'message' => "Scholarships and offers from the universities and the ministry, in one place on the Next Step site. You need a Next Step account to open them:\n:url",
+    ],
+
     'kinds' => [
         'scholarship' => 'Scholarship',
         'offer' => 'Special offer',

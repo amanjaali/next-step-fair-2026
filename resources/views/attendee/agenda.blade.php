@@ -38,7 +38,7 @@
 
                         <div class="min-w-0">
                             <div class="flex items-center gap-[9px] mb-2 flex-wrap">
-                                <span class="ns-typechip {{ $session->chipClass() }}">{{ $session->type }}</span>
+                                <span class="ns-typechip {{ $session->chipClass() }}">{{ $session->typeLabel() }}</span>
                                 <span class="ns-meta text-xs">{{ $session->hallLabel() }}</span>
                             </div>
                             <h3 class="font-[family-name:var(--ns-display)] text-[21px] font-semibold leading-[1.2] mb-1">

@@ -67,6 +67,23 @@
     --ns-hairline-soft: rgba(5, 7, 8, 0.1);
     --ns-border: rgba(5, 7, 8, 0.25);
     --ns-input-border: rgba(5, 7, 8, 0.28);
+    /*
+     * Softness.
+     *
+     * The brand is built on hard 90° corners, which reads as precise up close and
+     * as severe across a whole page of them. These take the edge off without
+     * turning anything into a pill: a radius you notice only if you look for it,
+     * and shadows that suggest depth rather than announce it. Every rounded
+     * surface on the site pulls from these three, so the whole feel moves
+     * together from one place.
+     */
+    --ns-radius-sm: 4px;
+    --ns-radius: 6px;
+    --ns-radius-lg: 10px;
+    --ns-shadow-sm: 0 1px 2px rgba(5, 7, 8, 0.04), 0 2px 8px -4px rgba(5, 7, 8, 0.06);
+    --ns-shadow: 0 2px 6px -2px rgba(5, 7, 8, 0.06), 0 12px 32px -12px rgba(5, 7, 8, 0.18);
+    --ns-ease: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
     /* Track accent, swapped per page so shared partials pick up the right colour. */
     --ns-accent: #b64698;
     --ns-accent-soft: rgba(182, 70, 152, 0.07);
@@ -83,6 +100,20 @@
     --ns-accent: #2c4be0;
     --ns-accent-soft: rgba(44, 75, 224, 0.07);
     --ns-accent-line: rgba(44, 75, 224, 0.4);
+}
+
+/*
+ * Alpine's x-cloak is an attribute and nothing else — it does nothing at all
+ * unless a stylesheet hides it. Without this rule, every element carrying it is
+ * fully visible for the few hundred milliseconds between the HTML arriving and
+ * Alpine booting, and then vanishes. On the offer popup that read as the popup
+ * appearing, disappearing and appearing again.
+ *
+ * Outside any @layer so it beats utility classes: the popup's own class list
+ * sets `flex`, and a layered rule would lose to it.
+ */
+[x-cloak] {
+    display: none !important;
 }
 
 @layer base {
@@ -118,7 +149,7 @@
     select,
     button,
     textarea {
-        border-radius: 0;
+        border-radius: var(--ns-radius-sm);
         font-family: inherit;
     }
 
@@ -145,6 +176,89 @@
 }
 
 @layer components {
+    /* ------------------------------------------------------------ soft edges */
+
+    /* Two helpers the Blade files reach for directly, so a surface can be made
+       to match the rest without hard-coding a radius or a shadow inline. */
+    .ns-radius {
+        border-radius: var(--ns-radius);
+    }
+
+    .ns-shadow {
+        box-shadow: var(--ns-shadow);
+    }
+
+    .ns-shadow-sm {
+        box-shadow: var(--ns-shadow-sm);
+    }
+
+    .ns-shadow-sm:hover {
+        box-shadow: var(--ns-shadow);
+    }
+
+    /* A question the form is still waiting on. Tinted rather than outlined, so
+       it reads as "not done yet" rather than "you got this wrong". */
+    .ns-unanswered {
+        background: #fdfafc !important;
+        box-shadow: inset 3px 0 0 rgba(182, 70, 152, 0.55);
+    }
+
+    [dir='rtl'] .ns-unanswered {
+        box-shadow: inset -3px 0 0 rgba(182, 70, 152, 0.55);
+    }
+
+    /* -------------------------------------------------------------- top menu */
+
+    /*
+     * Bold, not medium. At 13.5px against a bone background, medium reads as
+     * grey furniture; bold reads as a menu. The underline is gone in favour of a
+     * soft filled pill, which is the same softening as everything else and does
+     * not shift the text by 2px when a page becomes current.
+     */
+    .ns-navlink {
+        font-family: var(--ns-body);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1;
+        color: #2a2c2d;
+        padding: 9px 7px;
+        border-radius: var(--ns-radius-sm);
+        white-space: nowrap;
+        transition: background-color var(--ns-ease), color var(--ns-ease);
+    }
+
+    .ns-navlink:hover {
+        color: #050708;
+        background: rgba(5, 7, 8, 0.05);
+    }
+
+    .ns-navlink.is-current {
+        color: var(--color-magenta);
+        background: rgba(182, 70, 152, 0.09);
+    }
+
+    /* Inside the dropdown: same weight, laid out as rows. */
+    .ns-navsub {
+        font-family: var(--ns-body);
+        font-size: 14px;
+        font-weight: 700;
+        color: #1a1c1d;
+        padding: 11px 13px;
+        border-radius: var(--ns-radius-sm);
+        white-space: nowrap;
+        transition: background-color var(--ns-ease), color var(--ns-ease);
+    }
+
+    .ns-navsub:hover {
+        color: #050708;
+        background: rgba(5, 7, 8, 0.05);
+    }
+
+    .ns-navsub.is-current {
+        color: var(--color-magenta);
+        background: rgba(182, 70, 152, 0.09);
+    }
+
     /* ---------------------------------------------------------------- layout */
     .ns-wrap {
         max-width: 1440px;
@@ -170,7 +284,9 @@
     .ns-hairgrid {
         display: grid;
         gap: 1px;
-        background: rgba(5, 7, 8, 0.12);
+        background: rgba(5, 7, 8, 0.1);
+        border-radius: var(--ns-radius);
+        overflow: hidden;
     }
 
     .ns-hairgrid > * {
@@ -216,6 +332,79 @@
         .ns-counters > :first-child {
             padding-inline-start: 0;
             border-inline-start: 0;
+        }
+    }
+
+    /*
+     * A deadline the page is trying to make you notice.
+     *
+     * Everything else on the opportunities board is quiet on purpose, so this
+     * one thing gets the loud treatment: filled crimson, not a white card with a
+     * crimson edge. On a page of white cards, the eye lands on the only block
+     * that is not white.
+     */
+    .ns-urgent {
+        background: var(--color-crimson);
+        color: #fff;
+        border-radius: var(--ns-radius);
+    }
+
+    .ns-urgent a {
+        color: #fff;
+        text-decoration: underline;
+        text-decoration-color: rgba(255, 255, 255, 0.45);
+        text-underline-offset: 3px;
+    }
+
+    .ns-urgent a:hover {
+        text-decoration-color: #fff;
+    }
+
+    /* The countdown itself, on the strip and on each card. */
+    .ns-urgent-count {
+        display: inline-block;
+        padding: 3px 9px;
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        border-radius: var(--ns-radius-sm);
+    }
+
+    /* On a white card there is no crimson behind it, so it fills itself. */
+    .ns-urgent-pill {
+        display: inline-block;
+        padding: 3px 9px;
+        background: var(--color-crimson);
+        color: #fff;
+        font-weight: 700;
+        white-space: nowrap;
+        border-radius: var(--ns-radius-sm);
+    }
+
+    /*
+     * The blink. Small, slow, and one dot — enough to catch peripheral vision
+     * without turning the page into an alarm. Switched off for anyone who has
+     * asked their machine to stop moving things.
+     */
+    .ns-urgent-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #fff;
+        animation: ns-urgent-pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes ns-urgent-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.35; transform: scale(0.72); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ns-urgent-dot {
+            animation: none;
         }
     }
 
@@ -315,6 +504,7 @@
     }
 
     .ns-lead {
+        text-wrap: pretty;
         font-family: var(--ns-body);
         font-size: clamp(16px, 1.3vw, 19px);
         line-height: 1.65;
@@ -324,6 +514,7 @@
     }
 
     .ns-body {
+        text-wrap: pretty;
         font-family: var(--ns-body);
         font-size: 16.5px;
         line-height: 1.7;
@@ -360,23 +551,35 @@
         font-family: var(--ns-body);
         font-size: 14.5px;
         font-weight: 700;
-        padding: 17px 28px;
+        padding: 0 26px;
+        height: 48px; /* one height for every button on the site */
         min-height: 48px; /* 44px+ tap target on mobile */
         border: 1px solid transparent;
         cursor: pointer;
         text-align: center;
-        transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+        border-radius: var(--ns-radius-sm);
+        transition: background-color var(--ns-ease), color var(--ns-ease),
+            border-color var(--ns-ease), box-shadow var(--ns-ease);
     }
 
     .ns-btn-lg {
         font-size: 15px;
-        padding: 20px 34px;
+        padding: 0 32px;
+        height: 56px;
+        min-height: 56px;
     }
 
     .ns-btn-sm {
         font-size: 13px;
-        padding: 11px 16px;
+        padding: 0 16px;
+        height: 40px;
         min-height: 40px;
+    }
+
+    /* A button that has to hold two lines opts out of the fixed height. */
+    .ns-btn-tall {
+        height: auto;
+        padding-block: 14px;
     }
 
     .ns-btn-magenta {
@@ -493,6 +696,14 @@
         background: #f4f1ee;
         color: #050708;
         min-height: 48px;
+        border-radius: var(--ns-radius-sm);
+        transition: border-color var(--ns-ease), box-shadow var(--ns-ease);
+    }
+
+    .ns-input:hover,
+    .ns-select:hover,
+    .ns-textarea:hover {
+        border-color: rgba(5, 7, 8, 0.4);
     }
 
     .ns-textarea {
@@ -536,11 +747,12 @@
         font-size: 16px;
         padding: 14px 12px;
         border: 1px solid var(--ns-input-border);
-        border-inline-end: 0;
         background: #eae6e2;
         white-space: nowrap;
         display: flex;
         align-items: center;
+        min-height: 48px;
+        border-radius: var(--ns-radius-sm);
     }
 
     /* Toggle chips — multi-select options throughout both registration flows. */
@@ -555,7 +767,8 @@
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        border-radius: var(--ns-radius-sm);
+        transition: background-color var(--ns-ease), border-color var(--ns-ease), color var(--ns-ease);
     }
 
     .ns-chip:hover {
@@ -591,6 +804,7 @@
         background: transparent;
         flex: none;
         display: inline-block;
+        border-radius: var(--ns-radius-sm);
     }
 
     .ns-box.is-on,
@@ -606,7 +820,8 @@
         border: 1px solid var(--ns-border);
         background: transparent;
         cursor: pointer;
-        transition: border-color 0.15s ease, background-color 0.15s ease;
+        border-radius: var(--ns-radius);
+        transition: border-color var(--ns-ease), background-color var(--ns-ease);
     }
 
     .ns-tile:has(input:checked) {
@@ -640,13 +855,16 @@
     /* ----------------------------------------------------------------- cards */
     .ns-card {
         background: #fff;
-        border: 1px solid var(--ns-hairline);
+        border: 1px solid var(--ns-hairline-soft);
         padding: clamp(24px, 3vw, 34px);
+        border-radius: var(--ns-radius);
+        box-shadow: var(--ns-shadow-sm);
     }
 
     .ns-card-flat {
         background: #fff;
         padding: clamp(24px, 3vw, 34px);
+        border-radius: var(--ns-radius);
     }
 
     .ns-panel-ink {
@@ -661,6 +879,7 @@
         display: flex;
         align-items: flex-end;
         padding: 16px;
+        border-radius: var(--ns-radius);
         color: #828384;
         font-family: var(--ns-display);
         font-size: 10px;

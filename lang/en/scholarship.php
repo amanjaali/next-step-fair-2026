@@ -68,6 +68,20 @@ return [
 
     /* ------------------------------------------------------------- home -- */
 
+    /*
+     * Shown instead of "Start your application" to anybody signed in who is not
+     * a student — a parent, a delegate. The application is student-only, and
+     * being told that up front is better than pressing a button and being
+     * turned away by the gate.
+     */
+    'not_for_you' => [
+        'title' => 'The application is for students',
+        'body' => 'Only a student with a Next Step account can apply — they answer the eligibility questions and write the statement themselves. If you are here for somebody, this is the page to put in front of them.',
+        'send' => 'Send this to your student',
+        'register' => 'How a student registers',
+        'message' => "The Next Step National Scholarship Program is open — forty fully funded degrees, held in regional quotas.\n\nYou apply yourself, with a Next Step account. Everything is here:\n:url",
+    ],
+
     'home' => [
         'title' => 'Overview',
         'kicker' => 'Cycle :cycle',
@@ -237,6 +251,9 @@ return [
         'heading' => 'Five questions, about a minute',
         'lead' => 'This runs before the application opens so nobody spends an evening writing a statement and a proposal only to be closed at screening for something we could have told them now.',
         'submit' => 'Check my eligibility',
+        'answered' => 'answered',
+        'remaining' => ':count still to answer',
+        'gate_blocked' => 'The eligibility check opens once you have a Next Step student account. Here is what is still needed.',
         'continue' => 'Open the application',
         'note' => 'Your answers are saved and can be changed until you submit the application.',
 

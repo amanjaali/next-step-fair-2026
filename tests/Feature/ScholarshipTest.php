@@ -84,10 +84,26 @@ class ScholarshipTest extends TestCase
 
     /* ------------------------------------------------------------- gates -- */
 
-    public function test_a_stranger_cannot_open_the_application(): void
+    /**
+     * Closed, but never with a bare 403.
+     *
+     * A blank "403 Forbidden" was what a signed-out visitor got for opening the
+     * eligibility link — no explanation and nowhere to go, on a URL people send
+     * each other. They land on the gate instead, which lists the three things
+     * that have to be true and how far along they are on each.
+     */
+    public function test_a_stranger_is_sent_to_the_gate_not_a_forbidden_page(): void
     {
-        $this->get('/en/scholarship/apply/eligibility')->assertForbidden();
-        $this->get('/en/scholarship/apply/form')->assertForbidden();
+        foreach (['eligibility', 'form'] as $step) {
+            $this->get("/en/scholarship/apply/{$step}")
+                ->assertRedirect(route('scholarship.apply', ['locale' => 'en']))
+                ->assertSessionHas('gate_blocked');
+        }
+
+        $this->followingRedirects()
+            ->get('/en/scholarship/apply/eligibility')
+            ->assertOk()
+            ->assertSee(__('scholarship.eligibility.gate_blocked'));
     }
 
     /** A parent has an expo badge, not a student account. */
@@ -101,7 +117,8 @@ class ScholarshipTest extends TestCase
         ]);
 
         $this->actingAs($parent, 'attendee')
-            ->get('/en/scholarship/apply/eligibility')->assertForbidden();
+            ->get('/en/scholarship/apply/eligibility')
+            ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
     }
 
     /**
@@ -118,7 +135,8 @@ class ScholarshipTest extends TestCase
             ->assertSee(__('scholarship.apply.not_eligible_title'));
 
         $this->actingAs($student, 'attendee')
-            ->get('/en/scholarship/apply/eligibility')->assertForbidden();
+            ->get('/en/scholarship/apply/eligibility')
+            ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
     }
 
     /** Registering for the expo is the only sign-up there is. */

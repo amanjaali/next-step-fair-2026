@@ -13,8 +13,11 @@
                 {{ __('scholarship.home.lead') }}
             </p>
 
-            <div class="flex gap-3 flex-wrap items-center">
-                <a href="{{ route('scholarship.apply') }}" class="ns-btn ns-btn-magenta">{{ __('scholarship.home.cta') }}</a>
+            {{-- items-start, not items-center: for a parent the first item is a
+                 panel rather than a button, and centring floats the guidelines
+                 link against the middle of it. --}}
+            <div class="flex gap-3 flex-wrap items-start">
+                <x-ns.scholarship-cta :attendee="$attendee" variant="dark" />
                 <a href="{{ route('scholarship.guidelines') }}" class="ns-btn ns-btn-ghost !text-white !border-white/40 hover:!bg-white/10">
                     {{ __('scholarship.home.cta_rules') }}
                 </a>
@@ -100,7 +103,7 @@
                     {{ ns_format_date(\Illuminate\Support\Carbon::parse(config('scholarship.timeline.closes'))) }}
                 </div>
             </div>
-            <a href="{{ route('scholarship.apply') }}" class="ns-btn ns-btn-magenta">{{ __('scholarship.home.cta') }}</a>
+            <x-ns.scholarship-cta :attendee="$attendee" variant="dark" />
         </div>
     </section>
 

@@ -18,7 +18,7 @@
 
         <div class="ns-card border-s-[6px] !border-s-magenta">
             <p class="ns-body !text-[15px] mb-5 max-w-[56ch]">{{ __('scholarship.about.cta_note') }}</p>
-            <a href="{{ route('scholarship.apply') }}" class="ns-btn ns-btn-magenta ns-btn-sm">{{ __('scholarship.home.cta') }}</a>
+            <x-ns.scholarship-cta :attendee="$attendee" class="ns-btn-sm" />
         </div>
     </div>
 </x-layouts.scholarship>

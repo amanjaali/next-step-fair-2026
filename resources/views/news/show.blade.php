@@ -63,9 +63,23 @@
                         </blockquote>
                     @endif
 
+                    {{-- The button has to match what the article is about.
+                         Every article carried the blue conference RSVP, so a piece
+                         announcing that fair registration had opened for students
+                         and parents ended it by offering them a government
+                         delegates' form. Only articles filed under government
+                         relations lead with the conference now. --}}
                     <div class="border-t border-[rgba(5,7,8,0.14)] mt-10 pt-7 flex gap-[14px] flex-wrap">
-                        <a href="{{ route('register.conference') }}" class="ns-btn ns-btn-cobalt">{{ __('site.cta.conference_rsvp') }}</a>
-                        <a href="{{ route('agenda', ['day' => 1]) }}" class="ns-btn ns-btn-ghost">{{ __('site.pages.conference.programme') }}</a>
+                        {{-- Inline, not @php(...): an inline @php on this page stops
+                             Blade pairing the @php/@endphp block further down that
+                             builds the article's JSON-LD, and the page 500s. --}}
+                        @if ($post->category?->slug === 'government-relations')
+                            <a href="{{ route('register.conference') }}" class="ns-btn ns-btn-cobalt">{{ __('site.cta.conference_rsvp') }}</a>
+                            <a href="{{ route('register.fair') }}" class="ns-btn ns-btn-ghost">{{ __('site.cta.register_fair') }}</a>
+                        @else
+                            <a href="{{ route('register.fair') }}" class="ns-btn ns-btn-magenta">{{ __('site.cta.register_fair') }}</a>
+                            <a href="{{ route('agenda', ['day' => 1]) }}" class="ns-btn ns-btn-ghost">{{ __('site.pages.conference.programme') }}</a>
+                        @endif
                     </div>
                 </div>
 

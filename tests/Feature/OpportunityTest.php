@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Opportunity;
 use App\Models\Registration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
@@ -264,14 +265,52 @@ class OpportunityTest extends TestCase
             ->assertSee(__('site.home.signed_in.cards.scholarship'));
     }
 
-    /** The menu item is worthless to somebody who cannot open what it leads to. */
-    public function test_the_menu_gains_opportunities_only_once_signed_in(): void
+    /**
+     * The menu always carries it.
+     *
+     * It used to appear only for somebody signed in, on the reasoning that a
+     * stranger would land on a locked page. That was backwards: the locked page
+     * is the argument for registering, so hiding the link hid the argument.
+     */
+    public function test_the_menu_always_carries_opportunities(): void
     {
-        $this->get('/en')->assertOk()->assertDontSee(route('opportunities', ['locale' => 'en']));
+        $link = route('opportunities', ['locale' => 'en']);
 
-        $this->actingAs($this->student(), 'attendee')
-            ->get('/en')
-            ->assertOk()
-            ->assertSee(route('opportunities', ['locale' => 'en']));
+        $this->get('/en')->assertOk()->assertSee($link);
+        $this->actingAs($this->student(), 'attendee')->get('/en')->assertOk()->assertSee($link);
+    }
+
+    /**
+     * Eight across the top, four of them tucked into one group.
+     *
+     * The row has to hold one line from 1280px up with the ministry mark beside
+     * the logo, and it only does so at eight. A ninth added here is the thing
+     * that puts the menu back onto two rows, so the count is asserted rather
+     * than trusted.
+     */
+    public function test_the_menu_is_eight_across_the_top_and_four_inside_the_group(): void
+    {
+        $html = $this->get('/en')->assertOk()->getContent();
+
+        $nav = Str::between($html, '<nav class="hidden xl:flex', '</nav>');
+
+        // Seven plain links, plus the group's button, is the top row.
+        $inGroup = substr_count($nav, 'class="ns-navsub');
+        $top = substr_count($nav, '<a href=') - $inGroup;
+
+        $this->assertSame(4, $inGroup);
+        $this->assertSame(7, $top);
+        $this->assertSame(1, substr_count($nav, '<button type="button"'));
+    }
+
+    /** The four pages inside the group are still reachable from the menu. */
+    public function test_the_group_holds_the_expo_conference_agenda_and_speakers(): void
+    {
+        $html = $this->get('/en')->assertOk()->getContent();
+        $nav = Str::between($html, '<nav class="hidden xl:flex', '</nav>');
+
+        foreach (['fair', 'conference', 'agenda', 'speakers'] as $name) {
+            $this->assertStringContainsString(route($name, ['locale' => 'en']), $nav);
+        }
     }
 }

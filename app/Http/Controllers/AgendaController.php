@@ -12,7 +12,16 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AgendaController extends Controller
 {
-    /** Day tabs, plus filters by track, type, topic and language. */
+    /**
+     * The day's programme, split by track rather than run together.
+     *
+     * Day 1 carries both programmes: a policy conference for invited delegates
+     * and the expo that anybody can walk into. Listed as one stream they are
+     * indistinguishable — a student reads down the page and finds a closed
+     * roundtable for ministry delegations sitting between two of their own
+     * workshops. Two labelled sections, each saying who it is for, is the whole
+     * fix; days 2 and 3 have only the expo, so they get no heading at all.
+     */
     public function index(Request $request): View
     {
         $day = $this->day($request);
@@ -27,18 +36,35 @@ class AgendaController extends Controller
             $query->where('type', $type);
         }
 
+        // Still honoured as a deep link, though the page no longer offers it as a
+        // filter — the sections say what the chips used to.
         if ($track && $track !== 'all') {
             $query->where('track', $track);
         }
 
         $sessions = $query->get();
 
+        // Conference first: on Day 1 it opens the event, and it is the half a
+        // visitor is most likely to have arrived on this page not expecting.
+        $groups = $sessions->groupBy('track')->sortKeysUsing(
+            fn ($a, $b) => array_search($a, ['conference', 'fair'], true) <=> array_search($b, ['conference', 'fair'], true)
+        );
+
         return view('agenda.index', [
             'navKey' => 'agenda',
             'title' => __('site.pages.agenda.title').' — '.config('nextstep.event.name'),
             'day' => $day,
             'sessions' => $sessions,
-            'types' => EventSession::published()->forYear(2026)->distinct()->orderBy('type')->pluck('type'),
+            'groups' => $groups,
+            // Only worth heading the sections when there is more than one of them.
+            'showTrackHeadings' => $groups->count() > 1,
+            // Value => label, so the chips read in the visitor's language while the
+            // links still carry the value the column actually holds.
+            'typeOptions' => collect(['all' => __('site.common.all')])->merge(
+                EventSession::published()->forYear(2026)->forDay($day)
+                    ->distinct()->orderBy('type')->pluck('type')
+                    ->mapWithKeys(fn (string $t) => [$t => EventSession::labelForType($t)])
+            )->all(),
             'activeType' => $type ?: 'all',
             'activeTrack' => $track ?: 'all',
             'totalCount' => EventSession::published()->forYear(2026)->where('bookable', true)->count(),

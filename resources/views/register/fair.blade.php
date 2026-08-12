@@ -109,7 +109,7 @@
                             </span>
                             <span class="ns-hint">{{ __('register.upgrade.phone_locked') }}</span>
                         @else
-                            <span class="flex">
+                            <span class="flex gap-2">
                                 <select name="phone_country" class="ns-prefix !w-auto cursor-pointer" aria-label="{{ __('rsvp.step1.country_code') }}">
                                     @foreach (config('nextstep.phone.countries') as $code => $country)
                                         <option value="{{ $code }}" @selected(old('phone_country', config('nextstep.phone.default_country')) === $code)>{{ $code }}</option>

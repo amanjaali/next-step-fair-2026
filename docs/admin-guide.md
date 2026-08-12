@@ -232,6 +232,39 @@ date and source of each opt-in.
 
 ---
 
+## The home page popup
+
+*Content → Home page popup.*
+
+The box that greets somebody the first time they open the site. Built to be
+rewritten before breakfast: one screen, one toggle.
+
+**Several offers, one popup.** Press *Add another offer* as many times as you need
+and drag them into the order you want. They appear in one box. Interrupting somebody
+is a cost you can only spend once — spend it on everything worth saying, not on one
+offer at a time.
+
+**Each offer takes** a title, a line or two, an optional small label ("Closes Friday",
+"40 places") and an optional link. An offer with no link is simply an announcement.
+
+**Switching it on.** One toggle, *Show this popup*. Only one popup shows at a time —
+the most recently edited one that is switched on — so leaving yesterday's switched on
+does no harm. That matters when you are editing in a hurry.
+
+**Each person sees it once, and again every time you edit it.** The browser remembers
+which version it dismissed, and saving changes the version. So rewriting it daily
+actually reaches people; leaving it alone does not nag them. The *Last edited* column
+is that version.
+
+**Who sees it** follows the same audiences as the opportunities board. A popup aimed
+at students never appears in front of a parent.
+
+**Followed out** counts how many people clicked an offer inside it. That number is
+how you decide whether the popup is earning the interruption — if it stays near zero
+for a week, the wording is not working.
+
+---
+
 ## Opportunities
 
 *Content → Opportunities.*

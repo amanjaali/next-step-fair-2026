@@ -86,6 +86,26 @@ class EventSession extends Model
         return $this->track === 'conference' ? 'ns-typechip-conf' : 'ns-typechip-fair';
     }
 
+    /**
+     * The kind of session, in the reader's language.
+     *
+     * `type` is free text the team can add to from the dashboard, so there is no
+     * fixed list to translate. The known ones are looked up and anything new
+     * falls through to whatever was typed — a Kurdish page showing one English
+     * word is better than an empty chip.
+     */
+    public function typeLabel(): string
+    {
+        return static::labelForType((string) $this->type);
+    }
+
+    public static function labelForType(string $type): string
+    {
+        $key = 'site.pages.agenda.types.'.Str::slug($type);
+
+        return __($key) === $key ? $type : __($key);
+    }
+
     public function timeLabel(): string
     {
         return Carbon::parse($this->starts_at)->format('H:i');

@@ -30,7 +30,7 @@
             @foreach ($sessions as $session)
                 <tr>
                     <td class="time">{{ $session->timeLabel() }}</td>
-                    <td class="type">{{ $session->type }}</td>
+                    <td class="type">{{ $session->typeLabel() }}</td>
                     <td>
                         <div class="title">{{ $session->t('title') }}</div>
                         <div class="who">{{ $session->hallLabel() }} · {{ $session->languages }} · {{ $session->t('who') }}</div>

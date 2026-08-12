@@ -124,7 +124,7 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                             </span>
                             <span class="ns-hint"><?php echo e(__('register.upgrade.phone_locked')); ?></span>
                         <?php else: ?>
-                            <span class="flex">
+                            <span class="flex gap-2">
                                 <select name="phone_country" class="ns-prefix !w-auto cursor-pointer" aria-label="<?php echo e(__('rsvp.step1.country_code')); ?>">
                                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = config('nextstep.phone.countries'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $code => $country): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <option value="<?php echo e($code); ?>" <?php if(old('phone_country', config('nextstep.phone.default_country')) === $code): echo 'selected'; endif; ?>><?php echo e($code); ?></option>

@@ -5,7 +5,9 @@
 @endphp
 
 <a href="{{ route('opportunities.show', $opportunity->slug) }}"
-   class="bg-white border border-[rgba(5,7,8,0.14)] border-t-4 border-t-magenta p-6 flex flex-col no-underline hover:border-t-ink">
+   {{-- The top rule turns crimson too, so a card with a deadline reads as urgent
+        from across the grid, not only once you have found the small pill. --}}
+   class="bg-white border border-[rgba(5,7,8,0.1)] border-t-4 {{ $opportunity->isClosingSoon() ? 'border-t-crimson' : 'border-t-magenta' }} ns-radius ns-shadow-sm p-6 flex flex-col no-underline transition-shadow duration-200 hover:border-t-ink">
 
     <div class="flex items-start justify-between gap-4 mb-4">
         <span class="ns-eyebrow !text-[9.5px] !text-magenta">{{ __("opportunities.kinds.{$opportunity->kind}") }}</span>
@@ -13,7 +15,7 @@
         {{-- Only said when it is nearly true. A countdown on something six months
              away is noise; on something closing next week it is the whole point. --}}
         @if ($opportunity->isClosingSoon())
-            <span class="ns-num font-[family-name:var(--ns-body)] text-[11.5px] font-bold text-crimson whitespace-nowrap">
+            <span class="ns-urgent-pill ns-num font-[family-name:var(--ns-body)] text-[11.5px]">
                 {{ trans_choice('opportunities.closing_in', max($daysLeft, 0), ['count' => max($daysLeft, 0)]) }}
             </span>
         @endif

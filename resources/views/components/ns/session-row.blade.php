@@ -3,12 +3,12 @@
 <div class="grid gap-7 border-t border-[rgba(5,7,8,0.14)] py-[26px] items-start lg:grid-cols-[130px_minmax(0,1fr)_220px]">
     <div>
         <div class="ns-num font-[family-name:var(--ns-display)] text-[22px] font-semibold">{{ $session->timeLabel() }}</div>
-        <div class="ns-meta mt-1 text-[12.5px]">{{ $session->duration_label }}</div>
+        <div class="ns-meta ns-num mt-1 text-[12.5px]">{{ $session->duration_label }}</div>
     </div>
 
     <div>
         <div class="flex items-center gap-[9px] mb-[9px] flex-wrap">
-            <span class="ns-typechip {{ $session->chipClass() }}">{{ $session->type }}</span>
+            <span class="ns-typechip {{ $session->chipClass() }}">{{ $session->typeLabel() }}</span>
             <span class="ns-meta text-xs">{{ $session->hallLabel() }} · {{ $session->languages }}</span>
         </div>
 
@@ -52,6 +52,10 @@
                     {{ $isSaved ? __('attendee.agenda.saved_label') : __('site.pages.agenda.add_to_agenda') }}
                 </button>
             </form>
+        @elseif ($session->track === 'conference' && ! $session->bookable)
+            {{-- Says why there is no button, rather than leaving a gap that reads
+                 as something failing to load. --}}
+            <span class="ns-meta text-[12.5px] lg:text-end">{{ __('site.pages.agenda.by_invitation') }}</span>
         @endif
     </div>
 </div>

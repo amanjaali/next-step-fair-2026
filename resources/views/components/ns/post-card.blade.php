@@ -5,10 +5,12 @@
 @endphp
 
 <a href="{{ $route }}" class="text-ink hover:text-ink flex flex-col group">
+    {{-- The category's colour is carried by the chip below, and only there.
+         A second coloured bar down the edge of the photo said the same thing
+         twice, and once the frame gained a radius its ends were clipped into a
+         stripe that looked like a rendering fault. --}}
     <x-ns.frame :label="$post->cover_placeholder" :src="$post->coverUrl()"
-                :alt="$post->t('title')" ratio="3/2" class="mb-[18px]">
-        <span class="absolute inset-y-0 start-0 w-2" style="background:{{ $post->accent() }}"></span>
-    </x-ns.frame>
+                :alt="$post->t('title')" ratio="3/2" class="mb-[18px]" />
 
     <div class="flex items-center gap-[10px] mb-[11px] flex-wrap">
         @if ($post->category)

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Scholarship;
 use App\Http\Controllers\Controller;
 use App\Models\Registration;
 use App\Models\ScholarshipApplication;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -240,11 +241,24 @@ class ApplicationController extends Controller
     }
 
     /** Everything past the gate needs a verified student account. */
+    /**
+     * Nobody meets a 403 here.
+     *
+     * A bare "403 Forbidden" was what a signed-out visitor got for opening the
+     * eligibility link — a white page with no explanation and nowhere to go, on
+     * a URL people share with each other. The gate page already lists the three
+     * things that have to be true and how far along you are on each, so that is
+     * where an unmet requirement belongs.
+     */
     private function requireStudent(): Registration
     {
         $attendee = $this->attendee();
 
-        abort_unless($attendee?->canApplyForScholarship(), 403);
+        if (! $attendee?->canApplyForScholarship()) {
+            throw new HttpResponseException(
+                redirect()->route('scholarship.apply')->with('gate_blocked', true)
+            );
+        }
 
         return $attendee;
     }

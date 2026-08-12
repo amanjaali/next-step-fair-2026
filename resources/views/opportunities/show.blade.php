@@ -6,7 +6,7 @@
         <div class="flex items-center gap-3 mb-4 flex-wrap">
             <span class="ns-eyebrow !text-magenta">{{ __("opportunities.kinds.{$opportunity->kind}") }}</span>
             @if ($opportunity->isClosingSoon())
-                <span class="ns-num font-[family-name:var(--ns-body)] text-[12px] font-bold text-crimson">
+                <span class="ns-urgent-pill ns-num font-[family-name:var(--ns-body)] text-[12px]">
                     {{ trans_choice('opportunities.closing_in', max($opportunity->daysLeft(), 0), ['count' => max($opportunity->daysLeft(), 0)]) }}
                 </span>
             @endif

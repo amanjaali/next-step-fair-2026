@@ -181,6 +181,43 @@ Alpine.data('nsNav', () => ({
     },
 }));
 
+/**
+ * One dropdown in the top menu.
+ *
+ * Opens on hover and on click, because both are things people do to a menu with
+ * an arrow on it — and closes on Escape, on a click elsewhere and on the pointer
+ * leaving. Separate from nsNav so the mobile panel and the dropdown cannot fight
+ * over the same `open`.
+ */
+Alpine.data('nsNavGroup', () => ({
+    open: false,
+    hovered: false,
+
+    enter() {
+        this.hovered = true;
+        this.open = true;
+    },
+
+    leave() {
+        this.hovered = false;
+        this.open = false;
+    },
+
+    /*
+     * A click while the pointer is already inside means hover opened it a moment
+     * ago — closing on that click would undo the gesture that opened it, which
+     * reads as the menu refusing to stay open. Anywhere else, it toggles.
+     */
+    press() {
+        this.open = this.hovered ? true : !this.open;
+    },
+
+    close() {
+        this.open = false;
+        this.hovered = false;
+    },
+}));
+
 /** Photo album lightbox with keyboard navigation. */
 Alpine.data('nsLightbox', (items) => ({
     items: items || [],
@@ -246,6 +283,96 @@ Alpine.data('nsCopy', () => ({
 }));
 
 window.Alpine = Alpine;
+/**
+ * The offer popup on the home page.
+ *
+ * The decision to open is made here rather than on the server, so it survives
+ * page caching and never flashes before the answer is known. The key carries the
+ * popup's version, so an edit in the dashboard brings it back for everybody and
+ * an untouched popup stays closed.
+ *
+ * A browser with localStorage switched off (private windows on older Safari)
+ * throws on read. It should still see the popup, so a failure opens it rather
+ * than swallowing it.
+ */
+Alpine.data('nsOfferPopup', (key) => ({
+    open: false,
+
+    init() {
+        let dismissed = false;
+
+        try {
+            dismissed = window.localStorage.getItem(key) === '1';
+        } catch (e) {
+            dismissed = false;
+        }
+
+        // A moment's delay: opening on the same frame as the page lands feels
+        // like a fault, and hides the thing it interrupted.
+        if (!dismissed) {
+            setTimeout(() => {
+                this.open = true;
+            }, 900);
+        }
+    },
+
+    close() {
+        this.open = false;
+
+        try {
+            window.localStorage.setItem(key, '1');
+        } catch (e) {
+            // Nothing to do — they will see it again, which is the safe way round.
+        }
+    },
+}));
+
+/**
+ * The scholarship eligibility check, counting itself as it is filled in.
+ *
+ * Reads the radios rather than keeping its own copy of the answers, so a page
+ * restored with answers already saved starts at the right number instead of
+ * zero.
+ */
+Alpine.data('nsEligibility', (total) => ({
+    total,
+    answered: 0,
+    missing: [],
+    showMissing: false,
+
+    init() {
+        /*
+         * The form is held, not looked up each time. Inside a handler bound with
+         * @change, Alpine points $el at the element that fired the event — the
+         * radio — so querying $el for the questions returned nothing, and the
+         * counter sat on 0/5 however many were answered.
+         */
+        this.form = this.$root;
+        this.recount();
+    },
+
+    recount() {
+        const sets = [...this.form.querySelectorAll('fieldset[data-question]')];
+
+        this.missing = sets
+            .filter((set) => !set.querySelector('input[type="radio"]:checked'))
+            .map((set) => set.dataset.question);
+
+        this.answered = sets.length - this.missing.length;
+
+        // Flagged only once they are part-way through: a page that opens with
+        // every question marked is telling somebody off for not having started.
+        this.showMissing = this.answered > 0 && this.answered < sets.length;
+    },
+}));
+
+/*
+ * Every Alpine.data() above has to be registered before this line. Registering
+ * one after it leaves the component undefined, and Alpine then resolves the
+ * expression against the window — so `x-show="open"` finds window.open, which is
+ * a function and therefore truthy. The panel appears, nothing can close it, and
+ * the only clue is a warning in the console.
+ */
 Alpine.start();
 
 /* Fade-and-rise on scroll: 300ms, no parallax, disabled under reduced motion. */

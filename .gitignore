@@ -16,7 +16,7 @@
 /node_modules
 /docs/system-map/_source/node_modules
 /docs/system-map/_source/__pycache__
-/public/build
+# /public/build — committed so the server needs no Node
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage

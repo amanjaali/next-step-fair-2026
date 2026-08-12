@@ -101,7 +101,7 @@
 
                     <label>
                         <span class="ns-label">{{ __('rsvp.step1.phone') }} <span class="ns-req">*</span></span>
-                        <span class="flex">
+                        <span class="flex gap-2">
                             <select name="phone_country" class="ns-prefix !w-auto cursor-pointer" aria-label="{{ __('rsvp.step1.country_code') }}">
                                 @foreach (config('nextstep.phone.countries') as $code => $country)
                                     <option value="{{ $code }}" @selected(old('phone_country', config('nextstep.phone.default_country')) === $code)>{{ $code }}</option>

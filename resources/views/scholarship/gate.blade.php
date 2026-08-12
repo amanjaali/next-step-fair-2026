@@ -7,7 +7,17 @@
         </div>
 
         <h1 class="ns-h1 !text-[clamp(30px,4.2vw,46px)] mb-3">{{ __('scholarship.apply.gate_heading') }}</h1>
-        <p class="ns-body max-w-[58ch] mb-10">{{ __('scholarship.apply.gate_lead') }}</p>
+        <p class="ns-body max-w-[58ch] mb-6">{{ __('scholarship.apply.gate_lead') }}</p>
+
+        {{-- Sent here from a page they could not open yet. Says so, rather than
+             leaving them wondering why the link went somewhere else. --}}
+        @if (session('gate_blocked'))
+            <div class="border-s-[5px] border-magenta bg-white ns-radius px-5 py-4 mb-8 max-w-[62ch]" role="status">
+                <p class="ns-body !text-[14.5px] !m-0">{{ __('scholarship.eligibility.gate_blocked') }}</p>
+            </div>
+        @endif
+
+        <div class="mb-10"></div>
 
         @php
             // Three gates, shown together with their state. Discovering them one at

@@ -6,6 +6,7 @@ use App\Models\Edition;
 use App\Models\EventSession;
 use App\Models\FeatureCard;
 use App\Models\MediaItem;
+use App\Models\OfferPopup;
 use App\Models\Opportunity;
 use App\Models\Organization;
 use App\Models\Post;
@@ -40,6 +41,12 @@ class HomeController extends Controller
                 ? Opportunity::live()->for($attendee)->ranked()->with('organization')->take(3)->get()
                 : collect(),
             'savedCount' => $attendee?->savedSessions()->count() ?? 0,
+            /*
+             * The popup the team switched on today, if there is one for this
+             * person. Whether it actually opens is decided in the browser — see
+             * the component — so this only answers "is there one at all".
+             */
+            'popup' => OfferPopup::live()->for($attendee)->with('items')->latest('updated_at')->first(),
             'sessionCount' => $this->sessionCount(),
             'title' => config('nextstep.event.name').' — '.__('site.common.edition_4'),
             'counters' => $this->counters(),

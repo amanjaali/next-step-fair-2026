@@ -29,6 +29,6 @@
             @endforeach
         </div>
 
-        <a href="{{ route('scholarship.apply') }}" class="ns-btn ns-btn-magenta">{{ __('scholarship.home.cta') }}</a>
+        <x-ns.scholarship-cta :attendee="$attendee" />
     </div>
 </x-layouts.scholarship>

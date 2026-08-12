@@ -17,6 +17,7 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\OfferPopupController;
 use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\Registration\ConferenceRsvpController;
@@ -144,6 +145,9 @@ Route::post('agenda/save/{session}', [ProfileController::class, 'toggle'])->name
 | never been here, and it carries no ticket and names nobody.
 */
 Route::get('attending/{who?}', [ShareController::class, 'attending'])->name('attending');
+
+// Following an offer out of the popup, counted on the way past.
+Route::get('popup/go/{item}', [OfferPopupController::class, 'go'])->name('popup.go');
 
 // The artwork, as a page. The finished PNGs are screenshots of this, and it
 // stays reachable so a card can be checked in all three languages.

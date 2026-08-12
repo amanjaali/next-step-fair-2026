@@ -33,6 +33,7 @@ unset($__defined_vars, $__key, $__value); ?>
 ?>
 
 <a href="<?php echo e($route); ?>" class="text-ink hover:text-ink flex flex-col group">
+    
     <?php if (isset($component)) { $__componentOriginalfe5b2835aa6a3ec2adfa439570add664 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalfe5b2835aa6a3ec2adfa439570add664 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ns.frame','data' => ['label' => $post->cover_placeholder,'src' => $post->coverUrl(),'alt' => $post->t('title'),'ratio' => '3/2','class' => 'mb-[18px]']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -43,8 +44,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['label' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($post->cover_placeholder),'src' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($post->coverUrl()),'alt' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($post->t('title')),'ratio' => '3/2','class' => 'mb-[18px]']); ?>
-        <span class="absolute inset-y-0 start-0 w-2" style="background:<?php echo e($post->accent()); ?>"></span>
-     <?php echo $__env->renderComponent(); ?>
+<?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalfe5b2835aa6a3ec2adfa439570add664)): ?>
 <?php $attributes = $__attributesOriginalfe5b2835aa6a3ec2adfa439570add664; ?>

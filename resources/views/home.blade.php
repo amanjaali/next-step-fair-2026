@@ -1,5 +1,8 @@
 <x-layouts.site :title="$title" :navKey="$navKey">
 
+    {{-- Switched on in the dashboard, shown once per visitor per version. --}}
+    <x-ns.offer-popup :popup="$popup" />
+
     {{-- ------------------------------------------------------------- hero -- --}}
     <section class="bg-ink text-white relative overflow-hidden ns-track-rule">
         <div class="absolute inset-0 bg-ink-800 flex items-center justify-center">
@@ -138,7 +141,10 @@
 
         {{-- --------------------------------------------- opportunities -- --}}
         @if ($opportunities->isNotEmpty())
-            <section class="ns-wrap pt-[clamp(44px,6vw,80px)]">
+            {{-- Padding on both sides. With only pt- the counters strip that
+                 follows butts straight against the cards and clips them — the
+                 section had nothing holding the two apart. --}}
+            <section class="ns-wrap pt-[clamp(44px,6vw,80px)] pb-[clamp(44px,6vw,80px)]">
                 <div class="flex items-end justify-between gap-6 flex-wrap mb-7">
                     <div>
                         <div class="ns-eyebrow !text-magenta mb-2">{{ __('opportunities.kicker') }}</div>
@@ -348,7 +354,7 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-[9px] mb-2 flex-wrap">
-                            <span class="ns-typechip {{ $session->chipClass() }}">{{ $session->type }}</span>
+                            <span class="ns-typechip {{ $session->chipClass() }}">{{ $session->typeLabel() }}</span>
                             <span class="ns-meta text-xs">{{ $session->hallLabel() }}</span>
                         </div>
                         <div class="font-[family-name:var(--ns-body)] text-base font-bold leading-[1.35] mb-[6px]">

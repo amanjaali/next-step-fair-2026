@@ -505,7 +505,7 @@ class ProgrammeSeeder extends Seeder
             ],
             [
                 'day' => 1, 'starts_at' => '10:15', 'ends_at' => '11:45', 'duration_label' => '90 min',
-                'type' => 'Conference', 'track' => 'conference', 'hall' => 'B', 'languages' => 'KU · EN',
+                'type' => 'Plenary', 'track' => 'conference', 'hall' => 'B', 'languages' => 'KU · EN',
                 'title' => [
                     'en' => 'Admission at scale: what Zankoline gets right and what it costs students',
                     'ku' => 'وەرگرتن لە ئاستێکی بەرفراوان: زانکۆلاین چی ڕاست دەکات و چی لە قوتابیان دەبات',
@@ -569,6 +569,9 @@ class ProgrammeSeeder extends Seeder
             [
                 'day' => 1, 'starts_at' => '16:30', 'ends_at' => '18:00', 'duration_label' => '90 min',
                 'type' => 'Roundtable', 'track' => 'conference', 'hall' => 'B', 'languages' => 'EN',
+                // Closed session: it is listed so the day reads honestly, but
+                // nobody can add a delegations-only roundtable to their agenda.
+                'bookable' => false,
                 'title' => [
                     'en' => 'Accreditation and cross-border recognition',
                     'ku' => 'متمانەپێکراوی و دانپێدانانی سنووربەزێن',
@@ -586,7 +589,7 @@ class ProgrammeSeeder extends Seeder
             // ---------------------------------------------------------- Day 2
             [
                 'day' => 2, 'starts_at' => '10:00', 'ends_at' => '20:00', 'duration_label' => 'All day',
-                'type' => 'Expo', 'track' => 'fair', 'hall' => null, 'hall_label' => 'Halls A & C', 'languages' => 'KU · AR · EN',
+                'type' => 'Exhibition', 'track' => 'fair', 'hall' => null, 'hall_label' => 'Halls A & C', 'languages' => 'KU · AR · EN',
                 'bookable' => false,
                 'title' => [
                     'en' => 'University and institute floor open',
@@ -671,7 +674,7 @@ class ProgrammeSeeder extends Seeder
             // ---------------------------------------------------------- Day 3
             [
                 'day' => 3, 'starts_at' => '10:00', 'ends_at' => '20:00', 'duration_label' => 'All day',
-                'type' => 'Expo', 'track' => 'fair', 'hall' => null, 'hall_label' => 'Halls A & C', 'languages' => 'KU · AR · EN',
+                'type' => 'Exhibition', 'track' => 'fair', 'hall' => null, 'hall_label' => 'Halls A & C', 'languages' => 'KU · AR · EN',
                 'bookable' => false,
                 'title' => [
                     'en' => 'University and institute floor open',

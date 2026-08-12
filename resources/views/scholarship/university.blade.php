@@ -33,6 +33,6 @@
             @endforeach
         </div>
 
-        <a href="{{ route('scholarship.apply') }}" class="ns-btn ns-btn-magenta mt-9">{{ __('scholarship.home.cta') }}</a>
+        <x-ns.scholarship-cta :attendee="$attendee" class="mt-9" />
     </div>
 </x-layouts.scholarship>

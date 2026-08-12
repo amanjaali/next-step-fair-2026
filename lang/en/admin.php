@@ -3,6 +3,23 @@
 /** Admin panel labels. The dashboard is English-only; the content it edits is not. */
 return [
 
+    'popups' => [
+        'heading' => 'What it says',
+        'offers' => 'Offers in this popup',
+        'offers_help' => 'Add as many as you need — they appear in one box, in this order. Drag to reorder.',
+        'add_offer' => 'Add another offer',
+        'badge' => 'Small label',
+        'badge_help' => 'Optional, e.g. "Closes Friday" or "40 places".',
+        'url' => 'Where it goes',
+        'url_help' => 'Leave empty for an offer that is only an announcement.',
+        'when' => 'When it shows, and to whom',
+        'audience_help' => 'Leave on "Everyone" to greet visitors who have not signed in — that is most people opening the site. Narrowing it to students means only signed-in students ever see it.',
+        'active' => 'Show this popup',
+        'active_help' => 'Only one popup shows at a time — the most recently edited one that is switched on. Each person sees it once, and again after you edit it.',
+        'follows' => 'Followed out',
+        'edited' => 'Last edited',
+    ],
+
     'opportunities' => [
         'content' => 'What it says',
         'partner' => 'Partner',
@@ -38,6 +55,7 @@ return [
 
     'resources' => [
         'opportunities' => 'Opportunities',
+        'popups' => 'Home page popup',
         'fair' => 'Fair registrations',
         'conference' => 'Conference RSVPs',
         'messages' => 'Delivery log',
@@ -61,6 +79,7 @@ return [
     ],
 
     'fields' => [
+        'title' => 'Title',
         'name' => 'Name',
         'phone' => 'Phone',
         'email' => 'Email',
