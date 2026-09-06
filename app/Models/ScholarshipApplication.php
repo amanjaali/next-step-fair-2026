@@ -160,4 +160,88 @@ class ScholarshipApplication extends Model
             'state' => $at === false ? 'todo' : ($i < $at ? 'done' : ($i === $at ? 'now' : 'todo')),
         ])->all();
     }
+
+    /* ------------------------------------------------------- the committee -- */
+
+    /** The stages a committee moves an application through, in order. */
+    public const REVIEW_STAGES = [
+        self::STATUS_SUBMITTED,
+        self::STATUS_SCREENING,
+        self::STATUS_SHORTLISTED,
+        self::STATUS_INTERVIEW,
+        self::STATUS_DECIDED,
+    ];
+
+    /**
+     * Everything a committee should be looking at.
+     *
+     * A draft is a student still writing. It is not withheld from the dashboard
+     * out of secrecy — it is simply not an application yet, and mixing the two
+     * would make the queue lie about how many there are to read.
+     */
+    public function scopeSubmitted(Builder $query): Builder
+    {
+        return $query->whereNotNull('submitted_at');
+    }
+
+    /**
+     * Move an application to a stage, stamping when it happened.
+     *
+     * The timestamps are what the student's tracker reads, so setting the status
+     * without one would show a stage as reached with no date against it. Going
+     * backwards is allowed here and nowhere else: a committee that screens
+     * something by mistake has to be able to put it back.
+     */
+    public function advanceTo(string $status, ?string $decision = null): void
+    {
+        $stamps = [
+            self::STATUS_SCREENING => 'screened_at',
+            self::STATUS_SHORTLISTED => 'shortlisted_at',
+            self::STATUS_INTERVIEW => 'interviewed_at',
+            self::STATUS_DECIDED => 'decided_at',
+        ];
+
+        $changes = ['status' => $status];
+
+        if (isset($stamps[$status]) && $this->{$stamps[$status]} === null) {
+            $changes[$stamps[$status]] = now();
+        }
+
+        if ($status === self::STATUS_DECIDED && $decision !== null) {
+            $changes['decision'] = $decision;
+        }
+
+        $this->forceFill($changes)->save();
+    }
+
+    /** The next stage after this one, or null at the end of the queue. */
+    public function nextStage(): ?string
+    {
+        $at = array_search($this->status, self::REVIEW_STAGES, true);
+
+        return $at === false ? null : (self::REVIEW_STAGES[$at + 1] ?? null);
+    }
+
+    /**
+     * The three scores, added up out of 100.
+     *
+     * Kept as a method rather than a stored column that can drift: the total is
+     * always the sum of what the committee actually entered.
+     */
+    public function scoreTotal(): ?float
+    {
+        $scores = array_filter([
+            $this->score_academic,
+            $this->score_feasibility,
+            $this->score_interview,
+        ], fn ($s) => $s !== null);
+
+        return $scores === [] ? null : round(array_sum(array_map('floatval', $scores)), 2);
+    }
+
+    /** The applicant's name, for a list that is read by people. */
+    public function applicantName(): string
+    {
+        return $this->registration?->full_name ?? '—';
+    }
 }

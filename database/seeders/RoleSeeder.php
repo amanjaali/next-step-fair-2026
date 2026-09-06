@@ -26,6 +26,8 @@ class RoleSeeder extends Seeder
         'manage-sponsors', 'manage-leads',
         // Gate
         'scan-tickets',
+        // Scholarship
+        'review-scholarships',
         // Platform
         'manage-users', 'manage-settings', 'view-analytics', 'manage-qr-campaigns',
     ];
@@ -47,6 +49,14 @@ class RoleSeeder extends Seeder
         'Sponsor Manager' => [
             'manage-sponsors', 'manage-leads', 'view-analytics', 'manage-qr-campaigns',
         ],
+        /*
+         * The scholarship committee reads applications and moves them through the
+         * stages. Deliberately nothing else: a committee member is often external
+         * to the organisation, and has no business in registrations or messaging.
+         */
+        'Scholarship Committee' => [
+            'review-scholarships',
+        ],
     ];
 
     public function run(): void
@@ -67,6 +77,7 @@ class RoleSeeder extends Seeder
             ['Newsroom', 'editor@nextstepfair.com', 'Content Editor', 'Content Editor'],
             ['Gate Staff', 'gate@nextstepfair.com', 'Check-in Staff', 'Check-in Staff'],
             ['Partnerships', 'partnerships@nextstepfair.com', 'Sponsor Manager', 'Sponsor Manager'],
+            ['Scholarship Committee', 'committee@nextstepfair.com', 'Scholarship Committee', 'Committee Member'],
         ];
 
         foreach ($accounts as [$name, $email, $role, $title]) {

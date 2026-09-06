@@ -133,6 +133,51 @@ WhatsApp message, and it re-attaches the badge PDF and the calendar invite.
 
 ---
 
+## Scholarship applications
+
+*Registrations → Scholarship applications*. The number beside it is how many are
+waiting to be looked at.
+
+Every application a student submits lands here. Nothing has to be forwarded and
+nothing is emailed around — the committee reads them in the dashboard.
+
+**The queue** is ordered oldest first, so whoever applied on the first day is
+looked at first. Unfinished drafts are hidden: a draft is a student still
+writing, not an application. Turn off *Hide unfinished drafts* if you want to see
+those too. Filter by region, by stage, or by decision.
+
+**Opening one** shows everything as it was submitted: who they are and how to
+reach them, the regional quota they compete in and how many seats it holds, their
+grade 12 average and school, both university choices, the five eligibility
+answers with what they were told, the personal statement and the proposal in
+full, and which of the four documents are in.
+
+Nothing a student wrote can be edited here. What the committee adds is separate:
+
+| Field | What it is |
+| --- | --- |
+| **Stage** | Submitted → Screening → Shortlisted → Interview → Decision |
+| **Scores** | Academic out of 40, proposal out of 30, interview out of 30 |
+| **Committee notes** | Internal. Never shown to the applicant |
+| **Decision** | Awarded, reserve list, or not selected — set at the Decision stage |
+
+**Moving an application on.** The blue button on each row moves it one stage and
+records the date. To move several at once, tick them and use *Move to screening*.
+For anything more than a stage change — scores, notes, a decision — use **Review**.
+
+**The applicant sees this.** The stage you set is what their own tracker shows,
+with the date beside it. Move something to Interview and the student sees
+Interview the next time they open the page. That is why the stage should be moved
+when the work is actually done, not in advance.
+
+**Who can see it.** Super Admin, and the *Scholarship Committee* role. A
+committee member sees applications and nothing else — not registrations, not
+messaging, not staff accounts — because committee members are often from outside
+the organisation. Create their accounts under *Platform → Staff accounts* with
+that role.
+
+---
+
 ## Messaging
 
 ### Delivery log
