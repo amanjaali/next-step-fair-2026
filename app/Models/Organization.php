@@ -64,6 +64,16 @@ class Organization extends Model
      */
     public function logoUrl(): ?string
     {
+        /*
+         * A strategic partner's mark is the same file in three places — the
+         * header, the footer strip and this directory — so it is uploaded once,
+         * on the Brand images screen, in a slot named for the partner's slug.
+         * An upload there wins over anything stored on the record.
+         */
+        if ($this->kind === self::KIND_STRATEGIC && ($uploaded = ns_brand($this->slug))) {
+            return $uploaded;
+        }
+
         if (blank($this->logo_path)) {
             return null;
         }

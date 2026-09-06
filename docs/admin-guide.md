@@ -292,14 +292,25 @@ its own photograph.
 | **Logo — for dark backgrounds** | The footer, the share card, the check-in app |
 | **Ministry of Higher Education** | Beside the Next Step logo in the header, and in the footer strip |
 | **Kurdistan Regional Government** | The partnership strip in the footer |
+| **Kurdistan Students Association** | Third in the header after the ministry mark, the footer strip, the share card, and the partners page |
 | **Default share picture** | What Facebook, WhatsApp and LinkedIn show for a page with no picture of its own — 1200 × 630 |
 
 Same rule: **empty means the logo the site was built with.** Clearing an upload
 restores it rather than leaving a gap in the header of every page.
 
-The ministry also appears as a partner in the directory and on the sponsors page —
-that is a separate record with its own logo, under *Universities, exhibitors &
-sponsors*. This screen is the brand mark in the header and footer only.
+**The Kurdistan Students Association is the exception**, because no file for it
+ships with the site: while its box is empty, nothing at all is drawn for it —
+no gap, no broken image. Upload the logo and it appears in the header in the
+agreed order (Next Step · MOHE · KSA), in the footer strip, on the share card
+and on the partners page, in all three languages, on every page at once. A PNG
+with a transparent background is best; any shape works, since the header caps
+the mark at 40px tall and 64px wide so a wide logo cannot push the menu onto a
+second line.
+
+The ministry and the regional government also appear as partners in the directory
+and on the sponsors page. Those are separate records under *Universities,
+exhibitors & sponsors*, but for these three partners the sponsors page reads the
+logo from **this** screen, so the file only ever has to be uploaded once.
 
 ### Every other picture
 

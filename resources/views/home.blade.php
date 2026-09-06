@@ -397,8 +397,8 @@
             <div class="ns-hairgrid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                 @foreach ($universities as $university)
                     <div class="h-[104px] flex items-center justify-center p-[14px] text-center">
-                        @if ($university->logo_path)
-                            <img src="{{ $university->logoUrl() }}" alt="{{ $university->t('name') }}"
+                        @if ($logo = $university->logoUrl())
+                            <img src="{{ $logo }}" alt="{{ $university->t('name') }}"
                                  class="max-h-[64px] w-auto" loading="lazy">
                         @else
                             <span class="font-[family-name:var(--ns-body)] text-[11.5px] font-medium leading-[1.35] text-muted">
@@ -431,8 +431,8 @@
                     @foreach ($tier['items'] as $item)
                         <div class="bg-bone-200 flex items-center justify-center p-[10px] text-center"
                              style="height:{{ $tier['height'] }};width:{{ $tier['width'] }}">
-                            @if ($item->logo_path)
-                                <img src="{{ $item->logoUrl() }}" alt="{{ $item->t('name') }}"
+                            @if ($logo = $item->logoUrl())
+                                <img src="{{ $logo }}" alt="{{ $item->t('name') }}"
                                      class="max-h-full max-w-full object-contain" loading="lazy">
                             @else
                                 <span class="font-[family-name:var(--ns-body)] text-[11.5px] font-medium text-muted leading-[1.3]">

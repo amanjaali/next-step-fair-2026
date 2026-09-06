@@ -115,7 +115,7 @@ return [
         'organisation' => 'Organisation',
         'newsletter_blurb' => 'Deadlines, scholarships and agenda changes. One email a month.',
         'partnership_label' => 'In partnership with',
-        'partnership_line' => 'The Ministry of Higher Education and Scientific Research (MOHE) and the Kurdistan Regional Government.',
+        'partnership_line' => 'The Ministry of Higher Education and Scientific Research (MOHE), the Kurdistan Regional Government and the Kurdistan Students Association.',
         'copyright' => '© :year Next Step Organization. Sulaimani, Kurdistan Region, Iraq.',
         'privacy' => 'Privacy',
         'terms' => 'Terms',
@@ -141,6 +141,8 @@ return [
         'mohe' => 'The Ministry of Higher Education and Scientific Research (MOHE)',
         'mohe_alt' => 'Ministry of Higher Education and Scientific Research',
         'krg_alt' => 'Kurdistan Regional Government',
+        'ksa' => 'Kurdistan Students Association',
+        'ksa_alt' => 'Kurdistan Students Association',
         'logo_alt' => 'Next Step — Our Next Chapter',
     ],
 

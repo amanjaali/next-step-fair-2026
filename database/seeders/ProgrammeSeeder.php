@@ -204,46 +204,7 @@ class ProgrammeSeeder extends Seeder
             ]);
         }
 
-        // Strategic partners carry the real marks in the design.
-        $strategic = [
-            [
-                'slug' => 'mohe', 'logo' => 'brand/mohe.png', 'sort' => 1,
-                'name' => [
-                    'en' => 'Ministry of Higher Education and Scientific Research (MOHE)',
-                    'ku' => 'وەزارەتی خوێندنی باڵا و توێژینەوەی زانستی (MOHE)',
-                    'ar' => 'وزارة التعليم العالي والبحث العلمي (MOHE)',
-                ],
-                'description' => [
-                    'en' => 'Convening partner. Opens the conference and chairs the accreditation roundtable.',
-                    'ku' => 'هاوبەشی بانگهێشتکار. کۆنفرانس دەکاتەوە و سەرۆکایەتی مێزی گردی متمانەپێکراوی دەکات.',
-                    'ar' => 'الشريك الداعي. يفتتح المؤتمر ويترأس الطاولة المستديرة للاعتماد الأكاديمي.',
-                ],
-            ],
-            [
-                'slug' => 'krg', 'logo' => 'brand/krg.png', 'sort' => 2,
-                'name' => [
-                    'en' => 'Kurdistan Regional Government',
-                    'ku' => 'حکومەتی هەرێمی کوردستان',
-                    'ar' => 'حكومة إقليم كوردستان',
-                ],
-                'description' => [
-                    'en' => 'Institutional patron, with the Sulaimani Governorate providing the venue through 2028.',
-                    'ku' => 'پشتیوانی دامەزراوەیی، لەگەڵ پارێزگای سلێمانی کە شوێنەکە تا 2028 دابین دەکات.',
-                    'ar' => 'الراعي المؤسسي، مع محافظة السليمانية التي توفر المكان حتى 2028.',
-                ],
-            ],
-        ];
-
-        foreach ($strategic as $partner) {
-            Organization::updateOrCreate(['slug' => $partner['slug']], [
-                'kind' => Organization::KIND_STRATEGIC,
-                'name' => $partner['name'],
-                'description' => $partner['description'],
-                'logo_path' => $partner['logo'],
-                'sort' => $partner['sort'],
-                'year' => 2026,
-            ]);
-        }
+        $this->syncStrategicPartners();
 
         $supporters = [
             ['MJ Holding', 'Seminar programme and CV clinics', 'پرۆگرامی سیمینار و کلینیکی CV', 'برنامج الندوات وعيادات السيرة الذاتية', 2024],
@@ -323,6 +284,78 @@ class ProgrammeSeeder extends Seeder
                 'sort' => $i + 1,
                 'year' => 2026,
             ]);
+        }
+    }
+
+    /**
+     * The three partners whose marks the design carries.
+     *
+     * Held apart from the rest of the exhibitor seed because a migration adds
+     * them to a database that is already live — a partner who joins mid-season
+     * has to reach the running site without re-seeding it. Pass false there, so
+     * an existing record and any wording edited in the dashboard is left alone
+     * and only what is missing is created.
+     */
+    public function syncStrategicPartners(bool $overwrite = true): void
+    {
+        $strategic = [
+            [
+                'slug' => 'mohe', 'logo' => 'brand/mohe.png', 'sort' => 1,
+                'name' => [
+                    'en' => 'Ministry of Higher Education and Scientific Research (MOHE)',
+                    'ku' => 'وەزارەتی خوێندنی باڵا و توێژینەوەی زانستی (MOHE)',
+                    'ar' => 'وزارة التعليم العالي والبحث العلمي (MOHE)',
+                ],
+                'description' => [
+                    'en' => 'Convening partner. Opens the conference and chairs the accreditation roundtable.',
+                    'ku' => 'هاوبەشی بانگهێشتکار. کۆنفرانس دەکاتەوە و سەرۆکایەتی مێزی گردی متمانەپێکراوی دەکات.',
+                    'ar' => 'الشريك الداعي. يفتتح المؤتمر ويترأس الطاولة المستديرة للاعتماد الأكاديمي.',
+                ],
+            ],
+            [
+                'slug' => 'krg', 'logo' => 'brand/krg.png', 'sort' => 2,
+                'name' => [
+                    'en' => 'Kurdistan Regional Government',
+                    'ku' => 'حکومەتی هەرێمی کوردستان',
+                    'ar' => 'حكومة إقليم كوردستان',
+                ],
+                'description' => [
+                    'en' => 'Institutional patron, with the Sulaimani Governorate providing the venue through 2028.',
+                    'ku' => 'پشتیوانی دامەزراوەیی، لەگەڵ پارێزگای سلێمانی کە شوێنەکە تا 2028 دابین دەکات.',
+                    'ar' => 'الراعي المؤسسي، مع محافظة السليمانية التي توفر المكان حتى 2028.',
+                ],
+            ],
+            [
+                // No logo file ships for this one: the mark is uploaded on the
+                // Brand images screen in the slot named for this slug, which is
+                // where logoUrl() looks first for a strategic partner.
+                'slug' => 'ksa', 'logo' => null, 'sort' => 3,
+                'name' => [
+                    'en' => 'Kurdistan Students Association',
+                    'ku' => 'کۆمەڵەی خوێندکارانی کوردستان',
+                    'ar' => 'جمعية طلبة كوردستان',
+                ],
+                'description' => [
+                    'en' => 'Student partner. Reaches grade 12 students across the Region and staffs the guidance desks at the fair.',
+                    'ku' => 'هاوبەشی خوێندکاران. دەگاتە خوێندکارانی پۆلی ١٢ لە سەرانسەری هەرێم و ستافی مێزەکانی ڕێنمایی لە پێشانگاکە دابین دەکات.',
+                    'ar' => 'الشريك الطلابي. يصل إلى طلبة الصف الثاني عشر في عموم الإقليم ويشرف على مكاتب الإرشاد في المعرض.',
+                ],
+            ],
+        ];
+
+        foreach ($strategic as $partner) {
+            $values = [
+                'kind' => Organization::KIND_STRATEGIC,
+                'name' => $partner['name'],
+                'description' => $partner['description'],
+                'logo_path' => $partner['logo'],
+                'sort' => $partner['sort'],
+                'year' => 2026,
+            ];
+
+            $overwrite
+                ? Organization::updateOrCreate(['slug' => $partner['slug']], $values)
+                : Organization::firstOrCreate(['slug' => $partner['slug']], $values);
         }
     }
 

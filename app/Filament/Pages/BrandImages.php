@@ -85,6 +85,11 @@ class BrandImages extends Page
                     ->schema([
                         $this->slot('mohe', __('admin.images.mohe')),
                         $this->slot('krg', __('admin.images.krg')),
+                        // No file ships for this one: the association joined
+                        // after the design was drawn, so its mark appears in
+                        // the header, the footer and the partners page the
+                        // moment it is uploaded here, and nowhere before.
+                        $this->slot('ksa', __('admin.images.ksa'), __('admin.images.ksa_help')),
                     ]),
 
                 Section::make(__('admin.images.share'))

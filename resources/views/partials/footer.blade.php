@@ -89,7 +89,8 @@
             </div>
         </div>
 
-        {{-- Partnership band: MOHE and KRG on white, separated by a 1px rule. --}}
+        {{-- Partnership band: the marks on white, each separated by a 1px rule.
+             KSA joins them as soon as its logo is uploaded. --}}
         <div class="py-8 border-b border-[rgba(255,255,255,0.14)] flex items-center gap-8 flex-wrap">
             <div class="ns-eyebrow !text-[10.5px] !text-white/45 max-w-[16ch] leading-[1.5]">
                 {{ __('site.footer.partnership_label') }}
@@ -98,6 +99,10 @@
                 <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}" alt="{{ __('site.header.mohe') }}" class="h-[54px] w-auto block">
                 <span class="w-px h-12 bg-[rgba(5,7,8,0.18)]"></span>
                 <img src="{{ ns_brand('krg', 'assets/brand/krg.png') }}" alt="{{ __('site.header.krg_alt') }}" class="h-[54px] w-auto block">
+                @if ($ksaMark = ns_brand('ksa'))
+                    <span class="w-px h-12 bg-[rgba(5,7,8,0.18)]"></span>
+                    <img src="{{ $ksaMark }}" alt="{{ __('site.header.ksa') }}" class="h-[54px] w-auto block">
+                @endif
             </div>
             <div class="font-[family-name:var(--ns-body)] text-[13.5px] leading-[1.6] text-white/70 max-w-[38ch]">
                 {{ __('site.footer.partnership_line') }}

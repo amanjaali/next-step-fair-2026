@@ -1,0 +1,161 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Organization;
+use App\Models\Setting;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+/**
+ * The Kurdistan Students Association, in the lockup and everywhere else.
+ *
+ * The association joined after the design was drawn, so no logo file ships with
+ * the site: the mark is uploaded on the Brand images screen and nothing is drawn
+ * for it before that. Both halves of that matter — a partner whose logo silently
+ * fails to appear is one problem, a broken image in the header of every page in
+ * the meantime is a worse one.
+ */
+class PartnerMarksTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed();
+    }
+
+    private function upload(string $path = 'brand/ksa.png'): void
+    {
+        Setting::put('brand_images', ['ksa' => $path], 'images');
+    }
+
+    /* ------------------------------------------------------- before upload -- */
+
+    public function test_nothing_is_drawn_for_the_association_until_a_logo_is_uploaded(): void
+    {
+        $html = $this->get('/en')->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('/storage/brand/ksa.png', $html);
+        $this->assertStringNotContainsString('src=""', $html);
+    }
+
+    public function test_the_shipped_marks_still_show_with_nothing_uploaded(): void
+    {
+        $this->get('/en')->assertOk()->assertSee('/assets/brand/mohe.png', false);
+    }
+
+    /* -------------------------------------------------------- after upload -- */
+
+    public function test_the_mark_appears_in_the_header_and_the_footer_once_uploaded(): void
+    {
+        $this->upload();
+
+        // A page with no partner wall of its own, so what is counted is the
+        // chrome alone: the header lockup and the footer partnership band.
+        $chrome = $this->get('/en/agenda')->assertOk()->getContent();
+
+        $this->assertSame(2, substr_count($chrome, '/storage/brand/ksa.png'));
+
+        // The home page adds the logo wall, where it appears once more.
+        $home = $this->get('/en')->assertOk()->getContent();
+
+        $this->assertSame(3, substr_count($home, '/storage/brand/ksa.png'));
+    }
+
+    /**
+     * The agreed sequence is Next Step, then the Ministry, then the association.
+     * Order in the markup is order on the screen here, so it is what is checked.
+     */
+    public function test_it_comes_after_the_ministry_mark_in_the_lockup(): void
+    {
+        $this->upload();
+
+        $html = $this->get('/en')->assertOk()->getContent();
+
+        $this->assertLessThan(
+            strpos($html, '/storage/brand/ksa.png'),
+            strpos($html, '/assets/brand/mohe.png'),
+        );
+    }
+
+    /**
+     * Whatever shape of file is uploaded, the header keeps its one line: the
+     * mark is capped in width, not only in height. Measured in Chromium, English
+     * at 1280 wraps somewhere between 68px and 76px of extra lockup.
+     */
+    public function test_the_header_mark_is_capped_so_a_wide_logo_cannot_break_the_menu(): void
+    {
+        $this->upload();
+
+        $html = $this->get('/en')->assertOk()->getContent();
+
+        $mark = strpos($html, '/storage/brand/ksa.png');
+        $tag = substr($html, strrpos(substr($html, 0, $mark), '<img'), 400);
+
+        $this->assertStringContainsString('max-width:64px', $tag);
+    }
+
+    public function test_the_mark_is_on_every_page_in_every_language(): void
+    {
+        $this->upload();
+
+        foreach (['en', 'ku', 'ar'] as $locale) {
+            foreach ([$locale, $locale.'/sponsors', $locale.'/about', $locale.'/agenda'] as $path) {
+                $this->get('/'.$path)
+                    ->assertOk()
+                    ->assertSee('/storage/brand/ksa.png', false);
+            }
+        }
+    }
+
+    /* ------------------------------------------------- the partners page --- */
+
+    public function test_the_association_is_listed_among_the_strategic_partners(): void
+    {
+        $names = [
+            'en' => 'Kurdistan Students Association',
+            'ku' => 'کۆمەڵەی خوێندکارانی کوردستان',
+            'ar' => 'جمعية طلبة كوردستان',
+        ];
+
+        foreach ($names as $locale => $name) {
+            $this->get('/'.$locale.'/sponsors')->assertOk()->assertSee($name, false);
+        }
+    }
+
+    public function test_it_sits_third_among_the_strategic_partners(): void
+    {
+        $slugs = Organization::where('kind', Organization::KIND_STRATEGIC)
+            ->orderBy('sort')->pluck('slug')->all();
+
+        $this->assertSame(['mohe', 'krg', 'ksa'], $slugs);
+    }
+
+    /**
+     * One upload, three places. The partners page reads the same slot as the
+     * header, so an editor never has to find and load the file twice.
+     */
+    public function test_the_partners_page_uses_the_logo_uploaded_for_the_header(): void
+    {
+        $ksa = Organization::where('slug', 'ksa')->firstOrFail();
+
+        $this->assertNull($ksa->logoUrl());
+
+        $this->upload();
+
+        $this->assertSame('/storage/brand/ksa.png', $ksa->fresh()->logoUrl());
+    }
+
+    /** An upload replaces a shipped mark rather than sitting beside it. */
+    public function test_an_upload_replaces_the_shipped_ministry_mark(): void
+    {
+        Setting::put('brand_images', ['mohe' => 'brand/mohe-2027.png'], 'images');
+
+        $mohe = Organization::where('slug', 'mohe')->firstOrFail();
+
+        $this->assertSame('/storage/brand/mohe-2027.png', $mohe->logoUrl());
+        $this->get('/en')->assertOk()->assertSee('/storage/brand/mohe-2027.png', false);
+    }
+}

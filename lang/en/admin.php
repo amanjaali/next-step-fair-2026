@@ -113,6 +113,8 @@ return [
         'partners_help' => 'Shown beside the Next Step logo in the header and in the partnership strip in the footer.',
         'mohe' => 'Ministry of Higher Education',
         'krg' => 'Kurdistan Regional Government',
+        'ksa' => 'Kurdistan Students Association',
+        'ksa_help' => 'Nothing is shown for this partner until you upload a logo here. Once you do, it appears third in the header after the Ministry mark, in the footer strip, on the share card and on the partners page — in all three languages.',
         'share' => 'The picture on shared links',
         'share_help' => 'What Facebook, WhatsApp and LinkedIn show when someone shares a page that has no picture of its own.',
         'share_image' => 'Default share picture',

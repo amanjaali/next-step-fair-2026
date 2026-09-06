@@ -255,11 +255,20 @@ if (! function_exists('ns_brand')) {
      * missing file here is visible everywhere at once. Uploading a replacement
      * must never be able to leave a blank space: an empty slot falls straight
      * back to the file committed under public/assets.
+     *
+     * A slot with no shipped file — a partner who joined after the design was
+     * drawn — returns null instead, so the mark simply does not appear until
+     * someone uploads it. A broken image in the header of every page is worse
+     * than no image at all.
      */
-    function ns_brand(string $slot, string $shipped): string
+    function ns_brand(string $slot, ?string $shipped = null): ?string
     {
         $uploaded = trim((string) (Setting::get('brand_images', [])[$slot] ?? ''));
 
-        return $uploaded !== '' ? '/storage/'.ltrim($uploaded, '/') : '/'.ltrim($shipped, '/');
+        if ($uploaded !== '') {
+            return '/storage/'.ltrim($uploaded, '/');
+        }
+
+        return $shipped === null ? null : '/'.ltrim($shipped, '/');
     }
 }

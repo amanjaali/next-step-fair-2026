@@ -17,8 +17,8 @@
                 @foreach ($list as $org)
                     <div class="p-[26px] flex gap-5 items-start">
                         <div class="w-16 h-16 bg-bone-200 flex-none flex items-center justify-center">
-                            @if ($org->logo_path)
-                                <img src="{{ $org->logoUrl() }}" alt="{{ $org->t('name') }}" class="max-w-[52px] max-h-[52px] object-contain" loading="lazy">
+                            @if ($logo = $org->logoUrl())
+                                <img src="{{ $logo }}" alt="{{ $org->t('name') }}" class="max-w-[52px] max-h-[52px] object-contain" loading="lazy">
                             @endif
                         </div>
                         <div>

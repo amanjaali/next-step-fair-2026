@@ -37,11 +37,14 @@
 <header class="sticky top-0 z-50 bg-bone border-b border-[rgba(5,7,8,0.1)]" x-data="nsNav">
     <div class="ns-wrap flex items-center justify-between gap-[clamp(10px,1.1vw,20px)] py-3 min-h-[76px] flex-wrap">
 
-        {{-- Brand lockup: Next Step, a hairline, then the MOHE partnership mark.
-             The mark is the visible half of "in partnership with the Ministry of
-             Higher Education" — the wording itself is spelled out in the footer
-             and on the about page. It stays at every width now that the menu is
-             eight items rather than eleven. --}}
+        {{-- Brand lockup: Next Step, a hairline, then the partnership marks in
+             the agreed order — MOHE, then the Kurdistan Students Association.
+             The marks are the visible half of "in partnership with"; the wording
+             itself is spelled out in the footer and on the about page.
+
+             KSA is drawn only once its logo has been uploaded on the Brand
+             images screen, so the header never carries a broken image while the
+             file is still being prepared. --}}
         <div class="flex items-center gap-4 shrink-0">
             <a href="{{ route('home') }}" class="block shrink-0">
                 <img src="{{ ns_brand('logo_dark', 'assets/brand/nextstep-transparent-sm.png') }}"
@@ -52,6 +55,18 @@
                 <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}"
                      alt="{{ __('site.header.partnership_kicker') }} — {{ __('site.header.mohe') }}"
                      title="{{ __('site.header.mohe') }}" class="h-10 w-auto block">
+                {{-- Capped in width as well as height. A seal-shaped mark is
+                     about 50px wide at this height and a wide wordmark is 120px;
+                     measured in Chromium, English at 1280 takes the menu onto a
+                     second row somewhere between 68px and 76px, so the cap is
+                     64px. Whatever file is uploaded, the menu stays on one line.
+                     Re-measure 1280/1440/1600/1920 × en/ku/ar if this changes. --}}
+                @if ($ksaMark = ns_brand('ksa'))
+                    <img src="{{ $ksaMark }}"
+                         alt="{{ __('site.header.partnership_kicker') }} — {{ __('site.header.ksa') }}"
+                         title="{{ __('site.header.ksa') }}"
+                         class="h-10 w-auto block" style="max-width:64px;object-fit:contain">
+                @endif
             </div>
         </div>
 

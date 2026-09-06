@@ -216,6 +216,10 @@
                     <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}" alt="">
                     <span class="rule"></span>
                     <img src="{{ ns_brand('krg', 'assets/brand/krg.png') }}" alt="">
+                    @if ($ksaMark = ns_brand('ksa'))
+                        <span class="rule"></span>
+                        <img src="{{ $ksaMark }}" alt="">
+                    @endif
                 </div>
             </div>
         </div>
