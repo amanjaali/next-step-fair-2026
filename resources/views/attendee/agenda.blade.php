@@ -21,15 +21,22 @@
 
         @foreach ($days as $day => $sessions)
             <section class="mb-12">
-                <div class="flex items-baseline gap-3 mb-2">
+                {{-- Padded to match the rows below, so the day and the first
+                     time under it start on the same line. --}}
+                <div class="flex items-baseline gap-3 mb-2 px-[clamp(14px,1.6vw,24px)]">
                     <h2 class="ns-h2 !text-[clamp(22px,2.4vw,30px)]">{{ __('site.common.day', ['n' => $day]) }}</h2>
                     <span class="ns-meta ns-num">{{ ns_day_date($day) }}</span>
                 </div>
 
                 @foreach ($sessions as $session)
                     @php($isSaved = in_array($session->id, $saved, true))
+                    {{-- A saved session is tinted, and the tint runs the width of
+                         the row. Without side padding the time and the button sat
+                         hard against the edge of that tint, which read as the text
+                         being clipped. The padding is inside the row, so the
+                         hairline between rows still spans the full width. --}}
                     <div @class([
-                        'grid gap-6 border-t border-[rgba(5,7,8,0.14)] py-[22px] items-start lg:grid-cols-[110px_minmax(0,1fr)_190px]',
+                        'grid gap-6 border-t border-[rgba(5,7,8,0.14)] py-[22px] px-[clamp(14px,1.6vw,24px)] items-start lg:grid-cols-[110px_minmax(0,1fr)_190px]',
                         'bg-white/70' => $isSaved,
                     ])>
                         <div class="ns-num font-[family-name:var(--ns-display)] text-[20px] font-semibold">

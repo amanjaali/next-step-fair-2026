@@ -254,6 +254,62 @@ button — paste the YouTube or Vimeo URL into that dialog rather than into the 
 which is what produces a working embed. Short fields such as a speaker biography get
 a cut-down toolbar: bold, italic, lists and links only.
 
+### The home page
+
+*Content → Home page* — the first item in the group.
+
+The words and the photographs on the front page. Each text field is edited per
+language under **EN / KU / AR** tabs.
+
+**A box left empty keeps what the site was built with** — the grey text inside
+each box is what will be used if you type nothing. Clearing a box you filled in
+restores the original; it never publishes an empty heading. Filling in English
+does not blank Kurdish or Arabic.
+
+**The hero photograph.** *The opening → Background photograph*. The hero is plain
+black by design and stays that way while this is empty. Upload a wide photograph
+and it sits behind the title, darkened so the white text stays readable; remove it
+and the black comes back.
+
+**The event itself.** The name, the edition, both dates, the venue, the city and
+the opening hours. These are not only front-page text — the same values print on
+every badge, go out in every WhatsApp message, are written into the calendar file
+people add to their phones, and are given to Google as the event's structured
+data. Correcting a date here corrects all of them at once. An empty box keeps the
+value the site was built with, so clearing the venue cannot blank the badges.
+
+**The two buttons**, the **figures** in the black bar (leave them empty to keep
+counting live), the **two cards** under Two tracks, and the **About** section with
+its own photograph.
+
+### Logos and brand marks
+
+*Content → Logos & brand marks*.
+
+| Slot | Where it shows |
+| --- | --- |
+| **Logo — for light backgrounds** | The header, the browser tab, the dashboard |
+| **Logo — for dark backgrounds** | The footer, the share card, the check-in app |
+| **Ministry of Higher Education** | Beside the Next Step logo in the header, and in the footer strip |
+| **Kurdistan Regional Government** | The partnership strip in the footer |
+| **Default share picture** | What Facebook, WhatsApp and LinkedIn show for a page with no picture of its own — 1200 × 630 |
+
+Same rule: **empty means the logo the site was built with.** Clearing an upload
+restores it rather than leaving a gap in the header of every page.
+
+The ministry also appears as a partner in the directory and on the sponsors page —
+that is a separate record with its own logo, under *Universities, exhibitors &
+sponsors*. This screen is the brand mark in the header and footer only.
+
+### Every other picture
+
+There is no page where a picture can only be changed in the code. Each is edited
+on the screen that owns the thing it pictures: speaker portraits under *Speakers*,
+article covers under *News & blog*, edition covers under *Past editions*, album
+photographs under *Media albums*, partner logos under *Universities, exhibitors &
+sponsors*, and a student's own photograph by the student, under *Edit your
+details*.
+
 ### Translations
 
 Content is edited in three languages side by side, under tabs marked **EN / KU /

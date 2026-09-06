@@ -142,9 +142,11 @@ class Opportunity extends Model
 
     public function logo(): ?string
     {
-        $path = $this->partner_logo_path ?: $this->organization?->logo_path;
+        if (filled($this->partner_logo_path)) {
+            return ns_uploaded($this->partner_logo_path);
+        }
 
-        return $path ? asset(str_starts_with($path, 'assets/') ? $path : 'storage/'.$path) : null;
+        return $this->organization?->logoUrl();
     }
 
     /** Days left, or null when it never closes. */

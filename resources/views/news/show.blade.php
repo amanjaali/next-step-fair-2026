@@ -54,7 +54,7 @@
                 </div>
 
                 <div class="flex-[1_1_480px] min-w-0">
-                    <div class="ns-prose">{!! $post->t('body') !!}</div>
+                    <div class="ns-prose">{!! ns_rich($post->t('body')) !!}</div>
 
                     @if ($post->t('quote'))
                         <blockquote class="my-10 ps-7 border-s-8 border-magenta max-w-[60ch]">
@@ -138,12 +138,12 @@
                 'publisher' => [
                     '@type' => 'Organization',
                     'name' => config('nextstep.event.organisation'),
-                    'logo' => ['@type' => 'ImageObject', 'url' => asset('assets/brand/nextstep-transparent-sm.png')],
+                    'logo' => ['@type' => 'ImageObject', 'url' => url(ns_brand('logo_dark', 'assets/brand/nextstep-transparent-sm.png'))],
                 ],
                 'mainEntityOfPage' => url()->current(),
             ];
         @endphp
-        <script type="application/ld+json">{!! json_encode($articleSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+        <script type="application/ld+json">{!! json_encode($articleSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
     @endpush
 
 </x-layouts.site>

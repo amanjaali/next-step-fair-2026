@@ -215,13 +215,16 @@
      * soft filled pill, which is the same softening as everything else and does
      * not shift the text by 2px when a page becomes current.
      */
+    /* 15px: at 13px against a bone background the menu read as grey furniture
+       rather than as navigation. The padding tightens as the window narrows so
+       the row still holds one line at 1280px. */
     .ns-navlink {
         font-family: var(--ns-body);
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 700;
         line-height: 1;
         color: #2a2c2d;
-        padding: 9px 7px;
+        padding: 9px clamp(4px, 0.5vw, 9px);
         border-radius: var(--ns-radius-sm);
         white-space: nowrap;
         transition: background-color var(--ns-ease), color var(--ns-ease);

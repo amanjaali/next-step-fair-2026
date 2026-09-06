@@ -59,7 +59,7 @@ class Speaker extends Model
 
     public function photoUrl(): ?string
     {
-        return $this->photo_path ? asset('storage/'.$this->photo_path) : null;
+        return ns_uploaded($this->photo_path);
     }
 
     public function countryName(): string

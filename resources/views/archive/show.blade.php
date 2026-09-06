@@ -89,7 +89,7 @@
                         <blockquote class="mb-[30px] ps-[30px] border-s-8 border-magenta max-w-[44ch]">
                             <p class="font-[family-name:var(--ns-display)] text-[clamp(22px,3vw,32px)] font-semibold leading-[1.2] tracking-[-0.02em]">{{ $edition->t('speech_quote') }}</p>
                         </blockquote>
-                        <div class="ns-prose">{!! $edition->t('speech') !!}</div>
+                        <div class="ns-prose">{!! ns_rich($edition->t('speech')) !!}</div>
                         @if ($edition->recap_video)
                             <div class="flex gap-[14px] flex-wrap pt-3">
                                 <a href="{{ $edition->recap_video }}" class="ns-btn ns-btn-ink">{{ __('site.pages.archive.watch_opening') }}</a>

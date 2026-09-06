@@ -1,12 +1,13 @@
 @php
     /**
-     * Eight things at the top level, not eleven.
+     * Six things at the top level, not eleven.
      *
      * The four pages that are all "what happens at the fair" — the two halves of
      * the event and the two ways of reading its programme — sit inside one group.
-     * That is a shorter menu to scan, and the width it gives back is what lets the
-     * ministry partnership mark stay in the header at every size rather than
-     * disappearing above 1280.
+     * News and the SDG page live in the footer instead: both are read once
+     * rather than being part of deciding whether to come. That is a shorter menu
+     * to scan, and the width it gives back is what lets the partnership mark stay
+     * in the header at every size and the type stay readable at 15px.
      */
     $navItems = [
         ['key' => 'home', 'label' => __('site.nav.home'), 'route' => 'home'],
@@ -24,8 +25,6 @@
         ['key' => 'opportunities', 'label' => __('site.nav.opportunities'), 'route' => 'opportunities'],
         ['key' => 'universities', 'label' => __('site.nav.universities'), 'route' => 'universities'],
         ['key' => 'sponsors', 'label' => __('site.nav.sponsors'), 'route' => 'sponsors'],
-        ['key' => 'news', 'label' => __('site.nav.news'), 'route' => 'news'],
-        ['key' => 'sdg', 'label' => __('site.nav.sdg'), 'route' => 'sdg'],
     ];
 
     $current = $navKey ?? null;
@@ -45,12 +44,12 @@
              eight items rather than eleven. --}}
         <div class="flex items-center gap-4 shrink-0">
             <a href="{{ route('home') }}" class="block shrink-0">
-                <img src="{{ asset('assets/brand/nextstep-transparent-sm.png') }}"
+                <img src="{{ ns_brand('logo_dark', 'assets/brand/nextstep-transparent-sm.png') }}"
                      alt="{{ __('site.header.logo_alt') }}" class="h-[46px] w-auto block">
             </a>
             <span class="w-px h-11 bg-[rgba(5,7,8,0.16)] shrink-0 hidden sm:block"></span>
             <div class="hidden sm:flex items-center gap-[11px] shrink-0">
-                <img src="{{ asset('assets/brand/mohe.png') }}"
+                <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}"
                      alt="{{ __('site.header.partnership_kicker') }} — {{ __('site.header.mohe') }}"
                      title="{{ __('site.header.mohe') }}" class="h-10 w-auto block">
             </div>

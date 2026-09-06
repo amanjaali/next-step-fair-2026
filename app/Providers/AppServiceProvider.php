@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Registration;
+use App\Models\Setting;
 use App\Services\Messaging\CloudApiWhatsAppGateway;
 use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Services\Messaging\LogWhatsAppGateway;
@@ -29,9 +30,63 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Event facts edited in the dashboard, laid over the config at boot.
+     *
+     * The name, the dates and the venue are cited in more than a hundred places:
+     * badges, WhatsApp messages, the calendar file, the structured data Google
+     * reads. Overlaying them here rather than reading a setting at each call site
+     * means one edit corrects all of them, instead of correcting the home page
+     * and leaving the badge stale.
+     */
+    private function applyEditedEventFacts(): void
+    {
+        try {
+            $edited = Setting::get('event_overrides', []);
+        } catch (\Throwable $e) {
+            // No settings table yet: a fresh install part-way through migrating.
+            return;
+        }
+
+        if (! is_array($edited) || $edited === []) {
+            return;
+        }
+
+        $paths = [
+            'name' => 'nextstep.event.name',
+            'edition_label' => 'nextstep.event.edition_label',
+            'start_date' => 'nextstep.event.start_date',
+            'end_date' => 'nextstep.event.end_date',
+            'opening_hours' => 'nextstep.event.opening_hours',
+            'venue_name' => 'nextstep.event.venue.name',
+            'venue_city' => 'nextstep.event.venue.city',
+        ];
+
+        foreach ($paths as $key => $path) {
+            $value = trim((string) ($edited[$key] ?? ''));
+
+            if ($value !== '') {
+                config([$path => $value]);
+            }
+        }
+    }
+
     public function boot(): void
     {
-        if ($this->app->environment('production')) {
+        $this->applyEditedEventFacts();
+
+        /*
+         * Follow the address the site is actually served at, not the environment
+         * name.
+         *
+         * This used to force https for anything running in production. On a
+         * server without a certificate that points every stylesheet and script at
+         * port 443, which is closed — so the browser gets nothing and renders the
+         * page as raw unstyled HTML while the HTML itself returns 200. Reading
+         * APP_URL means the site is https the moment the certificate exists and
+         * APP_URL says so, and plain http until then.
+         */
+        if (str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
 

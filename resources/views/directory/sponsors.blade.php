@@ -24,7 +24,7 @@
                     @foreach ($strategic as $partner)
                         <div class="p-[clamp(24px,3vw,38px)] flex gap-[26px] items-center border-t-[6px] border-cobalt flex-wrap">
                             @if ($partner->logo_path)
-                                <img src="{{ asset('assets/'.$partner->logo_path) }}" alt="{{ $partner->t('name') }}" class="h-[86px] w-auto flex-none">
+                                <img src="{{ $partner->logoUrl() }}" alt="{{ $partner->t('name') }}" class="h-[86px] w-auto flex-none">
                             @endif
                             <div class="min-w-[200px] flex-1">
                                 <div class="font-[family-name:var(--ns-display)] text-[22px] font-semibold leading-[1.15] mb-2">{{ $partner->t('name') }}</div>
@@ -52,7 +52,7 @@
                                 <div class="bg-bone-200 flex items-center justify-center p-3 text-center"
                                      style="height:{{ $section['logoHeight'] }}">
                                     @if ($item->logo_path)
-                                        <img src="{{ asset('assets/'.$item->logo_path) }}" alt="{{ $item->t('name') }}" class="max-h-full max-w-full object-contain" loading="lazy">
+                                        <img src="{{ $item->logoUrl() }}" alt="{{ $item->t('name') }}" class="max-h-full max-w-full object-contain" loading="lazy">
                                     @else
                                         <span class="font-[family-name:var(--ns-body)] text-xs font-semibold text-muted leading-[1.3]">{{ $item->t('name') }}</span>
                                     @endif

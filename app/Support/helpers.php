@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Setting;
+use App\Support\Html;
 use Illuminate\Support\Carbon;
 
 if (! function_exists('ns_alternate_url')) {
@@ -152,5 +154,112 @@ if (! function_exists('ns_mask_phone')) {
         }
 
         return substr($digits, 0, 3).' ••• '.substr($digits, -4);
+    }
+}
+
+if (! function_exists('ns_uploaded')) {
+    /** A path stored on the public disk, as a URL that works on any hostname. */
+    function ns_uploaded(?string $path): ?string
+    {
+        return filled($path) ? '/storage/'.ltrim($path, '/') : null;
+    }
+}
+
+if (! function_exists('ns_rich')) {
+    /**
+     * Editor-written HTML, filtered before it is printed unescaped.
+     *
+     * Every `{!! !!}` that prints content from the dashboard goes through this.
+     * See App\Support\Html for what survives and why.
+     */
+    function ns_rich(?string $html): string
+    {
+        return Html::clean($html);
+    }
+}
+
+if (! function_exists('ns_home')) {
+    /**
+     * A piece of home page copy, as edited in the dashboard.
+     *
+     * Falls through to the translation file when the team has not overridden it,
+     * so the page reads exactly as shipped until somebody changes something —
+     * and a language they have not filled in still shows the original rather
+     * than an empty heading.
+     */
+    function ns_home(string $key, array $replace = []): string
+    {
+        $content = Setting::get('home_content', []);
+        $value = trim((string) ($content[$key][app()->getLocale()] ?? ''));
+
+        if ($value === '') {
+            return __('site.home.'.$key, $replace);
+        }
+
+        foreach ($replace as $token => $with) {
+            $value = str_replace([':'.$token, ':'.ucfirst($token)], (string) $with, $value);
+        }
+
+        return $value;
+    }
+}
+
+if (! function_exists('ns_home_counter')) {
+    /** A figure on the home page counters bar, editable in the dashboard. */
+    function ns_home_counter(string $key, int $default): int
+    {
+        $counters = Setting::get('counters', []);
+
+        return (int) ($counters[$key] ?? $default);
+    }
+}
+
+if (! function_exists('ns_image')) {
+    /**
+     * A photograph chosen in the dashboard, by slot.
+     *
+     * Returns null when nothing has been uploaded, which is what tells a view to
+     * keep the grey frame or the black hero it was designed with — a missing
+     * photograph is a considered default here, not a broken image.
+     */
+    function ns_image(string $slot): ?string
+    {
+        $images = Setting::get('site_images', []);
+        $path = trim((string) ($images[$slot] ?? ''));
+
+        return $path === '' ? null : '/storage/'.ltrim($path, '/');
+    }
+}
+
+if (! function_exists('ns_cta')) {
+    /**
+     * A button label, as edited in the dashboard.
+     *
+     * Same rule as the rest of the home page content: empty means "as written".
+     */
+    function ns_cta(string $key, string $fallback): string
+    {
+        $content = Setting::get('home_content', []);
+        $value = trim((string) ($content[$key][app()->getLocale()] ?? ''));
+
+        return $value !== '' ? $value : __($fallback);
+    }
+}
+
+if (! function_exists('ns_brand')) {
+    /**
+     * A logo or brand mark: the one uploaded in the dashboard, or the one the
+     * site ships with.
+     *
+     * These sit in the header and the footer of every page, so a wrong or
+     * missing file here is visible everywhere at once. Uploading a replacement
+     * must never be able to leave a blank space: an empty slot falls straight
+     * back to the file committed under public/assets.
+     */
+    function ns_brand(string $slot, string $shipped): string
+    {
+        $uploaded = trim((string) (Setting::get('brand_images', [])[$slot] ?? ''));
+
+        return $uploaded !== '' ? '/storage/'.ltrim($uploaded, '/') : '/'.ltrim($shipped, '/');
     }
 }

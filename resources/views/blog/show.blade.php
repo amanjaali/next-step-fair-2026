@@ -35,7 +35,7 @@
                 @endif
 
                 <div class="flex-[1_1_480px] min-w-0 order-1 lg:order-2">
-                    <div class="ns-prose">{!! $post->bodyWithAnchors() !!}</div>
+                    <div class="ns-prose">{!! ns_rich($post->bodyWithAnchors()) !!}</div>
 
                     @if ($post->author_bio)
                         <div class="ns-card mt-12">

@@ -1,7 +1,7 @@
 <x-checkin.layout :title="__('checkin.login_title')">
     <main class="ck-shell ck-shell--center">
         <div class="ck-login">
-            <img src="{{ asset('assets/brand/nextstep-white-sm.png') }}" alt="Next Step" class="ck-login__logo">
+            <img src="{{ ns_brand('logo_light', 'assets/brand/nextstep-white-sm.png') }}" alt="Next Step" class="ck-login__logo">
             <h1 class="ck-login__title">{{ __('checkin.login_title') }}</h1>
             <p class="ck-login__lead">{{ __('checkin.login_lead') }}</p>
 

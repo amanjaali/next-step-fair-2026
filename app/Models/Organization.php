@@ -53,6 +53,26 @@ class Organization extends Model
         ];
     }
 
+    /**
+     * Where the logo actually is.
+     *
+     * The partners the site shipped with have their logos committed under
+     * public/assets; anything uploaded in the dashboard lands on the public disk
+     * instead. The views used to hard-code one or the other, so an uploaded logo
+     * was requested from /assets and came back a 404. This asks the filesystem
+     * which of the two it is.
+     */
+    public function logoUrl(): ?string
+    {
+        if (blank($this->logo_path)) {
+            return null;
+        }
+
+        $path = ltrim($this->logo_path, '/');
+
+        return is_file(public_path('assets/'.$path)) ? '/assets/'.$path : '/storage/'.$path;
+    }
+
     /* ------------------------------------------------- recruitment profile -- */
 
     /** Fields taught, with level, language, fee band and capacity per row. */

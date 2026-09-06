@@ -86,7 +86,7 @@ class Post extends Model
 
     public function coverUrl(): ?string
     {
-        return $this->cover_path ? asset('storage/'.$this->cover_path) : null;
+        return ns_uploaded($this->cover_path);
     }
 
     /**

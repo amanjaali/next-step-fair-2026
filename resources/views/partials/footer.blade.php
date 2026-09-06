@@ -21,6 +21,7 @@
         ],
         __('site.footer.organisation') => [
             ['label' => __('site.footer.links.about'), 'url' => route('about')],
+            ['label' => __('site.nav.news'), 'url' => route('news')],
             ['label' => __('site.footer.links.sdg'), 'url' => route('sdg')],
             ['label' => __('site.footer.links.partners'), 'url' => route('sponsors')],
             ['label' => __('site.footer.links.archive'), 'url' => route('archive')],
@@ -36,7 +37,7 @@
 
         <div class="grid gap-12 pb-12 border-b border-[rgba(255,255,255,0.14)] md:grid-cols-2 xl:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
             <div>
-                <img src="{{ asset('assets/brand/nextstep-white-sm.png') }}" alt="{{ __('site.header.logo_alt') }}"
+                <img src="{{ ns_brand('logo_light', 'assets/brand/nextstep-white-sm.png') }}" alt="{{ __('site.header.logo_alt') }}"
                      class="h-[58px] w-auto block mb-[18px]">
                 <p class="font-[family-name:var(--ns-body)] text-sm leading-[1.65] text-white/60 mb-5 max-w-[34ch]">
                     {{ __('site.footer.blurb') }}
@@ -94,9 +95,9 @@
                 {{ __('site.footer.partnership_label') }}
             </div>
             <div class="flex items-center gap-5 bg-white py-[14px] px-5 flex-wrap">
-                <img src="{{ asset('assets/brand/mohe.png') }}" alt="{{ __('site.header.mohe') }}" class="h-[54px] w-auto block">
+                <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}" alt="{{ __('site.header.mohe') }}" class="h-[54px] w-auto block">
                 <span class="w-px h-12 bg-[rgba(5,7,8,0.18)]"></span>
-                <img src="{{ asset('assets/brand/krg.png') }}" alt="{{ __('site.header.krg_alt') }}" class="h-[54px] w-auto block">
+                <img src="{{ ns_brand('krg', 'assets/brand/krg.png') }}" alt="{{ __('site.header.krg_alt') }}" class="h-[54px] w-auto block">
             </div>
             <div class="font-[family-name:var(--ns-body)] text-[13.5px] leading-[1.6] text-white/70 max-w-[38ch]">
                 {{ __('site.footer.partnership_line') }}

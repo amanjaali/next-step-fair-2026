@@ -281,26 +281,42 @@ class OpportunityTest extends TestCase
     }
 
     /**
-     * Eight across the top, four of them tucked into one group.
+     * Six across the top, four of them tucked into one group.
      *
-     * The row has to hold one line from 1280px up with the ministry mark beside
-     * the logo, and it only does so at eight. A ninth added here is the thing
-     * that puts the menu back onto two rows, so the count is asserted rather
-     * than trusted.
+     * The row has to hold one line from 1280px up, at 15px type, with the
+     * ministry mark beside the logo — and it only does so at six. A seventh
+     * added here is the thing that puts the menu back onto two rows, so the
+     * count is asserted rather than trusted.
      */
-    public function test_the_menu_is_eight_across_the_top_and_four_inside_the_group(): void
+    public function test_the_menu_is_six_across_the_top_and_four_inside_the_group(): void
     {
         $html = $this->get('/en')->assertOk()->getContent();
 
         $nav = Str::between($html, '<nav class="hidden xl:flex', '</nav>');
 
-        // Seven plain links, plus the group's button, is the top row.
+        // Five plain links, plus the group's button, is the top row.
         $inGroup = substr_count($nav, 'class="ns-navsub');
         $top = substr_count($nav, '<a href=') - $inGroup;
 
         $this->assertSame(4, $inGroup);
-        $this->assertSame(7, $top);
+        $this->assertSame(5, $top);
         $this->assertSame(1, substr_count($nav, '<button type="button"'));
+    }
+
+    /**
+     * News and the SDG page left the menu; they have to still be findable.
+     *
+     * Moving something out of the top row is only safe if it lands somewhere,
+     * and the footer is on every page.
+     */
+    public function test_news_and_the_sdg_page_are_reachable_from_the_footer(): void
+    {
+        $html = $this->get('/en')->assertOk()->getContent();
+
+        $footer = Str::between($html, '<footer', '</footer>');
+
+        $this->assertStringContainsString(route('news', ['locale' => 'en']), $footer);
+        $this->assertStringContainsString(route('sdg', ['locale' => 'en']), $footer);
     }
 
     /** The four pages inside the group are still reachable from the menu. */

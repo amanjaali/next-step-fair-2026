@@ -39,12 +39,12 @@
         </div>
 
         @if ($opportunity->t('body'))
-            <div class="ns-prose max-w-[62ch] mb-9">{!! $opportunity->t('body') !!}</div>
+            <div class="ns-prose max-w-[62ch] mb-9">{!! ns_rich($opportunity->t('body')) !!}</div>
         @endif
 
         @if ($opportunity->t('eligibility'))
             <h2 class="ns-h2 !text-[clamp(20px,2.3vw,26px)] mb-3">{{ __('opportunities.eligibility') }}</h2>
-            <div class="ns-prose max-w-[62ch] mb-9">{!! $opportunity->t('eligibility') !!}</div>
+            <div class="ns-prose max-w-[62ch] mb-9">{!! ns_rich($opportunity->t('eligibility')) !!}</div>
         @endif
 
         @if ($opportunity->action_url)

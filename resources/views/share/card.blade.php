@@ -190,7 +190,7 @@
     <div class="edge"></div>
 
     <div class="sheet">
-        <img class="mark" src="{{ asset('assets/brand/nextstep-white-sm.png') }}" alt="">
+        <img class="mark" src="{{ ns_brand('logo_light', 'assets/brand/nextstep-white-sm.png') }}" alt="">
 
         <div class="middle">
             <div class="kicker">{{ __('share.card.kicker') }}</div>
@@ -213,9 +213,9 @@
             <div class="foot">
                 <div class="handle">{{ __('share.card.handle') }}</div>
                 <div class="partners">
-                    <img src="{{ asset('assets/brand/mohe.png') }}" alt="">
+                    <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}" alt="">
                     <span class="rule"></span>
-                    <img src="{{ asset('assets/brand/krg.png') }}" alt="">
+                    <img src="{{ ns_brand('krg', 'assets/brand/krg.png') }}" alt="">
                 </div>
             </div>
         </div>

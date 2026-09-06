@@ -60,7 +60,7 @@
                         <div class="ns-eyebrow !text-[11px] mb-[18px]">{{ __('site.common.biography') }}</div>
                         <div class="ns-prose">
                             @if (trim(strip_tags($speaker->t('bio'))))
-                                {!! $speaker->t('bio') !!}
+                                {!! ns_rich($speaker->t('bio')) !!}
                             @else
                                 @foreach ($speaker->bioParagraphs() as $paragraph)
                                     <p>{{ strip_tags($paragraph) }}</p>

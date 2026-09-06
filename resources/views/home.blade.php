@@ -5,23 +5,40 @@
 
     {{-- ------------------------------------------------------------- hero -- --}}
     <section class="bg-ink text-white relative overflow-hidden ns-track-rule">
-        <div class="absolute inset-0 bg-ink-800 flex items-center justify-center">
-            <span class="ns-eyebrow !text-white/25">{{ __('site.home.hero_media') }}</span>
-        </div>
+        {{-- A photograph if one has been uploaded in the dashboard, the plain
+             black the page was designed with if not.
+
+             ns_image is called twice rather than held in a variable: assigning
+             one inline stops Blade pairing the conditionals further down that
+             build the page's structured data. It reads a cached setting, so the
+             second call costs nothing. --}}
+        @if (ns_image('home_hero'))
+            {{-- Black underneath, the photograph at 62% over it. A fair floor
+                 photographed under white lighting arrives far brighter than the
+                 page it has to sit in, and positioning the crop at 55% down keeps
+                 the people rather than the ceiling. --}}
+            <div class="absolute inset-0 bg-ink"></div>
+            <div class="absolute inset-0 bg-cover opacity-[0.62]"
+                 style="background-image:url('{{ ns_image('home_hero') }}');background-position:center 55%"></div>
+        @else
+            <div class="absolute inset-0 bg-ink-800 flex items-center justify-center">
+                <span class="ns-eyebrow !text-white/25">{{ __('site.home.hero_media') }}</span>
+            </div>
+        @endif
         <div class="absolute inset-0"
-             style="background:linear-gradient(90deg, rgba(5,7,8,0.95) 0%, rgba(5,7,8,0.84) 55%, rgba(5,7,8,0.55) 100%)"></div>
+             style="background:linear-gradient(90deg, rgba(5,7,8,0.92) 0%, rgba(5,7,8,0.72) 55%, rgba(5,7,8,0.32) 100%)"></div>
 
         <div class="ns-wrap relative pt-[clamp(64px,9vw,112px)] pb-[clamp(56px,8vw,96px)]">
             <div class="flex items-center gap-[14px] mb-7 flex-wrap">
-                <span class="ns-eyebrow !text-magenta">{{ __('site.common.edition_4') }}</span>
+                <span class="ns-eyebrow !text-magenta">{{ ns_home('hero_kicker') }}</span>
                 <span class="w-9 h-px bg-white/30"></span>
-                <span class="ns-eyebrow !text-white/70">{{ __('site.common.location') }}</span>
+                <span class="ns-eyebrow !text-white/70">{{ ns_home('hero_place') }}</span>
             </div>
 
             <h1 class="ns-display max-w-[14ch] mb-7">{{ config('nextstep.event.name') }}</h1>
 
             <p class="ns-lead !text-white/80 max-w-[56ch] mb-10">
-                {{ __('site.home.hero_lead', ['universities' => 32, 'sessions' => 26]) }}
+                {{ ns_home('hero_lead', ['universities' => ns_home_counter('universities', 32), 'sessions' => ns_home_counter('sessions', 26)]) }}
             </p>
 
             <div class="flex gap-9 items-start mb-11 flex-wrap">
@@ -55,8 +72,8 @@
                 </div>
             @else
                 <div class="flex gap-[14px] flex-wrap">
-                    <a href="{{ route('register.fair') }}" class="ns-btn ns-btn-lg ns-btn-magenta">{{ __('site.cta.register_fair') }}</a>
-                    <a href="{{ route('register.conference') }}" class="ns-btn ns-btn-lg ns-btn-cobalt">{{ __('site.cta.conference_rsvp') }}</a>
+                    <a href="{{ route('register.fair') }}" class="ns-btn ns-btn-lg ns-btn-magenta">{{ ns_cta('cta_fair', 'site.cta.register_fair') }}</a>
+                    <a href="{{ route('register.conference') }}" class="ns-btn ns-btn-lg ns-btn-cobalt">{{ ns_cta('cta_conference', 'site.cta.conference_rsvp') }}</a>
                 </div>
             @endif
         </div>
@@ -187,8 +204,8 @@
         <div class="ns-hairgrid md:grid-cols-2">
             <div class="p-[clamp(28px,4vw,52px)] flex flex-col gap-[22px] border-t-[6px] border-magenta">
                 <span class="ns-eyebrow !text-magenta">{{ __('site.home.fair_kicker') }}</span>
-                <h2 class="ns-h2 !text-[clamp(26px,3.2vw,40px)]">{{ __('site.home.fair_title') }}</h2>
-                <p class="ns-body max-w-[46ch]">{{ __('site.home.fair_body') }}</p>
+                <h2 class="ns-h2 !text-[clamp(26px,3.2vw,40px)]">{{ ns_home('fair_title') }}</h2>
+                <p class="ns-body max-w-[46ch]">{{ ns_home('fair_body') }}</p>
                 <ul class="list-none m-0 p-0 flex flex-col gap-[10px]">
                     @foreach ([
                         __('site.home.universities_title', ['count' => 32]),
@@ -205,14 +222,14 @@
                     @if ($attendee)
                         <a href="{{ route('fair') }}" class="ns-btn ns-btn-magenta">{{ __('site.cta.explore_expo') }}</a>
                     @else
-                        <a href="{{ route('register.fair') }}" class="ns-btn ns-btn-magenta">{{ __('site.cta.register_fair') }}</a>
+                        <a href="{{ route('register.fair') }}" class="ns-btn ns-btn-magenta">{{ ns_cta('cta_fair', 'site.cta.register_fair') }}</a>
                     @endif
                 </div>
             </div>
 
             <div class="p-[clamp(28px,4vw,52px)] flex flex-col gap-[22px] border-t-[6px] border-cobalt">
                 <span class="ns-eyebrow !text-cobalt">{{ __('site.home.conf_kicker') }}</span>
-                <h2 class="ns-h2 !text-[clamp(26px,3.2vw,40px)]">{{ __('site.home.conf_title') }}</h2>
+                <h2 class="ns-h2 !text-[clamp(26px,3.2vw,40px)]">{{ ns_home('conf_title') }}</h2>
                 <p class="ns-body max-w-[46ch]">{{ __('site.home.conf_body') }}</p>
                 <ul class="list-none m-0 p-0 flex flex-col gap-[10px]">
                     @foreach ([
@@ -230,7 +247,7 @@
                     @if ($attendee)
                         <a href="{{ route('conference') }}" class="ns-btn ns-btn-cobalt">{{ __('site.cta.explore_conference') }}</a>
                     @else
-                        <a href="{{ route('register.conference') }}" class="ns-btn ns-btn-cobalt">{{ __('site.cta.conference_rsvp') }}</a>
+                        <a href="{{ route('register.conference') }}" class="ns-btn ns-btn-cobalt">{{ ns_cta('cta_conference', 'site.cta.conference_rsvp') }}</a>
                     @endif
                 </div>
             </div>
@@ -242,13 +259,13 @@
         <div class="grid gap-16 lg:grid-cols-2 items-start">
             <div class="ns-rise">
                 <span class="ns-eyebrow">{{ __('site.home.about_kicker') }}</span>
-                <h2 class="ns-h2 !text-[clamp(30px,4vw,48px)] mt-[22px] mb-[26px]">{{ __('site.home.about_title') }}</h2>
+                <h2 class="ns-h2 !text-[clamp(30px,4vw,48px)] mt-[22px] mb-[26px]">{{ ns_home('about_title') }}</h2>
                 @foreach (['about_p1', 'about_p2', 'about_p3'] as $paragraph)
-                    <p class="ns-body max-w-[62ch] mb-[18px]">{{ __('site.home.'.$paragraph) }}</p>
+                    <p class="ns-body max-w-[62ch] mb-[18px]">{{ ns_home($paragraph) }}</p>
                 @endforeach
                 <a href="{{ route('about') }}" class="ns-link">{{ __('site.cta.about_next_step') }}</a>
             </div>
-            <x-ns.frame :label="__('site.home.about_photo')" center height="470px" class="ns-rise" />
+            <x-ns.frame :label="__('site.home.about_photo')" :src="ns_image('home_about')" center height="470px" class="ns-rise" />
         </div>
     </section>
 
@@ -381,7 +398,7 @@
                 @foreach ($universities as $university)
                     <div class="h-[104px] flex items-center justify-center p-[14px] text-center">
                         @if ($university->logo_path)
-                            <img src="{{ asset('storage/'.$university->logo_path) }}" alt="{{ $university->t('name') }}"
+                            <img src="{{ $university->logoUrl() }}" alt="{{ $university->t('name') }}"
                                  class="max-h-[64px] w-auto" loading="lazy">
                         @else
                             <span class="font-[family-name:var(--ns-body)] text-[11.5px] font-medium leading-[1.35] text-muted">
@@ -415,7 +432,7 @@
                         <div class="bg-bone-200 flex items-center justify-center p-[10px] text-center"
                              style="height:{{ $tier['height'] }};width:{{ $tier['width'] }}">
                             @if ($item->logo_path)
-                                <img src="{{ asset('assets/'.$item->logo_path) }}" alt="{{ $item->t('name') }}"
+                                <img src="{{ $item->logoUrl() }}" alt="{{ $item->t('name') }}"
                                      class="max-h-full max-w-full object-contain" loading="lazy">
                             @else
                                 <span class="font-[family-name:var(--ns-body)] text-[11.5px] font-medium text-muted leading-[1.3]">
@@ -553,7 +570,7 @@
                 'eventStatus' => 'https://schema.org/EventScheduled',
                 'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
                 'inLanguage' => ['en', 'ckb', 'ar'],
-                'image' => [asset('assets/brand/nextstep-transparent-sm.png')],
+                'image' => [url(ns_brand('logo_dark', 'assets/brand/nextstep-transparent-sm.png'))],
                 'description' => __('site.seo.default_description'),
                 'location' => [
                     '@type' => 'Place',
@@ -574,7 +591,7 @@
                     '@type' => 'Organization',
                     'name' => config('nextstep.event.organisation'),
                     'url' => config('app.url'),
-                    'logo' => asset('assets/brand/nextstep-transparent-sm.png'),
+                    'logo' => url(ns_brand('logo_dark', 'assets/brand/nextstep-transparent-sm.png')),
                     'email' => config('nextstep.contact.general'),
                 ],
                 'offers' => [
@@ -587,7 +604,7 @@
                 ],
             ];
         @endphp
-        <script type="application/ld+json">{!! json_encode($eventSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+        <script type="application/ld+json">{!! json_encode($eventSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
     @endpush
 
 </x-layouts.site>
