@@ -50,8 +50,15 @@
                 <img src="{{ ns_brand('logo_dark', 'assets/brand/nextstep-transparent-sm.png') }}"
                      alt="{{ __('site.header.logo_alt') }}" class="h-[46px] w-auto block">
             </a>
-            <span class="w-px h-11 bg-[rgba(5,7,8,0.16)] shrink-0 hidden sm:block"></span>
-            <div class="hidden sm:flex items-center gap-[11px] shrink-0">
+            {{-- Hidden in one narrow band, 1280 to 1399.
+
+                 That is where the full menu has just appeared and the bar is at
+                 its tightest; carrying the marks through it pushes the menu onto
+                 a second row in English and Kurdish. They are already hidden
+                 below 640 for the same reason, and 1400 up — which is nearly
+                 every desktop — carries them as before. --}}
+            <span class="w-px h-11 bg-[rgba(5,7,8,0.16)] shrink-0 hidden sm:block [@media(min-width:1280px)_and_(max-width:1399px)]:!hidden"></span>
+            <div class="hidden sm:flex [@media(min-width:1280px)_and_(max-width:1399px)]:!hidden items-center gap-[11px] shrink-0">
                 <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}"
                      alt="{{ __('site.header.partnership_kicker') }} — {{ __('site.header.mohe') }}"
                      title="{{ __('site.header.mohe') }}" class="h-10 w-auto block">
@@ -146,6 +153,19 @@
                     @endif
                 </a>
             @else
+                {{-- Sign in, in the header, for everybody.
+
+                     It used to be reachable only from the mobile menu and from
+                     a handful of pages that happened to need it, so a student
+                     who registered at school and came back on a phone had
+                     nowhere on the front page to say "I already have an
+                     account" — and registered a second time. Plain text rather
+                     than a second button: two buttons side by side compete, and
+                     registering is still the ask for a first-time visitor. --}}
+                <a href="{{ route('attendee.signin') }}"
+                   class="font-[family-name:var(--ns-body)] text-[13.5px] font-bold text-ink hover:text-magenta whitespace-nowrap hidden sm:inline-flex px-1">
+                    {{ __('attendee.nav.sign_in') }}
+                </a>
                 <a href="{{ route('register.fair') }}"
                    class="ns-btn ns-btn-sm ns-btn-magenta !text-[13.5px] !px-[18px] whitespace-nowrap hidden sm:inline-flex">
                     {{ __('site.cta.register_fair') }}

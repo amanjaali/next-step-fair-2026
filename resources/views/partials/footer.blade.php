@@ -9,6 +9,10 @@
         : [
             ['label' => __('site.footer.links.register_fair'), 'url' => route('register.fair')],
             ['label' => __('site.footer.links.conference_rsvp'), 'url' => route('register.conference')],
+            // Someone who registered on a school computer and came back on a
+            // phone is signing in, not registering a second time. Registering
+            // twice is the mistake this link prevents.
+            ['label' => __('attendee.nav.sign_in'), 'url' => route('attendee.signin')],
         ];
 
     $footerCols = [

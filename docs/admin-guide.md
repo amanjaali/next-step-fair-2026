@@ -27,6 +27,22 @@ Adding someone: *Platform → Staff accounts → New*. Set a role, and for gate 
 set a **default gate** so their scans are attributed to the right entrance without
 them picking it each shift.
 
+### How students and visitors sign in
+
+Two different things, often confused when someone writes in:
+
+| Who | How they get back in |
+| --- | --- |
+| **Students** | Email address and the password they set when registering, at **Sign in** in the header, or `/signin`. Works from any device — the scholarship application runs for months and is not tied to one phone. |
+| **Parents, visitors, anyone without a password** | They never sign in. On the same page, *Lost your badge? Get it sent again* takes their mobile number, sends a code on WhatsApp, and sends the badge back. |
+
+*Sign in* is in the header of every page, in the mobile menu, and in the footer
+under **Attend**. If someone says they cannot find it, they are probably signed
+in already — the header shows *My Next Step* instead.
+
+A student who cannot remember which email they used: search *Registrations* for
+their phone number, and the account is on the row.
+
 ---
 
 ## The dashboard
