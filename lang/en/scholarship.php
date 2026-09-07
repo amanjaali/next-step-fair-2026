@@ -437,5 +437,42 @@ return [
             'interview' => ['title' => 'Interview', 'note' => 'A conversation with the committee, in person or online.'],
             'decided' => ['title' => 'Decision', 'note' => 'Every applicant is told the outcome, selected or not.'],
         ],
+
+        /*
+         * The result itself, said plainly.
+         *
+         * A tracker that moves a marker to "Decision" and stops has told the
+         * applicant that somebody knows the answer and they do not. Whichever
+         * way it went, it is written here.
+         */
+        'outcome' => [
+            'decided_on' => 'Decided',
+            'awarded' => [
+                'kicker' => 'The result',
+                'title' => 'You have been awarded a scholarship',
+                'body' => 'The committee has selected you for the National Scholarship Program, cycle :cycle. Congratulations — this is a fully funded place.',
+                'next' => 'The scholarship office will contact you on the number and the email on your account to confirm your place and the paperwork. Keep both up to date until you hear from them.',
+            ],
+            'reserve' => [
+                'kicker' => 'The result',
+                'title' => 'You are on the reserve list',
+                'body' => 'Your application was strong enough to be held in reserve for cycle :cycle. If a place is released, reserves are offered it in order.',
+                'next' => 'Nothing is required from you now. If your place comes up, the scholarship office will contact you on the number and the email on your account.',
+            ],
+            'declined' => [
+                'kicker' => 'The result',
+                'title' => 'You were not selected this time',
+                'body' => 'Your application for cycle :cycle was not selected. There are far more applications than the forty funded places, and being turned down here says nothing about what you can do next.',
+                'next' => 'The scholarship page lists the other routes open to you — university offers, partner scholarships and the opportunities board — and you can apply again in the next cycle.',
+            ],
+        ],
+
+        /* The mark on their account once they hold a scholarship. */
+        'award' => [
+            'eyebrow' => 'National Scholarship Program',
+            'title' => 'Scholarship awarded',
+            'note' => 'Cycle :cycle',
+            'link' => 'See my application',
+        ],
     ],
 ];

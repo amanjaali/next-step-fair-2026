@@ -165,10 +165,34 @@ Nothing a student wrote can be edited here. What the committee adds is separate:
 records the date. To move several at once, tick them and use *Move to screening*.
 For anything more than a stage change — scores, notes, a decision — use **Review**.
 
-**The applicant sees this.** The stage you set is what their own tracker shows,
-with the date beside it. Move something to Interview and the student sees
-Interview the next time they open the page. That is why the stage should be moved
-when the work is actually done, not in advance.
+**The applicant sees this, and is told.** The stage you set is what their own
+tracker shows, with the date beside it. Saving a change here also puts an update
+in the student's account straight away: a count appears beside *My Next Step* in
+the header on every page, the update is listed on their profile, and opening it
+takes them to their application.
+
+The update says what actually happened rather than that something happened:
+
+| What you save | What the student is told |
+| --- | --- |
+| A stage — Screening, Shortlisted, Interview | "Your application has moved to Screening" |
+| Decision + **Awarded** | "You have been awarded a scholarship" |
+| Decision + **Reserve list** | "You are on the scholarship reserve list" |
+| Decision + **Not selected** | "A decision has been made on your scholarship application", and the result itself on the tracker |
+
+Setting the stage and the decision in one save sends **one** update, not two. If
+you later change a decision, the student is told again. Their own submission is
+not announced back to them. The wording is written in all three languages and
+follows the student, not the committee — a decision recorded in English is read
+in Kurdish by a student whose account is in Kurdish.
+
+**Once someone is awarded**, their tracker leads with the result and what happens
+next, and their profile carries a *Scholarship awarded* badge with the cycle and
+the date. That badge stays in later cycles: someone awarded in 2026 is still a
+scholarship holder in 2027.
+
+Because the student is told the moment you save, move the stage when the work is
+actually done, not in advance, and set a decision only when it is final.
 
 **Who can see it.** Super Admin, and the *Scholarship Committee* role. A
 committee member sees applications and nothing else — not registrations, not

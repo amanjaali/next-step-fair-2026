@@ -157,6 +157,11 @@ Route::middleware('auth:attendee')->group(function () {
     Route::get('me', [ProfileController::class, 'show'])->name('me');
     Route::get('me/agenda', [ProfileController::class, 'agenda'])->name('me.agenda');
 
+    // Opening an update marks it read and goes where it is about — the point of
+    // a notification is the thing it points at, not a page listing notices.
+    Route::get('me/updates/{notification}', [ProfileController::class, 'openUpdate'])
+        ->name('me.updates.open');
+
     // Their own details, at their own pace, once nothing is riding on it.
     Route::get('me/edit', [ProfileController::class, 'edit'])->name('me.edit');
     Route::post('me/edit', [ProfileController::class, 'update'])->name('me.update');

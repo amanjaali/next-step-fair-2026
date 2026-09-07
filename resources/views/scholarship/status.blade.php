@@ -21,6 +21,40 @@
             </div>
         @endunless
 
+        {{-- The result, before anything else on the page.
+
+             A tracker whose last stage is "Decision" tells an applicant that
+             the answer exists and withholds it. Once the committee has recorded
+             one, the outcome is the first thing on this page, in words, whether
+             it went their way or not. --}}
+        @if ($application->status === \App\Models\ScholarshipApplication::STATUS_DECIDED && $application->decision)
+            @php $outcome = 'scholarship.status.outcome.'.$application->decision; @endphp
+
+            @if ($application->decision === \App\Models\ScholarshipApplication::DECISION_AWARDED)
+                <x-ns.award-badge :application="$application" :link="false" class="mb-6" />
+            @endif
+
+            <div @class([
+                'border border-[rgba(5,7,8,0.14)] bg-white p-[clamp(22px,3vw,34px)] mb-9 border-s-[6px]',
+                '!border-s-teal' => $application->decision === \App\Models\ScholarshipApplication::DECISION_AWARDED,
+                '!border-s-magenta' => $application->decision !== \App\Models\ScholarshipApplication::DECISION_AWARDED,
+            ])>
+                <div class="ns-eyebrow mb-3">{{ __($outcome.'.kicker') }}</div>
+
+                <h2 class="ns-h2 !text-[clamp(22px,2.8vw,32px)] mb-4">{{ __($outcome.'.title') }}</h2>
+
+                <p class="ns-body mb-4 max-w-[62ch]">{{ __($outcome.'.body', ['cycle' => $application->cycle]) }}</p>
+                <p class="ns-body !text-[14.5px] text-body-soft max-w-[62ch]">{{ __($outcome.'.next') }}</p>
+
+                @if ($application->decided_at)
+                    <div class="ns-meta text-[12.5px] mt-5">
+                        {{ __('scholarship.status.outcome.decided_on') }}
+                        <span class="ns-num">{{ $application->decided_at->format('j M Y') }}</span>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         {{-- Where it is, in a queue that only moves forwards. --}}
         <div class="border border-[rgba(5,7,8,0.14)] bg-white mb-9">
             @foreach ($application->timeline() as $stage)

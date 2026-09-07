@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Attendee;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateAttendeeProfileRequest;
+use App\Models\AttendeeNotification;
 use App\Models\EventSession;
 use App\Models\Registration;
 use App\Services\QrCodeService;
@@ -46,7 +47,25 @@ class ProfileController extends Controller
             // test and only failed on MySQL — which is what production runs.
             'checkIns' => $registration->checkIns()->orderBy('checked_in_at')->get(),
             'messages' => $registration->messages()->latest('id')->limit(20)->get(),
+            'updates' => $registration->notifications()->limit(8)->get(),
+            'award' => $registration->scholarshipAward(),
         ]);
+    }
+
+    /**
+     * Open one update.
+     *
+     * Marking it read here rather than on the profile is deliberate: an update
+     * counts as read when the student has been taken to the thing it is about,
+     * not when its headline scrolled past.
+     */
+    public function openUpdate(AttendeeNotification $notification): RedirectResponse
+    {
+        abort_unless($notification->registration_id === $this->attendee()->id, 404);
+
+        $notification->markRead();
+
+        return redirect()->to($notification->link());
     }
 
     /**

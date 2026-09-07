@@ -41,6 +41,65 @@
             <div class="bg-bone-200 p-5 mb-6 font-[family-name:var(--ns-body)] text-[15px]">{{ session('status') }}</div>
         @endif
 
+        {{-- A scholarship is the largest thing this site hands anybody, so on
+             their own account it comes before everything else. --}}
+        @if ($award)
+            <x-ns.award-badge :application="$award" class="mb-9" />
+        @endif
+
+        {{-- What the committee has decided, waiting where they will see it.
+
+             Unopened updates are marked and lead straight to the application
+             they are about; opening one is what marks it read, so a headline
+             that scrolled past is still there next time. --}}
+        @if ($updates->isNotEmpty())
+            <div class="border border-[rgba(5,7,8,0.14)] bg-white mb-9">
+                <div class="flex items-baseline justify-between gap-4 flex-wrap px-6 pt-5 pb-3">
+                    <div>
+                        <h2 class="font-[family-name:var(--ns-display)] text-[19px] font-semibold">{{ __('updates.title') }}</h2>
+                        <p class="ns-meta text-[12.5px] mt-[3px]">{{ __('updates.lead') }}</p>
+                    </div>
+                    @if ($registration->unreadUpdates())
+                        <span class="ns-eyebrow !text-[9.5px] !text-white bg-magenta px-[9px] py-[5px]">
+                            {{ trans_choice('updates.unread', $registration->unreadUpdates(), ['count' => $registration->unreadUpdates()]) }}
+                        </span>
+                    @endif
+                </div>
+
+                @foreach ($updates as $update)
+                    <a href="{{ route('me.updates.open', $update) }}"
+                       @class([
+                           'flex items-start gap-4 px-6 py-[15px] border-t border-[rgba(5,7,8,0.1)] text-ink hover:bg-bone-50 block',
+                           'bg-bone-50' => $update->isUnread(),
+                       ])>
+                        <span @class([
+                            'w-[10px] h-[10px] rounded-full shrink-0 mt-[6px]',
+                            'bg-teal' => $update->isUnread() && $update->accent() === 'teal',
+                            'bg-magenta' => $update->isUnread() && $update->accent() !== 'teal',
+                            'bg-[rgba(5,7,8,0.18)]' => ! $update->isUnread(),
+                        ])></span>
+
+                        <span class="min-w-0 flex-1 block">
+                            <span @class([
+                                'font-[family-name:var(--ns-body)] text-[15px] block',
+                                'font-bold' => $update->isUnread(),
+                                'font-medium text-body-soft' => ! $update->isUnread(),
+                            ])>{{ $update->title() }}</span>
+
+                            <span class="ns-meta text-[12.5px] mt-[3px] block max-w-[62ch]">{{ $update->body() }}</span>
+
+                            <span class="ns-meta text-[11.5px] mt-[5px] block">
+                                <span class="ns-num">{{ $update->created_at->format('j M Y') }}</span>
+                                @if ($update->isUnread())
+                                    <span class="text-magenta font-bold"> · {{ __('updates.new') }}</span>
+                                @endif
+                            </span>
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        @endif
+
         {{-- Word of mouth is how most people find this fair, so the ask comes
              early — while the person is still pleased they registered. --}}
         <div class="border-s-[6px] border-magenta bg-white px-6 py-5 mb-9 flex items-center justify-between gap-6 flex-wrap">

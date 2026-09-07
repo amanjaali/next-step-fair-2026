@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Observers\ScholarshipApplicationObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +14,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Status moves in one direction only: draft → submitted → screening → shortlisted
  * → interview → decided. Nothing skips a stage, and nothing goes back, so the
  * applicant sees a queue they can trust rather than a state that reshuffles.
+ *
+ * Every move is told to the student who is waiting on it — see
+ * ScholarshipApplicationObserver.
  */
+#[ObservedBy(ScholarshipApplicationObserver::class)]
 class ScholarshipApplication extends Model
 {
     public const STATUS_DRAFT = 'draft';

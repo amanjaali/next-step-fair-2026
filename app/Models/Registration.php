@@ -320,6 +320,42 @@ class Registration extends Model implements AuthenticatableContract
         return $this->scholarshipApplications()->forCycle()->first();
     }
 
+    /**
+     * The scholarship they were awarded, if they were awarded one.
+     *
+     * Any cycle, not only the current one: someone awarded in 2026 is a
+     * scholarship holder in 2027 too, and the badge on their account should not
+     * quietly disappear the day the next cycle opens.
+     */
+    public function scholarshipAward(): ?ScholarshipApplication
+    {
+        return $this->scholarshipApplications()
+            ->where('status', ScholarshipApplication::STATUS_DECIDED)
+            ->where('decision', ScholarshipApplication::DECISION_AWARDED)
+            ->latest('decided_at')
+            ->first();
+    }
+
+    public function isScholar(): bool
+    {
+        return $this->scholarshipAward() !== null;
+    }
+
+    /* -------------------------------------------------------- their updates -- */
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(AttendeeNotification::class)->latest('id');
+    }
+
+    /** Counted once per request: the header asks on every page, then the profile. */
+    private ?int $unreadCount = null;
+
+    public function unreadUpdates(): int
+    {
+        return $this->unreadCount ??= $this->notifications()->unread()->count();
+    }
+
     /* --------------------------------------------------------------- helpers */
 
     /** "8F2C-41A9-D77E" — short enough to read out at the registration desk. */

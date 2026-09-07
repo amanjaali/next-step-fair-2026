@@ -134,9 +134,16 @@
             {{-- Signed in: straight to their own area. Otherwise the register CTA,
                  which is the more useful button for a first-time visitor. --}}
             @auth('attendee')
+                {{-- A committee decision is worth a mark on every page, not only
+                     on the account page nobody visits without a reason to. --}}
+                @php $unread = auth('attendee')->user()->unreadUpdates(); @endphp
                 <a href="{{ route('me') }}"
-                   class="ns-btn ns-btn-sm ns-btn-ghost !text-[13.5px] whitespace-nowrap hidden md:inline-flex">
+                   class="ns-btn ns-btn-sm ns-btn-ghost !text-[13.5px] whitespace-nowrap hidden md:inline-flex items-center gap-2"
+                   @if ($unread) aria-label="{{ __('attendee.nav.my_next_step') }} — {{ trans_choice('updates.unread', $unread, ['count' => $unread]) }}" @endif>
                     {{ __('attendee.nav.my_next_step') }}
+                    @if ($unread)
+                        <span class="ns-num inline-flex items-center justify-center min-w-[19px] h-[19px] px-[5px] rounded-full bg-magenta text-white text-[11px] font-bold leading-none">{{ $unread }}</span>
+                    @endif
                 </a>
             @else
                 <a href="{{ route('register.fair') }}"
@@ -179,7 +186,12 @@
             @endforeach
             <div class="flex flex-col gap-3 pt-5">
                 @auth('attendee')
-                    <a href="{{ route('me') }}" class="ns-btn ns-btn-magenta w-full">{{ __('attendee.nav.my_next_step') }}</a>
+                    <a href="{{ route('me') }}" class="ns-btn ns-btn-magenta w-full">
+                        {{ __('attendee.nav.my_next_step') }}
+                        @if ($unread = auth('attendee')->user()->unreadUpdates())
+                            <span class="ns-num ms-2 inline-flex items-center justify-center min-w-[19px] h-[19px] px-[5px] rounded-full bg-white text-magenta text-[11px] font-bold leading-none">{{ $unread }}</span>
+                        @endif
+                    </a>
                     <a href="{{ route('me.agenda') }}" class="ns-btn ns-btn-ghost w-full">{{ __('attendee.agenda.title') }}</a>
                 @else
                     <a href="{{ route('register.fair') }}" class="ns-btn ns-btn-magenta w-full">{{ __('site.cta.register_fair') }}</a>
