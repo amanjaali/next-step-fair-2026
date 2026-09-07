@@ -61,10 +61,15 @@
                  below 640 for the same reason, and 1400 up — which is nearly
                  every desktop — carries them as before. --}}
             <span class="w-px h-11 bg-[rgba(5,7,8,0.16)] shrink-0 hidden sm:block [@media(min-width:1280px)_and_(max-width:1399px)]:!hidden"></span>
+            {{-- Each mark is a link when that partner has a page written, and a
+                 plain picture when they have not — an empty page behind a
+                 ministry's logo is worse than no link at all. --}}
             <div class="hidden sm:flex [@media(min-width:1280px)_and_(max-width:1399px)]:!hidden items-center gap-[11px] shrink-0">
-                <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}"
-                     alt="{{ __('site.header.partnership_kicker') }} — {{ __('site.header.mohe') }}"
-                     title="{{ __('site.header.mohe') }}" class="h-10 w-auto block">
+                <x-ns.partner-mark slug="mohe"
+                                   :src="ns_brand('mohe', 'assets/brand/mohe.png')"
+                                   :name="__('site.header.mohe')"
+                                   :kicker="__('site.header.partnership_kicker')"
+                                   class="h-10 w-auto block" />
                 {{-- Capped in width as well as height. A seal-shaped mark is
                      about 50px wide at this height and a wide wordmark is 120px;
                      measured in Chromium, English at 1280 takes the menu onto a
@@ -72,10 +77,9 @@
                      64px. Whatever file is uploaded, the menu stays on one line.
                      Re-measure 1280/1440/1600/1920 × en/ku/ar if this changes. --}}
                 @if ($ksaMark = ns_brand('ksa'))
-                    <img src="{{ $ksaMark }}"
-                         alt="{{ __('site.header.partnership_kicker') }} — {{ __('site.header.ksa') }}"
-                         title="{{ __('site.header.ksa') }}"
-                         class="h-10 w-auto block" style="max-width:64px;object-fit:contain">
+                    <x-ns.partner-mark slug="ksa" :src="$ksaMark" :name="__('site.header.ksa')"
+                                       class="h-10 w-auto block"
+                                       style="max-width:64px;object-fit:contain" />
                 @endif
             </div>
         </div>

@@ -32,7 +32,10 @@ class Organization extends Model
 
     public const KIND_MEDIA = 'media';
 
-    public array $translatable = ['name', 'description', 'badge'];
+    public array $translatable = ['name', 'description', 'badge', 'about', 'partnership'];
+
+    /** The kinds that get a page of their own behind their mark. */
+    public const PROFILED_KINDS = [self::KIND_STRATEGIC, self::KIND_SUPPORTER];
 
     protected $guarded = ['id'];
 
@@ -81,6 +84,47 @@ class Organization extends Model
         $path = ltrim($this->logo_path, '/');
 
         return is_file(public_path('assets/'.$path)) ? '/assets/'.$path : '/storage/'.$path;
+    }
+
+    /* ------------------------------------------------------ partner pages -- */
+
+    /**
+     * Whether this organisation has a page behind its mark.
+     *
+     * A mark in the header that goes nowhere asks a visitor to take the
+     * partnership on trust. One with a page behind it can be explained — and
+     * the partner has something of their own to point people at.
+     *
+     * A partner with nothing written about them yet is not linked: an empty page
+     * is worse than a picture.
+     */
+    public function hasPartnerPage(): bool
+    {
+        return in_array($this->kind, self::PROFILED_KINDS, true)
+            && $this->published
+            && (filled($this->t('about')) || filled($this->t('partnership')));
+    }
+
+    /** The page behind the mark, or null when there is nothing to show yet. */
+    public function partnerUrl(): ?string
+    {
+        return $this->hasPartnerPage() ? route('partner', ['partner' => $this->slug]) : null;
+    }
+
+    /**
+     * The page a mark links to, looked up by the brand slot it was drawn from.
+     *
+     * Deliberately not memoised in a static: the header asks for two slugs on
+     * an indexed unique column, and a cache that outlives a request is how a
+     * partner edited in the dashboard keeps showing the old page.
+     */
+    public static function partnerLink(string $slug): ?string
+    {
+        return static::query()
+            ->whereIn('kind', self::PROFILED_KINDS)
+            ->where('slug', $slug)
+            ->first()
+            ?->partnerUrl();
     }
 
     /* ------------------------------------------------- recruitment profile -- */

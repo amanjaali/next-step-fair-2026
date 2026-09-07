@@ -101,12 +101,15 @@
                 {{ __('site.footer.partnership_label') }}
             </div>
             <div class="flex items-center gap-5 bg-white py-[14px] px-5 flex-wrap">
-                <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}" alt="{{ __('site.header.mohe') }}" class="h-[54px] w-auto block">
+                <x-ns.partner-mark slug="mohe" :src="ns_brand('mohe', 'assets/brand/mohe.png')"
+                                   :name="__('site.header.mohe')" class="h-[54px] w-auto block" />
                 <span class="w-px h-12 bg-[rgba(5,7,8,0.18)]"></span>
-                <img src="{{ ns_brand('krg', 'assets/brand/krg.png') }}" alt="{{ __('site.header.krg_alt') }}" class="h-[54px] w-auto block">
+                <x-ns.partner-mark slug="krg" :src="ns_brand('krg', 'assets/brand/krg.png')"
+                                   :name="__('site.header.krg_alt')" class="h-[54px] w-auto block" />
                 @if ($ksaMark = ns_brand('ksa'))
                     <span class="w-px h-12 bg-[rgba(5,7,8,0.18)]"></span>
-                    <img src="{{ $ksaMark }}" alt="{{ __('site.header.ksa') }}" class="h-[54px] w-auto block">
+                    <x-ns.partner-mark slug="ksa" :src="$ksaMark"
+                                       :name="__('site.header.ksa')" class="h-[54px] w-auto block" />
                 @endif
             </div>
             <div class="font-[family-name:var(--ns-body)] text-[13.5px] leading-[1.6] text-white/70 max-w-[38ch]">

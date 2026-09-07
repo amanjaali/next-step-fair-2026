@@ -412,6 +412,42 @@ date and source of each opt-in.
 
 ---
 
+## Partnerships
+
+*Partners & leads → Partnerships*. The organisations whose logos sit beside ours
+— the Ministry, the Regional Government, the Kurdistan Students Association — and
+the page behind each mark.
+
+Every place a partner's logo appears (the header of every page, the strip in the
+footer, the partners page, the logo wall on the front page) links to that
+partner's own page. The page carries their logo, a description, two longer
+sections, and their contact details.
+
+| Field | What it is |
+| --- | --- |
+| **Name / One line** | Shown under the logo, everywhere |
+| **About the organisation** | Who they are, in their own right |
+| **The partnership with Next Step** | What we actually do together |
+| **Website / Email / Phone** | Shown in a box on their page; the email and phone are links |
+| **Partner since** | Optional year |
+| **Order** | Lowest first, wherever partners are listed |
+
+**A mark links only when there is something to read.** If both long fields are
+empty, the logo stays a plain picture — an empty page behind a ministry's logo is
+worse than no link at all. Fill either field in and every copy of that mark
+becomes a link; empty both and it goes back to being a picture. The *Page written*
+column on the list shows which is which at a glance, and **Open the page** shows
+you what a visitor sees.
+
+**Logos.** For the three partners in the header strip the logo is uploaded on
+*Content → Logos & brand marks*, not here — it is the same file in the header, the
+footer and on the partner's page, so it is only ever uploaded once. The **Web
+address** field must match that logo slot: `mohe`, `krg` or `ksa`.
+
+> The wording that ships with the site is starter text: factual, deliberately
+> plain, and not written on any partner's behalf. Read it — and have the partner
+> read it — before the site goes public.
+
 ## The home page popup
 
 *Content → Home page popup.*

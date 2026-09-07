@@ -24,11 +24,30 @@
                     @foreach ($strategic as $partner)
                         <div class="p-[clamp(24px,3vw,38px)] flex gap-[26px] items-center border-t-[6px] border-cobalt flex-wrap">
                             @if ($logo = $partner->logoUrl())
-                                <img src="{{ $logo }}" alt="{{ $partner->t('name') }}" class="h-[86px] w-auto flex-none">
+                                @if ($url = $partner->partnerUrl())
+                                    <a href="{{ $url }}" class="block flex-none">
+                                        <img src="{{ $logo }}" alt="{{ $partner->t('name') }}" class="h-[86px] w-auto">
+                                    </a>
+                                @else
+                                    <img src="{{ $logo }}" alt="{{ $partner->t('name') }}" class="h-[86px] w-auto flex-none">
+                                @endif
                             @endif
                             <div class="min-w-[200px] flex-1">
-                                <div class="font-[family-name:var(--ns-display)] text-[22px] font-semibold leading-[1.15] mb-2">{{ $partner->t('name') }}</div>
+                                <div class="font-[family-name:var(--ns-display)] text-[22px] font-semibold leading-[1.15] mb-2">
+                                    @if ($url = $partner->partnerUrl())
+                                        <a href="{{ $url }}" class="text-ink hover:text-magenta">{{ $partner->t('name') }}</a>
+                                    @else
+                                        {{ $partner->t('name') }}
+                                    @endif
+                                </div>
                                 <div class="font-[family-name:var(--ns-body)] text-[14.5px] leading-[1.6] text-slate">{{ $partner->t('description') }}</div>
+
+                                @if ($url = $partner->partnerUrl())
+                                    <a href="{{ $url }}"
+                                       class="inline-block mt-3 font-[family-name:var(--ns-body)] text-[13.5px] font-bold text-magenta">
+                                        {{ __('site.pages.partner.about') }} →
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach

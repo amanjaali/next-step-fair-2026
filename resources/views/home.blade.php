@@ -465,8 +465,14 @@
                 </div>
                 <div class="flex gap-[14px] flex-wrap">
                     @foreach ($tier['items'] as $item)
-                        <div class="bg-bone-200 flex items-center justify-center p-[10px] text-center"
-                             style="height:{{ $tier['height'] }};width:{{ $tier['width'] }}">
+                        {{-- A partner with a page of their own is a link here
+                             too: the logo wall is where most people meet them. --}}
+                        @php $partnerUrl = $item->partnerUrl(); @endphp
+
+                        <{{ $partnerUrl ? 'a' : 'div' }}
+                            @if ($partnerUrl) href="{{ $partnerUrl }}" title="{{ $item->t('name') }}" @endif
+                            class="bg-bone-200 flex items-center justify-center p-[10px] text-center {{ $partnerUrl ? 'hover:bg-white transition-colors duration-150' : '' }}"
+                            style="height:{{ $tier['height'] }};width:{{ $tier['width'] }}">
                             @if ($logo = $item->logoUrl())
                                 <img src="{{ $logo }}" alt="{{ $item->t('name') }}"
                                      class="max-h-full max-w-full object-contain" loading="lazy">
@@ -475,7 +481,7 @@
                                     {{ $item->t('name') }}
                                 </span>
                             @endif
-                        </div>
+                        </{{ $partnerUrl ? 'a' : 'div' }}>
                     @endforeach
                 </div>
             </div>

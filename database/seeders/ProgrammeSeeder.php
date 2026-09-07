@@ -288,17 +288,17 @@ class ProgrammeSeeder extends Seeder
     }
 
     /**
-     * The three partners whose marks the design carries.
+     * The partners whose marks the design carries, and the page behind each.
      *
-     * Held apart from the rest of the exhibitor seed because a migration adds
-     * them to a database that is already live — a partner who joins mid-season
-     * has to reach the running site without re-seeding it. Pass false there, so
-     * an existing record and any wording edited in the dashboard is left alone
-     * and only what is missing is created.
+     * A static list rather than a property so a migration can read it too: an
+     * installation that is already live gets these pages filled in without the
+     * rest of the seed running anywhere near its real data.
+     *
+     * @return list<array<string, mixed>>
      */
-    public function syncStrategicPartners(bool $overwrite = true): void
+    public static function strategicPartners(): array
     {
-        $strategic = [
+        return [
             [
                 'slug' => 'mohe', 'logo' => 'brand/mohe.png', 'sort' => 1,
                 'name' => [
@@ -310,6 +310,16 @@ class ProgrammeSeeder extends Seeder
                     'en' => 'Convening partner. Opens the conference and chairs the accreditation roundtable.',
                     'ku' => 'هاوبەشی بانگهێشتکار. کۆنفرانس دەکاتەوە و سەرۆکایەتی مێزی گردی متمانەپێکراوی دەکات.',
                     'ar' => 'الشريك الداعي. يفتتح المؤتمر ويترأس الطاولة المستديرة للاعتماد الأكاديمي.',
+                ],
+                'about' => [
+                    'en' => '<p>The Ministry of Higher Education and Scientific Research is the government body responsible for universities, institutes and scientific research in the Kurdistan Region. It accredits programmes, sets admission policy, and recognises degrees earned abroad.</p>',
+                    'ku' => '<p>وەزارەتی خوێندنی باڵا و توێژینەوەی زانستی ئەو دەزگا حکومییەیە کە بەرپرسیارە لە زانکۆ، پەیمانگا و توێژینەوەی زانستی لە هەرێمی کوردستان. پرۆگرامەکان متمانەپێکراو دەکات، سیاسەتی وەرگرتن دادەنێت، و بڕوانامەی دەرەوەی وڵات دەناسێت.</p>',
+                    'ar' => '<p>وزارة التعليم العالي والبحث العلمي هي الجهة الحكومية المسؤولة عن الجامعات والمعاهد والبحث العلمي في إقليم كوردستان. تعتمد البرامج الدراسية، وتضع سياسة القبول، وتعترف بالشهادات الممنوحة خارج البلاد.</p>',
+                ],
+                'partnership' => [
+                    'en' => '<p>Next Step is held in partnership with the Ministry. Its mark appears beside ours on every page of this site, and the Ministry takes part across the three days of the fair.</p><p>For students, the partnership matters in one practical way: the institutions exhibiting here are ones the Ministry recognises, and the guidance given at the fair follows official admission policy rather than rumour.</p>',
+                    'ku' => '<p>هەنگاوی داهاتوو بە هاوبەشی لەگەڵ وەزارەت بەڕێوە دەچێت. نیشانەکەی لەتەنیشت هی ئێمە لە هەموو لاپەڕەیەکی ئەم ماڵپەڕەدا دەردەکەوێت، و وەزارەت بە درێژایی سێ ڕۆژی پێشانگاکە بەشدارە.</p><p>بۆ خوێندکاران، هاوبەشییەکە بە شێوەیەکی پراکتیکی گرنگە: ئەو دامەزراوانەی لێرە پیشانگایان هەیە ئەوانەن کە وەزارەت دەیانناسێت، و ئەو ڕێنماییەی لە پێشانگادا دەدرێت بەپێی سیاسەتی فەرمی وەرگرتنە، نەک بەپێی قسەی خەڵک.</p>',
+                    'ar' => '<p>يُقام Next Step بالشراكة مع الوزارة. يظهر شعارها إلى جانب شعارنا في كل صفحة من هذا الموقع، وتشارك الوزارة على مدى أيام المعرض الثلاثة.</p><p>وللطلبة فائدة عملية واحدة من هذه الشراكة: المؤسسات العارضة هنا معترف بها لدى الوزارة، والإرشاد المقدَّم في المعرض يتبع سياسة القبول الرسمية لا ما يُتداول بين الناس.</p>',
                 ],
             ],
             [
@@ -323,6 +333,16 @@ class ProgrammeSeeder extends Seeder
                     'en' => 'Institutional patron, with the Sulaimani Governorate providing the venue through 2028.',
                     'ku' => 'پشتیوانی دامەزراوەیی، لەگەڵ پارێزگای سلێمانی کە شوێنەکە تا 2028 دابین دەکات.',
                     'ar' => 'الراعي المؤسسي، مع محافظة السليمانية التي توفر المكان حتى 2028.',
+                ],
+                'about' => [
+                    'en' => '<p>The Kurdistan Regional Government is the elected government of the Kurdistan Region of Iraq. Education, and the routes open to young people leaving school, sit among its responsibilities.</p>',
+                    'ku' => '<p>حکومەتی هەرێمی کوردستان حکومەتی هەڵبژێردراوی هەرێمی کوردستانی عێراقە. پەروەردە و ئەو ڕێگایانەی لەبەردەم گەنجانی دەرچووی قوتابخانەن، بەشێکن لە بەرپرسیارێتییەکانی.</p>',
+                    'ar' => '<p>حكومة إقليم كوردستان هي الحكومة المنتخبة لإقليم كوردستان العراق. والتعليم، والمسارات المتاحة أمام الشباب بعد المدرسة، من ضمن مسؤولياتها.</p>',
+                ],
+                'partnership' => [
+                    'en' => '<p>The Regional Government supports Next Step as an institutional patron, with the Sulaimani Governorate providing the venue.</p><p>That support is why entry, the seminars and the guidance desks cost students nothing.</p>',
+                    'ku' => '<p>حکومەتی هەرێم وەک پشتیوانێکی دامەزراوەیی پشتگیری هەنگاوی داهاتوو دەکات، لەگەڵ پارێزگای سلێمانی کە شوێنەکە دابین دەکات.</p><p>ئەو پشتگیرییە هۆکاری ئەوەیە کە چوونەژوورەوە، سیمینارەکان و مێزەکانی ڕێنمایی هیچ تێچوویەکیان بۆ خوێندکاران نییە.</p>',
+                    'ar' => '<p>تدعم حكومة الإقليم Next Step بصفتها راعياً مؤسسياً، مع توفير محافظة السليمانية للمكان.</p><p>وبفضل هذا الدعم لا يكلف الدخول ولا الندوات ولا مكاتب الإرشاد الطلبةَ شيئاً.</p>',
                 ],
             ],
             [
@@ -340,14 +360,38 @@ class ProgrammeSeeder extends Seeder
                     'ku' => 'هاوبەشی خوێندکاران. دەگاتە خوێندکارانی پۆلی ١٢ لە سەرانسەری هەرێم و ستافی مێزەکانی ڕێنمایی لە پێشانگاکە دابین دەکات.',
                     'ar' => 'الشريك الطلابي. يصل إلى طلبة الصف الثاني عشر في عموم الإقليم ويشرف على مكاتب الإرشاد في المعرض.',
                 ],
+                'about' => [
+                    'en' => '<p>The Kurdistan Students Association is a student organisation working with school and university students across the Kurdistan Region.</p>',
+                    'ku' => '<p>کۆمەڵەی خوێندکارانی کوردستان ڕێکخراوێکی خوێندکارییە کە لەگەڵ خوێندکارانی قوتابخانە و زانکۆ لە سەرانسەری هەرێمی کوردستان کار دەکات.</p>',
+                    'ar' => '<p>جمعية طلبة كوردستان منظمة طلابية تعمل مع طلبة المدارس والجامعات في عموم إقليم كوردستان.</p>',
+                ],
+                'partnership' => [
+                    'en' => '<p>The Association joins Next Step for the 2026 edition. Its mark sits beside ours in the header of every page.</p><p>Its part of the work is reach: getting word of the fair, the scholarship and the Zankoline guidance desks to grade 12 students in places a poster never reaches.</p>',
+                    'ku' => '<p>کۆمەڵەکە بۆ خولی ٢٠٢٦ دەبێتە هاوبەشی هەنگاوی داهاتوو. نیشانەکەی لەتەنیشت هی ئێمە لە سەرەوەی هەموو لاپەڕەیەکدا دادەنرێت.</p><p>بەشی ئەوان لە کارەکەدا گەیاندنە: گەیاندنی هەواڵی پێشانگا، سکۆلەرشیپ و مێزەکانی ڕێنمایی زانکۆلاین بە خوێندکارانی پۆلی ١٢ لەو شوێنانەی کە پۆستەر هەرگیز ناگاتێ.</p>',
+                    'ar' => '<p>تنضم الجمعية إلى Next Step في دورة 2026. ويظهر شعارها إلى جانب شعارنا في أعلى كل صفحة.</p><p>ودورها في العمل هو الوصول: إيصال خبر المعرض والمنحة ومكاتب إرشاد زانكولاين إلى طلبة الصف الثاني عشر في أماكن لا يصلها الملصق.</p>',
+                ],
             ],
         ];
+    }
 
-        foreach ($strategic as $partner) {
+    /**
+     * Write them, creating what is missing.
+     *
+     * Called with false from a migration, where an existing record and any
+     * wording edited in the dashboard must be left exactly as it is.
+     */
+    public function syncStrategicPartners(bool $overwrite = true): void
+    {
+        foreach (self::strategicPartners() as $partner) {
             $values = [
                 'kind' => Organization::KIND_STRATEGIC,
                 'name' => $partner['name'],
                 'description' => $partner['description'],
+                // What the page behind the mark says. Starter wording: it is
+                // written to be true and dull rather than to speak for a
+                // ministry, and it is the first thing an editor should replace.
+                'about' => $partner['about'],
+                'partnership' => $partner['partnership'],
                 'logo_path' => $partner['logo'],
                 'sort' => $partner['sort'],
                 'year' => 2026,

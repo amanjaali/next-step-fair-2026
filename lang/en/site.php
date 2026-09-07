@@ -279,6 +279,20 @@ return [
             'request_call' => 'Request a call',
             'benefit' => 'Benefit',
         ],
+
+        /* The page behind a partnership mark. */
+        'partner' => [
+            'strategic' => 'Strategic partner',
+            'supporter' => 'Institutional supporter',
+            'about' => 'About',
+            'partnership' => 'The partnership with Next Step',
+            'contact' => 'Contact',
+            'website' => 'Website',
+            'email' => 'Email',
+            'phone' => 'Phone',
+            'since' => 'Partner since',
+            'others' => 'The other partners',
+        ],
         'archive' => [
             'title' => 'Past editions',
             'lead' => 'Every edition since 2023: the themes, the opening address, speakers, panels, partners and the impact report.',

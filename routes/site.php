@@ -226,6 +226,10 @@ Route::get('floor-plan', [DirectoryController::class, 'floorPlan'])->name('floor
 Route::get('partners', [DirectoryController::class, 'partners'])->name('partners');
 Route::get('sponsors', [DirectoryController::class, 'sponsors'])->name('sponsors');
 
+// A page behind each partnership mark. Every place a partner's logo appears
+// links here, so a mark is an introduction rather than a decoration.
+Route::get('partners/{partner}', [DirectoryController::class, 'partner'])->name('partner');
+
 /* --------------------------------------------------------------- content -- */
 Route::get('news', [NewsController::class, 'index'])->name('news');
 Route::get('news/{post:slug}', [NewsController::class, 'show'])->name('news.show');

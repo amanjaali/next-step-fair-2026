@@ -61,6 +61,38 @@ class DirectoryController extends Controller
         return $this->sponsors($request);
     }
 
+    /**
+     * One partner, in full.
+     *
+     * Reached from the mark itself — in the header, in the footer strip, on the
+     * partners page — so somebody who wonders what "in partnership with" means
+     * can click it and find out, in the language they are reading.
+     */
+    public function partner(string $partner): View
+    {
+        $organization = Organization::query()
+            ->whereIn('kind', Organization::PROFILED_KINDS)
+            ->where('slug', $partner)
+            ->where('published', true)
+            ->firstOrFail();
+
+        abort_unless($organization->hasPartnerPage(), 404);
+
+        return view('directory.partner', [
+            'navKey' => 'sponsors',
+            'title' => $organization->t('name').' — '.config('nextstep.event.name'),
+            'partner' => $organization,
+            // The others, so this page is a way into the rest rather than a
+            // dead end.
+            'others' => Organization::query()
+                ->whereIn('kind', Organization::PROFILED_KINDS)
+                ->where('published', true)
+                ->where('id', '!=', $organization->id)
+                ->orderBy('sort')->get()
+                ->filter(fn (Organization $o) => $o->hasPartnerPage()),
+        ]);
+    }
+
     public function sponsors(Request $request): View
     {
         $all = Organization::published()->forYear(2026)
