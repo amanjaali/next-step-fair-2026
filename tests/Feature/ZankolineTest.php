@@ -187,4 +187,57 @@ class ZankolineTest extends TestCase
         $this->assertGreaterThanOrEqual(2, substr_count($html, route('zankoline', ['locale' => 'en'])));
         $this->assertStringContainsString(__('zankoline.nav'), $html);
     }
+
+    /**
+     * On the front page, not only in a menu panel.
+     *
+     * A menu is where somebody looks for a page they already know exists. For
+     * a student in grade 12 this is the most immediately useful thing the site
+     * offers, and it was findable only by opening a dropdown.
+     */
+    public function test_the_front_page_carries_it_after_the_reasons_to_come(): void
+    {
+        $html = $this->get('/en')->assertOk()->getContent();
+
+        $this->assertStringContainsString(__('zankoline.promo.title'), $html);
+        $this->assertStringContainsString(__('zankoline.promo.cta'), $html);
+
+        // Below the reasons to attend, not above them.
+        $this->assertLessThan(
+            strpos($html, __('zankoline.promo.title')),
+            strpos($html, __('site.home.why_attend')),
+        );
+    }
+
+    /** The towns are named on the front page, not just counted. */
+    public function test_the_front_page_names_the_areas(): void
+    {
+        $page = $this->get('/en')->assertOk();
+
+        foreach (['Halabja', 'Garmian', 'Raparin', 'Soran'] as $area) {
+            $page->assertSee($area);
+        }
+    }
+
+    /**
+     * It belongs on the opportunities board too — and above the sign-in wall,
+     * because a student who cannot see the board yet can still walk into a desk.
+     */
+    public function test_the_opportunities_board_lists_it_as_a_service(): void
+    {
+        $this->get('/en/opportunities')
+            ->assertOk()
+            ->assertSee(__('zankoline.promo.kicker'))
+            ->assertSee(__('zankoline.promo.title'))
+            ->assertSee(route('zankoline', ['locale' => 'en']), false);
+    }
+
+    public function test_the_front_page_shows_it_in_every_language(): void
+    {
+        foreach (['ku', 'ar'] as $locale) {
+            $this->get('/'.$locale)
+                ->assertOk()
+                ->assertSee(__('zankoline.promo.title', [], $locale), false);
+        }
+    }
 }

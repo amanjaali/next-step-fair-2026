@@ -9,6 +9,21 @@
         <h1 class="ns-h1 !text-[clamp(30px,4.2vw,46px)] mb-3">{{ __('opportunities.title') }}</h1>
         <p class="ns-body max-w-[60ch] mb-10">{{ __('opportunities.lead') }}</p>
 
+        {{-- The one thing on this page that is ours rather than a partner's, and
+             the one thing on it that needs no account: a student who cannot see
+             the board yet can still walk into a guidance desk. --}}
+        <a href="{{ route('zankoline') }}"
+           class="bg-ink text-white px-[clamp(20px,2.6vw,30px)] py-[clamp(18px,2.2vw,26px)] mb-9 flex items-center justify-between gap-6 flex-wrap hover:text-white">
+            <span class="min-w-0 block">
+                <span class="ns-eyebrow !text-white/55 block mb-[7px]">{{ __('zankoline.promo.kicker') }}</span>
+                <span class="font-[family-name:var(--ns-display)] text-[clamp(19px,2.2vw,24px)] font-semibold leading-[1.15] block mb-2">
+                    {{ __('zankoline.promo.title') }}
+                </span>
+                <span class="ns-body !text-[14.5px] !text-white/70 max-w-[58ch] block">{{ __('zankoline.promo.body') }}</span>
+            </span>
+            <span class="ns-btn ns-btn-magenta ns-btn-sm shrink-0">{{ __('zankoline.promo.cta') }}</span>
+        </a>
+
         @if (! $attendee)
             {{-- Not signed in. Say what is behind it in one sentence rather than
                  showing a list they cannot use. --}}

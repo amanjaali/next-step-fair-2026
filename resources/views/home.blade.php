@@ -293,6 +293,42 @@
         </div>
     </section>
 
+    {{-- ------------------------------------------------- Zankoline guidance -- --}}
+    {{-- Straight after the reasons to come, because for a student in grade 12
+         this is the most immediately useful thing on the site and it was
+         reachable only from a menu panel. The seven towns are named here rather
+         than counted: "we are in Halabja" is what makes somebody in Halabja
+         read the rest. --}}
+    @php $zankolineCentres = ns_zankoline_centres(); @endphp
+
+    <section class="ns-wrap ns-section-tight">
+        <div class="bg-ink text-white p-[clamp(24px,3.4vw,46px)] grid gap-[clamp(28px,4vw,52px)] lg:grid-cols-[1.15fr_1fr] items-center">
+            <div class="min-w-0">
+                <div class="ns-eyebrow !text-white/55 mb-4">{{ __('zankoline.promo.kicker') }}</div>
+                <h2 class="ns-h2 !text-white !text-[clamp(24px,3vw,36px)] mb-4">{{ __('zankoline.promo.title') }}</h2>
+                <p class="ns-body !text-[15.5px] !text-white/70 mb-8 max-w-[54ch]">{{ __('zankoline.promo.body') }}</p>
+                <a href="{{ route('zankoline') }}" class="ns-btn ns-btn-magenta">{{ __('zankoline.promo.cta') }}</a>
+            </div>
+
+            @if ($zankolineCentres !== [])
+                <div class="min-w-0">
+                    <div class="ns-eyebrow !text-[9.5px] !text-white/45 mb-4">
+                        {{ __('zankoline.promo.where') }} ·
+                        <span class="ns-num">{{ count($zankolineCentres) }}</span>
+                    </div>
+                    <div class="flex flex-wrap gap-[9px]">
+                        @foreach ($zankolineCentres as $centre)
+                            <a href="{{ route('zankoline') }}"
+                               class="border border-white/25 px-[12px] py-[7px] font-[family-name:var(--ns-body)] text-[13.5px] font-bold text-white hover:text-ink hover:bg-white transition-colors duration-150">
+                                {{ $centre['label'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+    </section>
+
     {{-- -------------------------------------------------------------- SDG -- --}}
     <section class="ns-wrap ns-section">
         <div class="flex items-baseline gap-5 mb-[14px]">

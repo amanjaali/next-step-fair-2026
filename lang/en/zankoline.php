@@ -60,6 +60,15 @@ return [
         'count' => '{1} 1 centre|[2,*] :count centres',
     ],
 
+    /* The band on the front page, and the card on the opportunities board. */
+    'promo' => [
+        'kicker' => 'A service we run',
+        'title' => 'We help you fill in your Zankoline',
+        'body' => 'The form that decides where you study, filled in with an adviser beside you — in seven places this year, and free. Bring your marks and your questions.',
+        'cta' => 'See the seven centres',
+        'where' => 'Where the desks are',
+    ],
+
     'cta' => [
         'title' => 'Coming to Next Step?',
         'body' => 'The guidance desks are at the fair as well, alongside the universities themselves — so you can ask a department the question and fill the form in on the same afternoon.',
