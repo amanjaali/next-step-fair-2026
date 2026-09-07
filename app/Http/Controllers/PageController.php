@@ -36,6 +36,22 @@ class PageController extends Controller
         ]);
     }
 
+    /**
+     * The Zankoline guidance desks.
+     *
+     * The centres come from the dashboard when the team has edited them and
+     * from the shipped list when they have not, so the page is complete the day
+     * it goes up and correct the day somebody changes a phone number.
+     */
+    public function zankoline(): View
+    {
+        return view('pages.zankoline', [
+            'navKey' => 'zankoline',
+            'title' => __('zankoline.title').' — '.config('nextstep.event.name'),
+            'centres' => ns_zankoline_centres(),
+        ]);
+    }
+
     public function sdg(): View
     {
         return view('pages.sdg', [

@@ -352,6 +352,34 @@ and on the sponsors page. Those are separate records under *Universities,
 exhibitors & sponsors*, but for these three partners the sponsors page reads the
 logo from **this** screen, so the file only ever has to be uploaded once.
 
+### Zankoline guidance centres
+
+*Content → Zankoline centres*. This screen owns the whole public Zankoline page:
+the words at the top, and the seven desks with the map they are drawn on.
+
+**The centres.** Each row is one desk: the area name in three languages, the
+address in three languages, the person a student asks for, a phone number, an
+optional Google Maps link, and the two coordinates that place the dot on the map.
+Add rows, remove them, drag them into order — the page and the map follow.
+
+A row with no address, phone or person shows *"Address and phone number to be
+confirmed"* rather than an empty card, so the page is honest while the details
+are still being arranged. **Fill these in before showing the page to anyone** —
+the seven areas ship with names and map positions only.
+
+**The map** is drawn by the site, not by Google: no key to keep, nothing loaded
+from anyone else, and it matches the rest of the page. It fits itself around
+whichever centres exist, so adding Duhok moves nothing by hand. The coordinates
+come from any maps app — drop a pin, copy the two numbers, paste them in.
+
+**The words.** The heading, the opening paragraph, the line above the map and the
+paragraph in the black box at the bottom are all editable, per language, and
+empty means "as written". The four numbered steps and the *what to bring* list
+are fixed wording; ask if those need changing.
+
+The page is in the menu under **The Next Step → Zankoline guidance**, and in the
+footer under **Attend**.
+
 ### Every other picture
 
 There is no page where a picture can only be changed in the code. Each is edited

@@ -39,6 +39,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('about', [PageController::class, 'about'])->name('about');
 Route::get('fair', [PageController::class, 'fair'])->name('fair');
 Route::get('conference', [PageController::class, 'conference'])->name('conference');
+// Guidance on the form that decides where a school-leaver studies, and the
+// seven places the desks sit this year.
+Route::get('zankoline', [PageController::class, 'zankoline'])->name('zankoline');
 Route::get('sdg', [PageController::class, 'sdg'])->name('sdg');
 Route::get('reports', [PageController::class, 'reports'])->name('reports');
 Route::get('scholarships', [PageController::class, 'scholarships'])->name('scholarships');

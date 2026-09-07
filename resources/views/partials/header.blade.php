@@ -19,6 +19,9 @@
                 ['key' => 'conference', 'label' => __('site.nav.conference'), 'route' => 'conference'],
                 ['key' => 'agenda', 'label' => __('site.nav.agenda'), 'route' => 'agenda'],
                 ['key' => 'speakers', 'label' => __('site.nav.speakers'), 'route' => 'speakers'],
+                // Inside the group rather than beside it: the top row is full,
+                // and a fifth item in a panel costs no width at all.
+                ['key' => 'zankoline', 'label' => __('zankoline.nav'), 'route' => 'zankoline'],
             ],
         ],
         ['key' => 'scholarship', 'label' => __('site.nav.scholarship'), 'route' => 'scholarship.home'],

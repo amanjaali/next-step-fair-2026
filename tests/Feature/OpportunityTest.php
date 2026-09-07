@@ -281,14 +281,14 @@ class OpportunityTest extends TestCase
     }
 
     /**
-     * Six across the top, four of them tucked into one group.
+     * Six across the top, five of them tucked into one group.
      *
-     * The row has to hold one line from 1280px up, at 15px type, with the
-     * ministry mark beside the logo — and it only does so at six. A seventh
-     * added here is the thing that puts the menu back onto two rows, so the
-     * count is asserted rather than trusted.
+     * The row has to hold one line from 1280px up, at 15px type — and it only
+     * does so at six. A seventh across the top is the thing that puts the menu
+     * back onto two rows, so the count is asserted rather than trusted; the
+     * panel below it costs no width at all, which is where anything new goes.
      */
-    public function test_the_menu_is_six_across_the_top_and_four_inside_the_group(): void
+    public function test_the_menu_is_six_across_the_top_and_five_inside_the_group(): void
     {
         $html = $this->get('/en')->assertOk()->getContent();
 
@@ -298,7 +298,7 @@ class OpportunityTest extends TestCase
         $inGroup = substr_count($nav, 'class="ns-navsub');
         $top = substr_count($nav, '<a href=') - $inGroup;
 
-        $this->assertSame(4, $inGroup);
+        $this->assertSame(5, $inGroup);
         $this->assertSame(5, $top);
         $this->assertSame(1, substr_count($nav, '<button type="button"'));
     }

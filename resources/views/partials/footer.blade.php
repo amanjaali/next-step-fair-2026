@@ -18,6 +18,7 @@
     $footerCols = [
         __('site.footer.attend') => [
             ...$attend,
+            ['label' => __('zankoline.nav'), 'url' => route('zankoline')],
             ['label' => __('site.footer.links.agenda'), 'url' => route('agenda')],
             ['label' => __('site.footer.links.speakers'), 'url' => route('speakers')],
             ['label' => __('site.footer.links.seminars'), 'url' => route('seminars')],

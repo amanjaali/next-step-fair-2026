@@ -246,6 +246,164 @@ if (! function_exists('ns_cta')) {
     }
 }
 
+if (! function_exists('ns_zankoline')) {
+    /**
+     * A line of the Zankoline page, as edited in the dashboard.
+     *
+     * Same rule as the home page: an empty box is "as written", so a language
+     * nobody has filled in still reads properly rather than showing a gap.
+     */
+    function ns_zankoline(string $key, array $replace = []): string
+    {
+        $content = Setting::get('zankoline_content', []);
+
+        // 'where.note' is one line in the translation file and one box in the
+        // dashboard: dots nest a Filament field, so the saved key is flat.
+        $saved = $content[str_replace('.', '_', $key)] ?? [];
+        $value = is_array($saved) ? trim((string) ($saved[app()->getLocale()] ?? '')) : '';
+
+        if ($value === '') {
+            return __('zankoline.'.$key, $replace);
+        }
+
+        foreach ($replace as $token => $with) {
+            $value = str_replace(':'.$token, (string) $with, $value);
+        }
+
+        return $value;
+    }
+}
+
+if (! function_exists('ns_zankoline_box')) {
+    /**
+     * The square of ground the map is drawn on, fitted to the centres in it.
+     *
+     * Drawn to a fixed box the seven sat in a knot in the middle of an empty
+     * panel, because the region is taller than it is wide and the box was
+     * neither. This takes the corners the centres actually occupy, pads the
+     * narrower side until the ground covered is square — a degree of longitude
+     * being about 90km here against 111km for a degree of latitude — and adds a
+     * margin so nothing is drawn on the edge. The panel is square too, so what
+     * comes out is not stretched in either direction.
+     *
+     * @param  array<int, array<string, mixed>>  $list
+     * @return array{lat_min: float, lat_max: float, lng_min: float, lng_max: float}
+     */
+    function ns_zankoline_box(array $list): array
+    {
+        $lats = [];
+        $lngs = [];
+
+        foreach ($list as $centre) {
+            $lat = (float) ($centre['lat'] ?? 0);
+            $lng = (float) ($centre['lng'] ?? 0);
+
+            if ($lat > 0 && $lng > 0) {
+                $lats[] = $lat;
+                $lngs[] = $lng;
+            }
+        }
+
+        // Nothing placeable, or a single point with no extent to fit: the
+        // shipped corners still frame the region sensibly.
+        if (count($lats) < 2) {
+            return config('zankoline.map');
+        }
+
+        $latMin = min($lats);
+        $latMax = max($lats);
+        $lngMin = min($lngs);
+        $lngMax = max($lngs);
+
+        $kmPerLng = 111 * cos(deg2rad(($latMin + $latMax) / 2));
+
+        $heightKm = max(($latMax - $latMin) * 111, 1);
+        $widthKm = max(($lngMax - $lngMin) * $kmPerLng, 1);
+
+        if ($widthKm < $heightKm) {
+            $grow = ($heightKm - $widthKm) / $kmPerLng / 2;
+            $lngMin -= $grow;
+            $lngMax += $grow;
+        } else {
+            $grow = ($widthKm - $heightKm) / 111 / 2;
+            $latMin -= $grow;
+            $latMax += $grow;
+        }
+
+        // Room for the labels, which are drawn beside their marker.
+        $margin = 0.16;
+        $latPad = ($latMax - $latMin) * $margin;
+        $lngPad = ($lngMax - $lngMin) * $margin;
+
+        return [
+            'lat_min' => $latMin - $latPad,
+            'lat_max' => $latMax + $latPad,
+            'lng_min' => $lngMin - $lngPad,
+            'lng_max' => $lngMax + $lngPad,
+        ];
+    }
+}
+
+if (! function_exists('ns_zankoline_centres')) {
+    /**
+     * The guidance desks, with where each one is on the map worked out.
+     *
+     * The dashboard's list wins outright when there is one — that is how a
+     * centre gets added or dropped without a deployment. Anything without a
+     * name in any language is skipped: an empty row in a repeater is somebody
+     * who pressed "add" and changed their mind, not a centre.
+     *
+     * @return list<array<string, mixed>>
+     */
+    function ns_zankoline_centres(): array
+    {
+        $saved = Setting::get('zankoline_centres', []);
+        $list = is_array($saved) && $saved !== [] ? $saved : config('zankoline.centres');
+
+        $box = ns_zankoline_box($list);
+        $locale = app()->getLocale();
+
+        $centres = [];
+
+        foreach ($list as $centre) {
+            $names = is_array($centre['name'] ?? null) ? $centre['name'] : [];
+            $name = trim((string) ($names[$locale] ?? $names['en'] ?? ''));
+
+            if ($name === '') {
+                continue;
+            }
+
+            $lat = (float) ($centre['lat'] ?? 0);
+            $lng = (float) ($centre['lng'] ?? 0);
+
+            $centre['label'] = $name;
+
+            // Projected into the map box as percentages, so the marker sits in
+            // the same place whatever size the map is drawn at.
+            $centre['x'] = $lng > 0
+                ? round(($lng - $box['lng_min']) / ($box['lng_max'] - $box['lng_min']) * 100, 2)
+                : null;
+            $centre['y'] = $lat > 0
+                ? round(($box['lat_max'] - $lat) / ($box['lat_max'] - $box['lat_min']) * 100, 2)
+                : null;
+
+            // Written per language in the dashboard, but a centre added by hand
+            // may carry one line for everybody.
+            $address = $centre['address'] ?? [];
+            $centre['address'] = is_array($address)
+                ? trim((string) ($address[$locale] ?? $address['en'] ?? ''))
+                : trim((string) $address);
+            $centre['person'] = trim((string) ($centre['person'] ?? ''));
+            $centre['phone'] = trim((string) ($centre['phone'] ?? ''));
+            $centre['maps_url'] = trim((string) ($centre['maps_url'] ?? ''));
+
+            $centres[] = $centre;
+        }
+
+        return $centres;
+    }
+}
+
 if (! function_exists('ns_brand')) {
     /**
      * A logo or brand mark: the one uploaded in the dashboard, or the one the
