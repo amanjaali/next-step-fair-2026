@@ -37,7 +37,43 @@ class BadgeService
             'daysLabel' => $registration->isConference()
                 ? __('site.common.day', ['n' => 1]).' · '.ns_day_date(1)
                 : $registration->daysLabel(),
+            'marks' => $this->partnerMarks(),
         ];
+    }
+
+    /**
+     * The partnership marks, as data URIs.
+     *
+     * DomPDF fetches an image by path, not by URL, and the badge is also
+     * rendered by a headless browser and, on a box without one, composed by GD
+     * — three renderers with three ideas of where "/storage/brand/ksa.svg"
+     * points. Reading the bytes once here means all three draw the same badge,
+     * and none of them has to reach out to the network to do it.
+     *
+     * @return list<string>
+     */
+    private function partnerMarks(): array
+    {
+        $uris = [];
+
+        foreach (ns_partner_marks() as $mark) {
+            $path = public_path(ltrim($mark['src'], '/'));
+
+            if (! is_readable($path)) {
+                continue;
+            }
+
+            $type = match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+                'svg' => 'image/svg+xml',
+                'jpg', 'jpeg' => 'image/jpeg',
+                'webp' => 'image/webp',
+                default => 'image/png',
+            };
+
+            $uris[] = 'data:'.$type.';base64,'.base64_encode((string) file_get_contents($path));
+        }
+
+        return $uris;
     }
 
     /** A6 PDF, the format printed at the registration desk. */
@@ -133,15 +169,19 @@ class BadgeService
         imagefilledrectangle($image, 56, 156, 56 + (int) (strlen($chip) * 13) + 32, 200, $white);
         $write($chip, 13, 72, 187, true, $ink);
 
-        $write($registration->full_name, mb_strlen($registration->full_name) > 26 ? 24 : 30, 56, 268, true);
+        $this->drawMarks($image, 56, 212, 36);
+
+        // 304 rather than 296: the panel above ends at 264, and a 30pt name has
+        // ascenders that reached into it.
+        $write($registration->full_name, mb_strlen($registration->full_name) > 26 ? 24 : 30, 56, 304, true);
 
         if ($registration->isConference()) {
-            $write((string) $registration->organization, 16, 56, 306, true);
+            $write((string) $registration->organization, 16, 56, 342, true);
             if ($registration->position) {
-                $write((string) $registration->position, 14, 56, 336);
+                $write((string) $registration->position, 14, 56, 372);
             }
         } else {
-            $write(trim($registration->city.' · '.$registration->daysLabel(), ' ·'), 14, 56, 306);
+            $write(trim($registration->city.' · '.$registration->daysLabel(), ' ·'), 14, 56, 342);
         }
 
         // White quiet zone behind the QR, as scan reliability requires.
@@ -161,6 +201,73 @@ class BadgeService
         imagedestroy($image);
 
         return $bytes;
+    }
+
+    /**
+     * The partnership marks on the GD badge, on their own white ground.
+     *
+     * This path runs whenever the box has no headless browser, which on a small
+     * server is most of the time — so the marks belong here as much as in the
+     * Blade view, or the ministry appears on the badge only where Chrome is
+     * installed.
+     *
+     * SVG is skipped rather than guessed at: GD cannot read it, and an
+     * exception here would take the whole badge down with it. The browser
+     * render, which handles SVG properly, is the one that runs where it matters.
+     *
+     * @param  \GdImage  $canvas
+     */
+    private function drawMarks($canvas, int $x, int $y, int $height): void
+    {
+        $pad = 8;
+        $gap = 16;
+        $drawn = [];
+
+        foreach (ns_partner_marks() as $mark) {
+            $path = public_path(ltrim($mark['src'], '/'));
+
+            if (! is_readable($path) || strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'svg') {
+                continue;
+            }
+
+            $source = @imagecreatefromstring((string) file_get_contents($path));
+
+            if ($source === false) {
+                continue;
+            }
+
+            $drawn[] = $source;
+        }
+
+        if (! $drawn) {
+            return;
+        }
+
+        $widths = array_map(
+            fn ($source) => (int) round(imagesx($source) * ($height / imagesy($source))),
+            $drawn
+        );
+
+        $panel = array_sum($widths) + $gap * (count($drawn) - 1) + $pad * 2;
+
+        imagefilledrectangle(
+            $canvas, $x, $y, $x + $panel, $y + $height + $pad * 2,
+            imagecolorallocate($canvas, 255, 255, 255)
+        );
+
+        $cursor = $x + $pad;
+
+        foreach ($drawn as $index => $source) {
+            imagecopyresampled(
+                $canvas, $source,
+                $cursor, $y + $pad, 0, 0,
+                $widths[$index], $height,
+                imagesx($source), imagesy($source)
+            );
+
+            $cursor += $widths[$index] + $gap;
+            imagedestroy($source);
+        }
     }
 
     /** DomPDF ships DejaVu; fall back to the system copy, then to no TTF at all. */

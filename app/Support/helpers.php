@@ -430,3 +430,29 @@ if (! function_exists('ns_brand')) {
         return $shipped === null ? null : '/'.ltrim($shipped, '/');
     }
 }
+
+if (! function_exists('ns_partner_marks')) {
+    /**
+     * The partnership lockup — the marks, in the order they are always shown.
+     *
+     * One definition, because these appear on the header, the footer, the card
+     * people post and the badge people carry, and a partner shown in one place
+     * and missed in another is the kind of thing a ministry notices. Adding a
+     * partner is a line here rather than an edit in four templates.
+     *
+     * A mark with nothing uploaded and nothing shipped is left out entirely: a
+     * broken image where a ministry's logo should be is worse than a gap.
+     *
+     * @return list<array{slug: string, src: string, name: string}>
+     */
+    function ns_partner_marks(): array
+    {
+        $marks = [
+            ['slug' => 'mohe', 'src' => ns_brand('mohe', 'assets/brand/mohe.png'), 'name' => __('site.header.mohe')],
+            ['slug' => 'krg', 'src' => ns_brand('krg', 'assets/brand/krg.png'), 'name' => __('site.header.krg_alt')],
+            ['slug' => 'ksa', 'src' => ns_brand('ksa'), 'name' => __('site.header.ksa')],
+        ];
+
+        return array_values(array_filter($marks, fn (array $mark) => filled($mark['src'])));
+    }
+}

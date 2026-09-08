@@ -400,7 +400,7 @@ PNGs in `public/assets/share`. They are screenshots of a real page at
 
 ```bash
 php artisan serve &
-node tools/build-share-cards.cjs
+php artisan share:cards          # or: node tools/build-share-cards.cjs
 ```
 
 Rendering at build time rather than on the server settles the hard part for good —

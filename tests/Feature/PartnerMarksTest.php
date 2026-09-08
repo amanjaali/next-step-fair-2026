@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Organization;
+use App\Models\Registration;
 use App\Models\Setting;
+use App\Services\BadgeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -146,6 +149,84 @@ class PartnerMarksTest extends TestCase
         $this->upload();
 
         $this->assertSame('/storage/brand/ksa.png', $ksa->fresh()->logoUrl());
+    }
+
+    /* ------------------------------------------- the card and the badge --- */
+
+    /**
+     * The card people post carries the marks at the top, not the bottom.
+     *
+     * A feed thumbnail crops the bottom corner, and that is where these used to
+     * sit — so the partnership was on the artwork and invisible in the place the
+     * artwork is actually seen.
+     */
+    public function test_the_share_card_carries_the_marks_above_the_headline(): void
+    {
+        $this->upload();
+
+        $html = $this->get('/en/share/card/student/feed')->assertOk()->getContent();
+
+        $this->assertStringContainsString('/storage/brand/ksa.png', $html);
+        $this->assertStringContainsString('/assets/brand/mohe.png', $html);
+
+        // Above the headline, which is the whole point of the move.
+        $this->assertLessThan(
+            strpos($html, '<h1>'),
+            strpos($html, '/storage/brand/ksa.png'),
+            'The partnership marks are below the headline — they were meant to move to the top.'
+        );
+    }
+
+    public function test_the_marks_are_no_longer_repeated_in_the_card_footer(): void
+    {
+        $this->upload();
+
+        $html = $this->get('/en/share/card/student/feed')->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count($html, '/storage/brand/ksa.png'));
+        $this->assertSame(1, substr_count($html, '/assets/brand/mohe.png'));
+    }
+
+    /**
+     * The badge had no partnership marks at all. It is the one artefact three
+     * thousand people hold in their hand for three days.
+     */
+    public function test_the_badge_carries_the_marks_above_the_name(): void
+    {
+        $this->upload('brand/ksa.png');
+
+        // The uploaded file has to exist for the badge: its renderers read the
+        // bytes rather than a URL, so a missing file is silently left out.
+        Storage::disk('public')->put('brand/ksa.png', base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+        ));
+
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_STUDENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Zardasht Aziz',
+            'phone' => '7701119911',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+        ]);
+
+        $payload = app(BadgeService::class)->payload($registration);
+
+        $this->assertNotEmpty($payload['marks'], 'The badge was handed no partnership marks.');
+
+        $html = view('badges.badge', $payload)->render();
+
+        // Data URIs, not paths: DomPDF, the browser and GD all read this view.
+        $this->assertStringContainsString('data:image/png;base64,', $html);
+        $this->assertLessThan(
+            strpos($html, 'class="name"'),
+            strpos($html, 'class="partners"'),
+            'The marks are below the name; they belong at the top of the badge.'
+        );
     }
 
     /** An upload replaces a shipped mark rather than sitting beside it. */

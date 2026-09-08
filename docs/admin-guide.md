@@ -349,7 +349,7 @@ its own photograph.
 | **Logo — for dark backgrounds** | The footer, the share card, the check-in app |
 | **Ministry of Higher Education** | Beside the Next Step logo in the header, and in the footer strip |
 | **Kurdistan Regional Government** | The partnership strip in the footer |
-| **Kurdistan Students Association** | Third in the header after the ministry mark, the footer strip, the share card, and the partners page |
+| **Kurdistan Students Association** | Third in the header after the ministry mark, the footer strip, the badge, the share card, and the partners page |
 | **Default share picture** | What Facebook, WhatsApp and LinkedIn show for a page with no picture of its own — 1200 × 630 |
 
 Same rule: **empty means the logo the site was built with.** Clearing an upload
@@ -363,6 +363,27 @@ and on the partners page, in all three languages, on every page at once. A PNG
 with a transparent background is best; any shape works, since the header caps
 the mark at 40px tall and 64px wide so a wide logo cannot push the menu onto a
 second line.
+
+> **One place does not update by itself: the card people post.**
+>
+> Those eighteen pictures — three languages, three audiences, two shapes — are
+> baked in advance rather than drawn on request, because Kurdish and Arabic
+> lettering only comes out right from a browser. Everywhere else on the site,
+> including the QR badge, picks up a new logo the moment it is uploaded. The
+> cards need one command, run by whoever looks after the server, with the site
+> running:
+>
+> ```
+> php artisan share:cards
+> ```
+>
+> Until that is run, a newly uploaded mark is on every page and not on the
+> cards. It is worth doing straight after any logo change and checking one card
+> on *My Next Step → Tell people you are coming*.
+
+The partnership marks sit at the **top** of the card and of the badge, under the
+Next Step name — not in the bottom corner, which is the part a feed thumbnail
+crops off.
 
 The ministry and the regional government also appear as partners in the directory
 and on the sponsors page. Those are separate records under *Universities,

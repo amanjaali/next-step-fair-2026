@@ -98,7 +98,10 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding-block: {{ $wide ? 18 : 34 }}px;
+            /* Zero on the square and wide cards: the partnership panel above
+               costs real height there, and with justify-content: center the
+               block still breathes whenever there is slack to breathe into. */
+            padding-block: {{ $story ? 34 : 0 }}px;
         }
 
         .kicker {
@@ -107,7 +110,7 @@
             letter-spacing: 0.24em;
             text-transform: uppercase;
             color: {{ $accent }};
-            margin-bottom: {{ $wide ? 16 : 28 }}px;
+            margin-bottom: {{ $story ? 28 : ($wide ? 12 : 22) }}px;
         }
 
         h1 {
@@ -131,7 +134,7 @@
             display: flex;
             gap: {{ $wide ? 44 : 60 }}px;
             flex-wrap: wrap;
-            padding-top: {{ $wide ? 26 : 42 }}px;
+            padding-top: {{ $story ? 42 : ($wide ? 22 : 36) }}px;
             border-top: 2px solid rgba(255, 255, 255, 0.22);
         }
 
@@ -166,23 +169,45 @@
         .foot {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             gap: 30px;
-            margin-top: {{ $wide ? 26 : 46 }}px;
+            margin-top: {{ $story ? 46 : ($wide ? 18 : 34) }}px;
         }
 
         .handle { font-size: {{ $story ? 34 : ($wide ? 21 : 29) }}px; font-weight: 700; color: rgba(255, 255, 255, 0.6); }
 
+        /*
+         * The wordmark and the partnership marks, stacked at the top of the card.
+         *
+         * They used to sit in the bottom corner, where a feed thumbnail crops
+         * them off and nobody reads them. Up here they are under the name of the
+         * thing they are backing, which is where a partner expects to be — and
+         * the corner opposite stays clear for the attendee's name, drawn on
+         * afterwards by the browser.
+         *
+         * align-items rather than text-align: this is a flex column, and a bare
+         * block child stretches to its full width, which turns both the wordmark
+         * and the white panel into full-width bars.
+         */
+        .head {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: {{ $story ? 34 : ($wide ? 12 : 20) }}px;
+            /* A little air under the panel: on the wide card the middle
+               block fills its space, so nothing else separates the two. */
+            margin-bottom: {{ $story ? 0 : ($wide ? 10 : 16) }}px;
+        }
+
         .partners {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: {{ $wide ? 12 : 18 }}px;
             background: #fff;
-            padding: {{ $story ? '14px 20px' : ($wide ? '9px 14px' : '12px 18px') }};
+            padding: {{ $story ? '14px 20px' : ($wide ? '8px 12px' : '11px 16px') }};
         }
 
-        .partners img { height: {{ $story ? 64 : ($wide ? 40 : 54) }}px; width: auto; display: block; }
-        .partners .rule { width: 2px; height: {{ $story ? 52 : ($wide ? 32 : 44) }}px; background: rgba(5, 7, 8, 0.18); }
+        .partners img { height: {{ $story ? 58 : ($wide ? 28 : 38) }}px; width: auto; display: block; }
+        .partners .rule { width: 2px; height: {{ $story ? 46 : ($wide ? 22 : 30) }}px; background: rgba(5, 7, 8, 0.18); }
     </style>
 </head>
 <body>
@@ -190,7 +215,18 @@
     <div class="edge"></div>
 
     <div class="sheet">
-        <img class="mark" src="{{ ns_brand('logo_light', 'assets/brand/nextstep-white-sm.png') }}" alt="">
+        <div class="head">
+            <img class="mark" src="{{ ns_brand('logo_light', 'assets/brand/nextstep-white-sm.png') }}" alt="">
+
+            @if ($marks = ns_partner_marks())
+                <div class="partners">
+                    @foreach ($marks as $index => $mark)
+                        @if ($index > 0)<span class="rule"></span>@endif
+                        <img src="{{ $mark['src'] }}" alt="">
+                    @endforeach
+                </div>
+            @endif
+        </div>
 
         <div class="middle">
             <div class="kicker">{{ __('share.card.kicker') }}</div>
@@ -212,15 +248,6 @@
 
             <div class="foot">
                 <div class="handle">{{ __('share.card.handle') }}</div>
-                <div class="partners">
-                    <img src="{{ ns_brand('mohe', 'assets/brand/mohe.png') }}" alt="">
-                    <span class="rule"></span>
-                    <img src="{{ ns_brand('krg', 'assets/brand/krg.png') }}" alt="">
-                    @if ($ksaMark = ns_brand('ksa'))
-                        <span class="rule"></span>
-                        <img src="{{ $ksaMark }}" alt="">
-                    @endif
-                </div>
             </div>
         </div>
     </div>
