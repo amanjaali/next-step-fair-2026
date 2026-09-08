@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Forms\Components\ImageUpload;
 use App\Models\Setting;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -100,26 +101,13 @@ class BrandImages extends Page
             ]);
     }
 
-    /**
-     * One upload box.
-     *
-     * The file types and the size are stated rather than left open. Filament's
-     * default is "any image", which includes SVG — an SVG is a document that can
-     * carry script, and these are served straight from /storage — and it accepts
-     * files far larger than PHP itself will take, so a big photograph dropped in
-     * here failed with nothing on screen to say why. Both are now refused in the
-     * browser, with the reason.
-     */
+    /** One upload box. See ImageUpload for the types, the size and the SVG rule. */
     private function slot(string $key, string $label, ?string $help = null): FileUpload
     {
-        return FileUpload::make("brand.{$key}")
+        return ImageUpload::logo("brand.{$key}")
             ->label($label)
             ->helperText($help ?? __('admin.images.slot_help'))
-            ->image()
-            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp'])
-            ->maxSize(4096)
             ->directory('brand')
-            ->disk('public')
             ->columnSpanFull();
     }
 

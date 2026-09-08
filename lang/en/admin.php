@@ -119,7 +119,7 @@ return [
         'share_help' => 'What Facebook, WhatsApp and LinkedIn show when someone shares a page that has no picture of its own.',
         'share_image' => 'Default share picture',
         'share_image_help' => 'Optional. 1200 × 630 is the size these apps crop to.',
-        'slot_help' => 'Leave empty to keep the one the site ships with. PNG, JPG or WEBP, up to 4 MB.',
+        'slot_help' => 'Leave empty to keep the one the site ships with. SVG, PNG, JPG or WEBP, up to 4 MB. SVG is best for a logo — it stays sharp at any size.',
         'save' => 'Save the logos',
     ],
 
@@ -141,7 +141,7 @@ return [
         'mark' => 'The mark and where it appears',
         'mark_help' => 'For the three partners in the header — the ministry, the regional government and the students\' association — upload the logo on Logos & brand marks instead; it is the same file in the header, the footer and here, so it is uploaded once.',
         'logo' => 'Logo',
-        'logo_help' => 'Only for partners that are not in the header strip. PNG with a transparent background works best.',
+        'logo_help' => 'Only for partners that are not in the header strip. SVG, or PNG with a transparent background.',
         'slug' => 'Web address',
         'slug_help' => 'The last part of the page address, lowercase and without spaces. For a header partner it must match the logo slot: mohe, krg or ksa.',
         'kind' => 'Kind',

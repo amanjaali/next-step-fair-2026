@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Partners;
 
+use App\Filament\Forms\Components\ImageUpload;
 use App\Filament\Resources\Partners\Pages\CreatePartner;
 use App\Filament\Resources\Partners\Pages\EditPartner;
 use App\Filament\Resources\Partners\Pages\ListPartners;
@@ -10,7 +11,6 @@ use App\Models\Organization;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -115,12 +115,10 @@ class PartnerResource extends Resource
                 ->description(__('admin.partners.mark_help'))
                 ->columns(2)
                 ->schema([
-                    FileUpload::make('logo_path')
+                    ImageUpload::logo('logo_path')
                         ->label(__('admin.partners.logo'))
                         ->helperText(__('admin.partners.logo_help'))
-                        ->image()->directory('logos')->disk('public')
-                        ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp'])
-                        ->maxSize(4096)
+                        ->directory('logos')
                         ->columnSpanFull(),
 
                     TextInput::make('slug')

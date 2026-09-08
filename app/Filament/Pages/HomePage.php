@@ -2,10 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Forms\Components\ImageUpload;
 use App\Models\Setting;
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -85,12 +85,10 @@ class HomePage extends Page
                         $this->translated('hero_kicker', __('admin.home.hero_kicker'), 'text', 'site.common.edition_4'),
                         $this->translated('hero_place', __('admin.home.hero_place'), 'text', 'site.common.location'),
                         $this->translated('hero_lead', __('admin.home.hero_lead'), 'textarea'),
-                        FileUpload::make('images.home_hero')
+                        ImageUpload::photo('images.home_hero')
                             ->label(__('admin.home.hero_photo'))
                             ->helperText(__('admin.home.hero_photo_help'))
-                            ->image()->imageEditor()->directory('site')->disk('public')
-                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp'])
-                            ->maxSize(8192)
+                            ->imageEditor()->directory('site')
                             ->columnSpanFull(),
                     ]),
 
@@ -154,12 +152,10 @@ class HomePage extends Page
                         $this->translated('about_p1', __('admin.home.about_p1'), 'textarea'),
                         $this->translated('about_p2', __('admin.home.about_p2'), 'textarea'),
                         $this->translated('about_p3', __('admin.home.about_p3'), 'textarea'),
-                        FileUpload::make('images.home_about')
+                        ImageUpload::photo('images.home_about')
                             ->label(__('admin.home.about_photo'))
                             ->helperText(__('admin.home.about_photo_help'))
-                            ->image()->imageEditor()->directory('site')->disk('public')
-                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp'])
-                            ->maxSize(8192)
+                            ->imageEditor()->directory('site')
                             ->columnSpanFull(),
                     ]),
             ]);
