@@ -168,6 +168,7 @@ class PartnerMarksTest extends TestCase
 
         $this->assertStringContainsString('/storage/brand/ksa.png', $html);
         $this->assertStringContainsString('/assets/brand/mohe.png', $html);
+        $this->assertStringContainsString(__('site.common.in_partnership'), $html);
 
         // Above the headline, which is the whole point of the move.
         $this->assertLessThan(
@@ -222,6 +223,10 @@ class PartnerMarksTest extends TestCase
 
         // Data URIs, not paths: DomPDF, the browser and GD all read this view.
         $this->assertStringContainsString('data:image/png;base64,', $html);
+        $this->assertStringContainsString(__('site.common.in_partnership'), $html);
+
+        // The regional government mark is not part of this lockup.
+        $this->assertStringNotContainsString('/assets/brand/krg.png', $html);
         $this->assertLessThan(
             strpos($html, 'class="name"'),
             strpos($html, 'class="partners"'),

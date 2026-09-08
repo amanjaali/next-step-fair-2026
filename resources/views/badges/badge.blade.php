@@ -23,18 +23,20 @@
             letter-spacing: 1.2pt; padding: 1.6mm 2.4mm; white-space: nowrap;
         }
         /*
-         * The partnership marks, directly under the event name.
+         * The partnership, in the top corner opposite the event name.
          *
-         * White ground behind them, always: these are supplied as coloured marks
-         * on white, and a ministry's seal knocked onto a magenta badge is not the
-         * mark any more. inline-block rather than flex — DomPDF has neither flex
-         * nor grid, and this file is the printed badge as well as the picture.
+         * White ground behind the marks, always: these are supplied as coloured
+         * marks on white, and a ministry's seal knocked onto a magenta badge is
+         * not the mark any more. inline-block rather than flex — DomPDF has
+         * neither flex nor grid, and this file is the printed badge as well as
+         * the picture sent on WhatsApp.
          */
-        .partners { background: #ffffff; padding: 2.4mm 3mm; margin-top: 5mm; }
+        .partners { background: #ffffff; padding: 2.4mm 3mm; }
         .partners img { height: 13mm; width: auto; vertical-align: middle; }
         .partners .rule { display: inline-block; width: 0.4mm; height: 10mm; background: rgba(5, 7, 8, 0.18); vertical-align: middle; margin: 0 2.5mm; }
+        .partnership-label { font-size: 5.5pt; letter-spacing: 1.2pt; text-transform: uppercase; opacity: 0.8; margin-bottom: 1.4mm; }
 
-        .name { font-size: {{ mb_strlen($registration->full_name) > 26 ? '15pt' : '19pt' }}; font-weight: bold; line-height: 1.05; margin-top: 6mm; }
+        .name { font-size: {{ mb_strlen($registration->full_name) > 26 ? '15pt' : '19pt' }}; font-weight: bold; line-height: 1.05; margin-top: 5mm; }
         .institution { font-size: 10pt; font-weight: bold; line-height: 1.3; margin-top: 2mm; }
         .position { font-size: 8.5pt; opacity: 0.85; margin-top: 1mm; }
         .meta { font-size: 8pt; opacity: 0.9; margin-top: 2mm; }
@@ -63,22 +65,25 @@
                     {{ $isConference ? __('site.common.day', ['n' => 1], $locale).' · '.ns_day_date(1) : __('site.common.edition_4', [], $locale) }}
                 </div>
             </td>
-            <td style="text-align: end; width: 30mm;">
-                <span class="chip">{{ $typeChip }}</span>
+
+            {{-- The partnership, in the outer top corner. A nested table so the
+                 white ground is only as wide as the marks: a bare div would run
+                 the width of the badge as a white band. --}}
+            <td style="text-align: end;">
+                @if ($marks ?? [])
+                    <div class="partnership-label">{{ __('site.common.in_partnership', [], $locale) }}</div>
+                    <table style="width: auto; margin-inline-start: auto;"><tr><td class="partners">
+                        @foreach ($marks as $index => $mark)
+                            @if ($index > 0)<span class="rule"></span>@endif
+                            <img src="{{ $mark }}" alt="">
+                        @endforeach
+                    </td></tr></table>
+                @endif
             </td>
         </tr>
     </table>
 
-    @if ($marks ?? [])
-        {{-- A table so the white ground is only as wide as the marks: a bare div
-             would run the full width of the badge as a white band. --}}
-        <table style="width: auto;"><tr><td class="partners">
-            @foreach ($marks as $index => $mark)
-                @if ($index > 0)<span class="rule"></span>@endif
-                <img src="{{ $mark }}" alt="">
-            @endforeach
-        </td></tr></table>
-    @endif
+    <div style="margin-top: 5mm;"><span class="chip">{{ $typeChip }}</span></div>
 
     <div class="name">{{ $registration->full_name }}</div>
 

@@ -81,6 +81,8 @@ return [
         'published' => 'Published by',
         'share' => 'Share',
         'copy_link' => 'Copy link',
+        /* Above the two marks on the card and the badge. */
+        'in_partnership' => 'In partnership with',
         'copied' => 'Copied',
         'related' => 'Related',
         'nothing_here' => 'Nothing here yet',

@@ -132,8 +132,18 @@ class BadgeService
      * GD composition: brand ground, name, institution, type chip and the QR.
      *
      * Deliberately plain — it exists so a badge is always issuable, even with no
-     * headless browser on the box. It draws with the DejaVu face DomPDF ships,
-     * so accented Latin and Kurdish/Arabic characters survive.
+     * headless browser on the box.
+     *
+     * KNOWN LIMIT, and it matters here more than most places: GD draws a string
+     * as a run of code points, left to right, with no Arabic shaping and no
+     * bidi. A Kurdish or Arabic name therefore comes out unjoined and reversed.
+     * Latin names, the ticket, the dates and the QR are all correct, and the QR
+     * is what the gate actually reads — but a person whose own name is printed
+     * backwards on their badge will not care about that.
+     *
+     * The fix is not in this method: it is to install spatie/browsershot and a
+     * headless Chrome on the server, after which png() renders the same Blade
+     * view the printed PDF uses, and the browser does the shaping properly.
      */
     private function fallbackPng(Registration $registration): string
     {
@@ -164,31 +174,42 @@ class BadgeService
             ? 'Conference '.config('nextstep.event.year')
             : (string) config('nextstep.event.year'), 20, 56, 116, true);
 
+        /*
+         * The partnership, in the top corner opposite the event name — the same
+         * arrangement as the printed badge and the card, so somebody holding
+         * one and looking at the other sees the same thing.
+         */
+        /*
+         * English here even on a Kurdish badge. GD draws code points in the
+         * order it is given them and does no Arabic shaping or bidi, so a
+         * Kurdish label comes out unjoined and back to front. Better one honest
+         * English line than a mangled Kurdish one — and see the note on this
+         * method about the same problem with names.
+         */
+        $this->writeRight($image, 'IN PARTNERSHIP WITH', 11, 704, 78, $regular, $white);
+        $this->drawMarks($image, 704, 96, 72);
+
         // Type chip, knocked out of the accent ground.
         $chip = strtoupper($registration->type);
-        imagefilledrectangle($image, 56, 156, 56 + (int) (strlen($chip) * 13) + 32, 200, $white);
-        $write($chip, 13, 72, 187, true, $ink);
+        imagefilledrectangle($image, 56, 214, 56 + (int) (strlen($chip) * 13) + 32, 258, $white);
+        $write($chip, 13, 72, 245, true, $ink);
 
-        // Strategic partners, so the marks are drawn at a size that reads as
-        // one — which moves everything below them down, including the QR.
-        $this->drawMarks($image, 56, 210, 72);
-
-        $write($registration->full_name, mb_strlen($registration->full_name) > 26 ? 24 : 30, 56, 336, true);
+        $write($registration->full_name, mb_strlen($registration->full_name) > 26 ? 24 : 30, 56, 316, true);
 
         if ($registration->isConference()) {
-            $write((string) $registration->organization, 16, 56, 372, true);
+            $write((string) $registration->organization, 16, 56, 352, true);
             if ($registration->position) {
-                $write((string) $registration->position, 14, 56, 400);
+                $write((string) $registration->position, 14, 56, 380);
             }
         } else {
-            $write(trim($registration->city.' · '.$registration->daysLabel(), ' ·'), 14, 56, 372);
+            $write(trim($registration->city.' · '.$registration->daysLabel(), ' ·'), 14, 56, 352);
         }
 
         // White quiet zone behind the QR, as scan reliability requires.
         $qrPng = $this->qr->png($this->tickets->verifyUrl($registration), 460);
         $qrImage = imagecreatefromstring($qrPng);
-        imagefilledrectangle($image, 56, 420, 596, 960, $white);
-        imagecopyresampled($image, $qrImage, 86, 450, 0, 0, 480, 480, imagesx($qrImage), imagesy($qrImage));
+        imagefilledrectangle($image, 56, 404, 596, 944, $white);
+        imagecopyresampled($image, $qrImage, 86, 434, 0, 0, 480, 480, imagesx($qrImage), imagesy($qrImage));
 
         $write('TICKET '.$registration->ticket_ref, 13, 56, 1004, true);
         $write(ns_event_dates().' · '.config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city'), 11, 56, 1034);
@@ -201,6 +222,29 @@ class BadgeService
         imagedestroy($image);
 
         return $bytes;
+    }
+
+    /**
+     * One line of text ending at a given x, rather than starting from one.
+     *
+     * GD draws from the left and knows nothing about alignment, so the width has
+     * to be measured first. Without a TTF face there is nothing to measure, and
+     * the bitmap font is a fixed 10px per character — near enough for a label.
+     *
+     * @param  \GdImage  $canvas
+     */
+    private function writeRight($canvas, string $text, int $size, int $rightEdge, int $baseline, ?string $font, int $colour): void
+    {
+        if (! $font) {
+            imagestring($canvas, 3, $rightEdge - strlen($this->toAscii($text)) * 8, $baseline - 12, $this->toAscii($text), $colour);
+
+            return;
+        }
+
+        $box = imagettfbbox($size, 0, $font, $text);
+        $textWidth = (int) abs($box[2] - $box[0]);
+
+        imagettftext($canvas, $size, 0, $rightEdge - $textWidth, $baseline, $colour, $font, $text);
     }
 
     /**
@@ -217,7 +261,7 @@ class BadgeService
      *
      * @param  \GdImage  $canvas
      */
-    private function drawMarks($canvas, int $x, int $y, int $height): void
+    private function drawMarks($canvas, int $rightEdge, int $y, int $height): void
     {
         $pad = 8;
         $gap = 16;
@@ -249,9 +293,10 @@ class BadgeService
         );
 
         $panel = array_sum($widths) + $gap * (count($drawn) - 1) + $pad * 2;
+        $x = $rightEdge - $panel;
 
         imagefilledrectangle(
-            $canvas, $x, $y, $x + $panel, $y + $height + $pad * 2,
+            $canvas, $x, $y, $rightEdge, $y + $height + $pad * 2,
             imagecolorallocate($canvas, 255, 255, 255)
         );
 

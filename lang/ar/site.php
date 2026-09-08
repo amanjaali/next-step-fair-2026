@@ -84,6 +84,7 @@ return [
         'published' => 'نشر بواسطة',
         'share' => 'مشاركة',
         'copy_link' => 'نسخ الرابط',
+        'in_partnership' => 'بالشراكة مع',
         'copied' => 'تم النسخ',
         'related' => 'ذات صلة',
         'nothing_here' => 'لا يوجد شيء بعد',

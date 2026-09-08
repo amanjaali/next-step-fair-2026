@@ -178,14 +178,12 @@
         .handle { font-size: {{ $story ? 34 : ($wide ? 21 : 29) }}px; font-weight: 700; color: rgba(255, 255, 255, 0.6); }
 
         /*
-         * The lockup: our wordmark and the strategic partners' marks, side by
-         * side on one row at the top of the card.
+         * The top row: our wordmark at one edge, the partnership at the other.
          *
-         * Beside rather than beneath, for two reasons. These are strategic
-         * partners, so they are drawn at the wordmark's own weight rather than
-         * as a credit line — stacked at that size they pushed the headline off
-         * the card. And a row costs no height at all: it is as tall as the
-         * wordmark was on its own.
+         * Opposite corners rather than side by side, so neither reads as part of
+         * the other's lockup — the fair is ours, the marks beside it are whose
+         * fair it is with. A row costs no height either way: it is as tall as
+         * the wordmark was on its own.
          *
          * The marks used to sit in the bottom corner, which is the part a feed
          * thumbnail crops. The attendee's name has gone there instead, drawn on
@@ -195,7 +193,24 @@
         .head {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: {{ $story ? 34 : ($wide ? 22 : 28) }}px;
+        }
+
+        /* The label and the marks, stacked and aligned to the outer edge. */
+        .partnership {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: {{ $story ? 14 : ($wide ? 8 : 11) }}px;
+        }
+
+        .partnership-label {
+            font-size: {{ $story ? 24 : ($wide ? 15 : 20) }}px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.62);
         }
 
         .partners {
@@ -224,11 +239,15 @@
             <img class="mark" src="{{ ns_brand('logo_light', 'assets/brand/nextstep-white-sm.png') }}" alt="">
 
             @if ($marks = ns_partner_marks())
-                <div class="partners">
-                    @foreach ($marks as $index => $mark)
-                        @if ($index > 0)<span class="rule"></span>@endif
-                        <img src="{{ $mark['src'] }}" alt="">
-                    @endforeach
+                <div class="partnership">
+                    <div class="partnership-label">{{ __('site.common.in_partnership') }}</div>
+
+                    <div class="partners">
+                        @foreach ($marks as $index => $mark)
+                            @if ($index > 0)<span class="rule"></span>@endif
+                            <img src="{{ $mark['src'] }}" alt="">
+                        @endforeach
+                    </div>
                 </div>
             @endif
         </div>
