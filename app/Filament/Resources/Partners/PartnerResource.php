@@ -119,6 +119,8 @@ class PartnerResource extends Resource
                         ->label(__('admin.partners.logo'))
                         ->helperText(__('admin.partners.logo_help'))
                         ->image()->directory('logos')->disk('public')
+                        ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp'])
+                        ->maxSize(4096)
                         ->columnSpanFull(),
 
                     TextInput::make('slug')

@@ -89,6 +89,8 @@ class HomePage extends Page
                             ->label(__('admin.home.hero_photo'))
                             ->helperText(__('admin.home.hero_photo_help'))
                             ->image()->imageEditor()->directory('site')->disk('public')
+                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp'])
+                            ->maxSize(8192)
                             ->columnSpanFull(),
                     ]),
 
@@ -156,6 +158,8 @@ class HomePage extends Page
                             ->label(__('admin.home.about_photo'))
                             ->helperText(__('admin.home.about_photo_help'))
                             ->image()->imageEditor()->directory('site')->disk('public')
+                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp'])
+                            ->maxSize(8192)
                             ->columnSpanFull(),
                     ]),
             ]);

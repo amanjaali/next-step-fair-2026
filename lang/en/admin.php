@@ -119,7 +119,7 @@ return [
         'share_help' => 'What Facebook, WhatsApp and LinkedIn show when someone shares a page that has no picture of its own.',
         'share_image' => 'Default share picture',
         'share_image_help' => 'Optional. 1200 × 630 is the size these apps crop to.',
-        'slot_help' => 'Leave empty to keep the one the site ships with.',
+        'slot_help' => 'Leave empty to keep the one the site ships with. PNG, JPG or WEBP, up to 4 MB.',
         'save' => 'Save the logos',
     ],
 

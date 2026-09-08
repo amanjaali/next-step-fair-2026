@@ -42,4 +42,22 @@ class AssetSchemeTest extends TestCase
     {
         $this->assertStringContainsString('APP_URL=https://', file_get_contents(base_path('.env.example')));
     }
+
+    /**
+     * An uploaded file is addressed relative to whoever is serving the page.
+     *
+     * Built from APP_URL instead, the dashboard's own upload preview is fetched
+     * from an address that may not be listening — a laptop on port 8001, a
+     * server whose APP_URL was never corrected. The file uploads, the box sits
+     * on "waiting for size" for ever, and it reads as uploading being broken.
+     */
+    public function test_an_uploaded_file_url_does_not_depend_on_app_url(): void
+    {
+        config(['app.url' => 'http://a-host-that-is-not-listening:9999']);
+
+        $url = \Illuminate\Support\Facades\Storage::disk('public')->url('brand/logo.png');
+
+        $this->assertSame('/storage/brand/logo.png', $url);
+        $this->assertStringNotContainsString('9999', $url);
+    }
 }

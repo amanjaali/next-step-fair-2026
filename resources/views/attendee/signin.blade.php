@@ -60,7 +60,7 @@
                             @endforeach
                         </select>
                         <input type="tel" name="phone" value="{{ old('phone') }}" inputmode="numeric"
-                               autocomplete="tel" placeholder="750 000 0000" class="ns-input ns-num flex-1">
+                               autocomplete="tel" placeholder="770 000 0000" class="ns-input ns-num flex-1">
                     </div>
                     @error('phone')<span class="ns-error">{{ $message }}</span>@enderror
                 </label>

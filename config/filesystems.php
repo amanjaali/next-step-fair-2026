@@ -38,10 +38,22 @@ return [
             'report' => false,
         ],
 
+        /*
+         * Uploaded files, addressed relative to whatever host is serving them.
+         *
+         * The URL is deliberately not built from APP_URL. Everything the
+         * dashboard uploads is shown back through this disk — the logo preview
+         * in the upload box most visibly — and an absolute URL made from a
+         * stale APP_URL points the browser at an address that is not listening.
+         * The upload succeeds, the file is on disk, and the box sits on
+         * "Loading… waiting for size" for ever, which reads as "uploading is
+         * broken". It cost an afternoon once; a root-relative URL cannot go
+         * wrong that way, on a laptop on port 8001 or on the server.
+         */
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

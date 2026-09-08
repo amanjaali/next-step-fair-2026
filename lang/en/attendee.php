@@ -41,7 +41,7 @@ return [
             'email' => 'Enter the email address you registered with.',
             'password' => 'Enter your password.',
             'no_match' => 'That email and password do not match an account. Check both, or register if you have not yet.',
-            'phone' => 'Enter the mobile number you registered with, for example 750 000 0000.',
+            'phone' => 'Enter the mobile number you registered with, for example 770 000 0000.',
         ],
     ],
 

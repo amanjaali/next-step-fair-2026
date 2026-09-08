@@ -48,8 +48,8 @@ return [
         'protocol' => 'protocol@nextstepfair.com',
         'partnerships' => 'partnerships@nextstepfair.com',
         'privacy' => 'privacy@nextstepfair.com',
-        'phone' => '+964 750 000 0000',
-        'media_phone' => '+964 751 000 0000',
+        'phone' => '+964 770 000 0000',
+        'media_phone' => '+964 771 000 0000',
     ],
 
     'social' => [
