@@ -121,6 +121,8 @@ return [
         'share_image_help' => 'Optional. 1200 × 630 is the size these apps crop to.',
         'slot_help' => 'Leave empty to keep the one the site ships with. SVG, PNG, JPG or WEBP, up to 4 MB. SVG is best for a logo — it stays sharp at any size.',
         'save' => 'Save the logos',
+        'rebuild_cards' => 'The share cards still show the old logos',
+        'rebuild_cards_body' => 'Every page and every badge is updated already. The cards people post are pictures built in advance — ask whoever looks after the server to run: php artisan share:cards',
     ],
 
     'partners' => [

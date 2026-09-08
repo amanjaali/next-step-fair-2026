@@ -121,9 +121,28 @@ class BrandImages extends Page
     public function save(): void
     {
         $data = $this->form->getState();
+        $before = Setting::get('brand_images', []);
+        $after = array_filter($data['brand'] ?? []);
 
-        Setting::put('brand_images', array_filter($data['brand'] ?? []), 'images');
+        Setting::put('brand_images', $after, 'images');
 
         Notification::make()->title(__('admin.notify.saved'))->success()->send();
+
+        /*
+         * One place does not follow: the cards people post are pictures built in
+         * advance, so a logo uploaded here reaches every page and every badge at
+         * once and those eighteen files not at all. The gap is invisible, and
+         * "the logo is missing" turns up a week before the fair. Said here, at
+         * the moment it becomes true, rather than in a document nobody is
+         * reading while uploading a file.
+         */
+        if ($before !== $after) {
+            Notification::make()
+                ->title(__('admin.images.rebuild_cards'))
+                ->body(__('admin.images.rebuild_cards_body'))
+                ->warning()
+                ->persistent()
+                ->send();
+        }
     }
 }
