@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CaptchaController;
 use App\Http\Controllers\Checkin\CheckinController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\QrCampaignController;
@@ -21,6 +22,18 @@ $locales = implode('|', array_keys(config('nextstep.locales')));
 */
 Route::get('/', [LocaleController::class, 'root'])->name('root');
 Route::get('lang/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
+
+/*
+ * The registration captcha picture.
+ *
+ * Language-neutral because the code in it is letters and digits, and outside
+ * the locale tree so that switching language does not invalidate the challenge
+ * somebody is halfway through typing. Throttled: it draws an image and writes a
+ * session key, and neither should be free to ask for a thousand times a minute.
+ */
+Route::get('captcha.png', [CaptchaController::class, 'show'])
+    ->middleware('throttle:40,1')
+    ->name('captcha');
 
 Route::get('verify/{ticket}', [TicketController::class, 'verify'])->name('ticket.verify');
 Route::get('ticket/{ticket}/badge.png', [TicketController::class, 'png'])->name('ticket.png');

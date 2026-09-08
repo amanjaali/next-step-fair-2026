@@ -136,6 +136,8 @@
                 </label>
                 @error('consent_terms')<span class="ns-error block mb-5">{{ $message }}</span>@enderror
 
+                @include('partials.captcha')
+
                 <button type="submit" class="ns-btn ns-btn-cobalt">{{ __('rsvp.submit') }}</button>
 
                 <p class="ns-meta text-[12.5px] mt-5 max-w-[54ch]">{{ __('rsvp.after_note') }}</p>

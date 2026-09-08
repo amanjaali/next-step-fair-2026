@@ -163,8 +163,8 @@ class AttendeeAccountTest extends TestCase
 
         $this->get('/en/join')->assertOk()->assertSee($session->t('title'));
 
-        // Register from there, all the way through the code.
-        $this->post('/en/register/fair', [
+        // Register from there. One submission: no code screen in between.
+        $this->post('/en/register/fair', $this->captcha() + [
             'type' => 'student', 'full_name' => 'Nma Salar', 'date_of_birth' => '2008-02-02',
             'phone_country' => '+964', 'phone' => '07719990009', 'city' => 'Sulaimani',
             'locale' => 'en', 'education_stage' => 'grade12',
@@ -172,10 +172,6 @@ class AttendeeAccountTest extends TestCase
         ])->assertRedirect();
 
         $registration = Registration::wherePhone('7719990009')->firstOrFail();
-        $code = $this->codeFor($registration);
-
-        $this->post("/en/register/fair/verify/{$registration->ticket_id}", ['code' => $code])
-            ->assertRedirect();
 
         $this->assertAuthenticatedAs($registration, 'attendee');
         $this->assertTrue(
@@ -210,7 +206,7 @@ class AttendeeAccountTest extends TestCase
 
     public function test_the_quick_pass_asks_for_a_name_and_a_number_only(): void
     {
-        $this->post('/en/register/quick', [
+        $this->post('/en/register/quick', $this->captcha() + [
             'full_name' => 'Hemin Star',
             'phone_country' => '+964',
             'phone' => '07719990002',
@@ -221,25 +217,37 @@ class AttendeeAccountTest extends TestCase
 
         $this->assertSame(Registration::TYPE_VISITOR, $pass->type);
         $this->assertTrue($pass->isQuickPass());
-        $this->assertSame(Registration::STATUS_AWAITING_OTP, $pass->status);
+        $this->assertSame(Registration::STATUS_CONFIRMED, $pass->status);
         // Valid for the whole run: there is nothing for a visitor to choose.
         $this->assertSame([1, 2, 3], $pass->dayList());
     }
 
-    public function test_the_quick_pass_still_verifies_the_number_before_issuing_a_badge(): void
+    /** The pass is the badge: nothing stands between the button and the QR. */
+    public function test_the_quick_pass_issues_the_badge_on_submission(): void
     {
-        $this->post('/en/register/quick', [
+        $this->post('/en/register/quick', $this->captcha() + [
             'full_name' => 'Hemin Star', 'phone_country' => '+964',
             'phone' => '07719990003', 'consent_terms' => '1',
-        ]);
+        ])->assertRedirect();
 
         $pass = Registration::wherePhone('7719990003')->firstOrFail();
-        $this->assertNull($pass->badge_generated_at);
 
-        $code = $this->codeFor($pass);
-        $this->post("/en/register/fair/verify/{$pass->ticket_id}", ['code' => $code])->assertRedirect();
+        $this->assertNotNull($pass->badge_generated_at);
+        $this->assertTrue($pass->messages()->where('template_key', 'registration_confirmed_visitor')->exists());
+        $this->assertAuthenticatedAs($pass, 'attendee');
+    }
 
-        $this->assertNotNull($pass->fresh()->badge_generated_at);
+    /** And the picture code is what stands between the form and a script. */
+    public function test_the_quick_pass_refuses_a_wrong_picture_code(): void
+    {
+        $this->captcha();
+
+        $this->post('/en/register/quick', [
+            'full_name' => 'Hemin Star', 'phone_country' => '+964',
+            'phone' => '07719990017', 'consent_terms' => '1', 'captcha' => 'WRONG',
+        ])->assertSessionHasErrors('captcha');
+
+        $this->assertSame(0, Registration::wherePhone('7719990017')->count());
     }
 
     public function test_a_quick_pass_is_offered_the_upgrade_rather_than_an_empty_agenda(): void
@@ -264,7 +272,7 @@ class AttendeeAccountTest extends TestCase
         // Back to the form with the reason on it. Forwarding straight to the badge
         // used to read as "it registered me a second time", which is the one thing
         // the check exists to prevent.
-        $this->post('/en/register/quick', [
+        $this->post('/en/register/quick', $this->captcha() + [
             'full_name' => 'Someone Else', 'phone_country' => '+964',
             'phone' => '07719990005', 'consent_terms' => '1',
         ])
@@ -278,7 +286,7 @@ class AttendeeAccountTest extends TestCase
         $this->assertSame($existing->ticket_id, session('duplicate_ticket'));
 
         $this->followingRedirects()
-            ->post('/en/register/quick', [
+            ->post('/en/register/quick', $this->captcha() + [
                 'full_name' => 'Someone Else', 'phone_country' => '+964',
                 'phone' => '07719990005', 'consent_terms' => '1',
             ])
@@ -395,7 +403,7 @@ class AttendeeAccountTest extends TestCase
             'email' => 'upgraded@example.com',
             'password' => 'a-good-password',
             'consent_terms' => '1',
-        ], $overrides);
+        ], $this->captcha(), $overrides);
     }
 
     public function test_the_attendee_area_renders_in_every_language(): void

@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Registration;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFairRegistrationRequest;
 use App\Models\Registration;
-use App\Services\BadgeService;
 use App\Services\Messaging\MessageDispatcher;
 use App\Services\Messaging\OtpService;
+use App\Services\RegistrationConfirmer;
 use App\Services\TicketService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,7 +34,7 @@ class FairRegistrationController extends Controller
 {
     public function __construct(
         private readonly OtpService $otp,
-        private readonly BadgeService $badges,
+        private readonly RegistrationConfirmer $confirmer,
         private readonly MessageDispatcher $dispatcher,
         private readonly TicketService $tickets,
     ) {}
@@ -142,10 +142,10 @@ class FairRegistrationController extends Controller
     /**
      * Finish a visitor pass rather than starting again.
      *
-     * The pass already carries a ticket, a QR and a phone number that answered an
-     * OTP — which is precisely what signed its holder in. So the answers are written
-     * onto that record, the badge is reissued under the new name, and nobody is
-     * asked to prove the same number twice.
+     * The pass already carries a ticket, a QR and a phone number, and its holder is
+     * signed in on this device. So the answers are written onto that record, the
+     * badge is reissued under the new name, and nobody registers the same number
+     * twice.
      */
     private function completeQuickPass(StoreFairRegistrationRequest $request, Registration $pass): RedirectResponse
     {
@@ -349,23 +349,7 @@ class FairRegistrationController extends Controller
      */
     private function confirm(Registration $registration): void
     {
-        $registration->forceFill([
-            'status' => Registration::STATUS_CONFIRMED,
-            'confirmed_at' => $registration->confirmed_at ?? now(),
-        ])->save();
-
-        $this->badges->generate($registration);
-
-        $this->dispatcher->whatsapp(
-            $registration,
-            'registration_confirmed_'.$registration->type,
-            [
-                'name' => $registration->firstName(),
-                'days' => $registration->daysLabel(),
-                'ticket' => $registration->ticket_ref,
-            ],
-            withBadge: true,
-        );
+        $this->confirmer->confirm($registration);
     }
 
     private function consents(Request $request): array

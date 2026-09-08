@@ -40,7 +40,7 @@ class FairRegistrationTest extends TestCase
             'email' => 'hemin@example.com',
             'password' => 'a-good-password',
             'consent_terms' => '1',
-        ], $overrides);
+        ], $this->captcha(), $overrides);
     }
 
     /** A parent: no account, so no email and no password. */
@@ -54,7 +54,7 @@ class FairRegistrationTest extends TestCase
             'city' => 'Erbil',
             'locale' => 'ku',
             'consent_terms' => '1',
-        ], $overrides);
+        ], $this->captcha(), $overrides);
     }
 
     /**

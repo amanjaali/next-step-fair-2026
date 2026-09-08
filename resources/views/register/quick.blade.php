@@ -78,6 +78,8 @@
                 </label>
                 @error('consent_terms')<span class="ns-error">{{ $message }}</span>@enderror
 
+                @include('partials.captcha')
+
                 <button type="submit" class="ns-btn ns-btn-magenta">{{ __('register.quick.submit') }}</button>
             </form>
 

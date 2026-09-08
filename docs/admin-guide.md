@@ -78,10 +78,17 @@ are counted, they have a QR, and the gate treats them like anyone else; they jus
 have no agenda and no profile. Expect a good share of walk-up traffic to be here,
 and do not read a low student count as a problem until you have looked at this tab.
 
-**"Awaiting OTP" should stay near empty.** Fair registration does not ask for a
-code any more: the form is submitted, the badge is issued, and the QR goes to the
-number given on WhatsApp. Anyone in this tab is a visitor pass started at the gate
-and not finished, since those are phone-only and still ask for a code.
+**"Awaiting OTP" should now be empty.** No registration form asks for a WhatsApp
+code any more — not the long form and not the visitor pass. Every form is
+submitted, the badge is issued, and the QR goes to the number given on WhatsApp.
+
+What stops a script filling the forms all night is the **picture code**: five
+letters and numbers drawn on a small image above the submit button, typed in by
+hand. It is different for every visitor and every attempt, it expires after
+twenty minutes, and it is thrown away the moment it is used — so nobody can
+solve one and post it a thousand times. There is nothing to configure and no
+account with a third party; if somebody at the desk says the picture is hard to
+read, the **"Show me a different code"** link under it draws a new one.
 
 > **Because the number is no longer checked, a mistyped digit sends somebody's
 > badge to a stranger** — and that person cannot get it back themselves. When
@@ -114,9 +121,9 @@ sends a hundred cancellations, so read the selection count before confirming.
 ### Walk-ins
 
 *Add walk-in*, top right. Fills the same form the public site uses, marks the record
-as a walk-in so gate numbers stay honest, and issues a badge immediately without the
-OTP step — the person is standing in front of you, so the phone is already verified
-by the fact that they are there.
+as a walk-in so gate numbers stay honest, and issues a badge immediately. There is
+no picture code on this form — you are signed in to the dashboard, and the person
+is standing in front of you.
 
 ### Export
 

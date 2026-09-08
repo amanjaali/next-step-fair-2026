@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Attendee;
 
 use App\Http\Controllers\Controller;
 use App\Models\Registration;
-use App\Services\Messaging\OtpService;
+use App\Rules\Captcha;
+use App\Services\RegistrationConfirmer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 /**
@@ -20,10 +22,15 @@ use Illuminate\View\View;
  * It is a real registration underneath, so the gate scanner, the headcount and the
  * capacity figures all still work, and the same number can be upgraded to a full
  * registration later without losing the pass.
+ *
+ * The badge is issued on submission. What stands between this form and a script
+ * is the code drawn on the picture, not a code sent to the number: the number is
+ * where the badge is delivered, and somebody who mistypes it simply does not
+ * receive it.
  */
 class QuickPassController extends Controller
 {
-    public function __construct(private readonly OtpService $otp) {}
+    public function __construct(private readonly RegistrationConfirmer $confirmer) {}
 
     public function create(): View
     {
@@ -40,11 +47,13 @@ class QuickPassController extends Controller
             'phone_country' => ['required', 'string', 'max:8'],
             'phone' => ['required', 'string', 'regex:/^0?[0-9]{9,12}$/'],
             'consent_terms' => ['accepted'],
+            'captcha' => ['required', 'string', new Captcha],
         ], [
             'full_name.required' => __('register.errors.name'),
             'phone.required' => __('register.errors.phone'),
             'phone.regex' => __('register.errors.phone'),
             'consent_terms.accepted' => __('register.errors.terms'),
+            'captcha.required' => __('register.errors.captcha'),
         ]);
 
         $phone = ltrim(preg_replace('/\D/', '', $data['phone']), '0');
@@ -67,7 +76,10 @@ class QuickPassController extends Controller
         $registration = Registration::create([
             'track' => Registration::TRACK_FAIR,
             'type' => Registration::TYPE_VISITOR,
-            'status' => Registration::STATUS_AWAITING_OTP,
+            // Draft for the length of one statement: if issuing the badge fails,
+            // the number is left free to try again rather than held by a pass
+            // that was never sent.
+            'status' => Registration::STATUS_DRAFT,
             'locale' => app()->getLocale(),
             'full_name' => $data['full_name'],
             'phone' => $phone,
@@ -81,8 +93,19 @@ class QuickPassController extends Controller
             'user_agent' => substr((string) $request->userAgent(), 0, 500),
         ]);
 
-        $this->otp->send($registration);
+        $this->confirmer->confirm($registration);
 
-        return redirect()->route('register.fair.verify', $registration->ticket_id);
+        /*
+         * Signed in on the spot. The pass used to sign somebody in by proving the
+         * number over WhatsApp; with the picture code in its place there is no
+         * proof of the number, so this signs in the person who just filled the
+         * form in on this device — and only them, since a number already on the
+         * list is turned away above and never reaches this line.
+         */
+        Auth::guard('attendee')->login($registration, remember: true);
+        $request->session()->regenerate();
+        $registration->forceFill(['last_signed_in_at' => now()])->save();
+
+        return redirect()->route('register.fair.done', $registration->ticket_id);
     }
 }

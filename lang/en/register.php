@@ -113,7 +113,18 @@ return [
         'photography' => 'I consent to appear in event photography. (Optional)',
     ],
 
+    /* The picture code, in place of the old WhatsApp code. */
+    'captcha' => [
+        'label' => 'Type the code from the picture',
+        'alt' => 'Five letters and numbers, drawn as a picture',
+        'refresh' => 'Show me a different code',
+        'placeholder' => 'ABC23',
+        'help' => 'Capital letters and numbers only. It is not case sensitive. If it is hard to read, ask for a different one.',
+    ],
+
     'submit' => 'Verify and get my badge',
+    /* The form itself: nothing to verify any more, so nothing to promise. */
+    'get_badge' => 'Get my badge',
     'continue' => 'Continue',
 
     'done' => [
@@ -257,6 +268,7 @@ return [
         'terms' => 'You need to accept the terms and privacy policy.',
         'whatsapp' => 'WhatsApp consent is required — it is how your badge is delivered.',
         'otp' => 'Enter the 6-digit code from WhatsApp.',
+        'captcha' => 'That code does not match the picture. Here is a new one — please try again.',
     ],
 
     /* The visitor pass: two fields, no account. */

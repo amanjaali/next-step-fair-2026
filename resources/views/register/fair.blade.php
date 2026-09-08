@@ -213,7 +213,9 @@
                 </label>
                 @error('consent_terms')<span class="ns-error block mb-5">{{ $message }}</span>@enderror
 
-                <button type="submit" class="ns-btn ns-btn-magenta">{{ __('register.submit') }}</button>
+                @include('partials.captcha')
+
+                <button type="submit" class="ns-btn ns-btn-magenta">{{ __('register.get_badge') }}</button>
 
                 <p class="ns-meta text-[12.5px] mt-5 max-w-[54ch]">{{ __('register.after_note') }}</p>
             </form>

@@ -41,7 +41,7 @@ class ConferenceRsvpTest extends TestCase
             'city' => 'Erbil',
             'locale' => 'en',
             'consent_terms' => '1',
-        ], $overrides);
+        ], $this->captcha(), $overrides);
     }
 
     public function test_an_institutional_address_is_confirmed_immediately_with_a_badge(): void
