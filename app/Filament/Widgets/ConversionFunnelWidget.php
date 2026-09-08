@@ -7,11 +7,13 @@ use App\Models\Registration;
 use Filament\Widgets\Widget;
 
 /**
- * Scan → form started → OTP verified → confirmed.
+ * Scan → form started → badge issued → still active.
  *
  * "Form started" is every registration row that exists at all, since a row is
- * only written once someone has completed step 4 and submitted; the drop between
- * it and "verified" is the OTP round-trip, which is the number worth watching.
+ * only written once someone has submitted. The middle step used to be the OTP
+ * round-trip; registration no longer asks for a code, so it counts badges issued
+ * instead — the drop there is now walk-up passes begun at the gate and never
+ * finished, and cancellations show as the drop to the last step.
  */
 class ConversionFunnelWidget extends Widget
 {
@@ -23,9 +25,7 @@ class ConversionFunnelWidget extends Widget
     {
         $scans = QrScan::count();
         $started = Registration::count();
-        $verified = Registration::whereNotNull('verified_at')
-            ->orWhere('track', Registration::TRACK_CONFERENCE)
-            ->count();
+        $issued = Registration::whereNotNull('badge_generated_at')->count();
         $confirmed = Registration::active()->count();
 
         $top = max($scans, $started, 1);
@@ -33,7 +33,7 @@ class ConversionFunnelWidget extends Widget
         return [
             ['label' => __('admin.widgets.page_views'), 'value' => $scans, 'percent' => round($scans / $top * 100)],
             ['label' => __('admin.widgets.form_started'), 'value' => $started, 'percent' => round($started / $top * 100)],
-            ['label' => __('admin.widgets.otp_verified'), 'value' => $verified, 'percent' => round($verified / $top * 100)],
+            ['label' => __('admin.widgets.badge_issued'), 'value' => $issued, 'percent' => round($issued / $top * 100)],
             ['label' => __('admin.widgets.confirmed'), 'value' => $confirmed, 'percent' => round($confirmed / $top * 100)],
         ];
     }

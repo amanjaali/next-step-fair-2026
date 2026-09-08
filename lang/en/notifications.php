@@ -20,6 +20,8 @@ return [
         // rather than a chosen subset of days.
         'registration_confirmed_visitor' => "Hello :name, your visitor pass for Next Step Fair 2026 is ready.\n\n28–30 September 2026, Cultural Factory, Sulaimani. Valid all three days. Entry is free.\n\nYour badge is attached. Save this message — show the QR at the entrance.\nTicket: :ticket",
 
+        'rsvp_confirmed' => "Hello :name, your place at the Next Step Conference 2026 is confirmed.\n\n28 September 2026, Cultural Factory, Sulaimani. Doors 09:00, the opening session begins at 10:00.\n\nYour badge is attached. Save this message — show the QR at the delegate entrance.\nTicket: :ticket",
+
         'event_reminder_3days' => 'Next Step Fair 2026 opens in three days, on 28 September at the Cultural Factory in Sulaimani. Doors 10:00. Bring your QR badge and your grades.',
 
         'event_reminder_1day' => 'Next Step Fair 2026 opens tomorrow at 10:00, Cultural Factory, Sulaimani. Show the QR in this chat at Gate A. Free parking behind Hall C.',

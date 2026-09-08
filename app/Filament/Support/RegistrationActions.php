@@ -162,6 +162,15 @@ class RegistrationActions
                 Mail::to($record->email)->queue(new RsvpConfirmation($record, false));
             }
 
+            // The QR to the phone as well, which is what an approved delegate
+            // actually needs at the gate.
+            app(MessageDispatcher::class)->whatsapp(
+                $record,
+                'rsvp_confirmed',
+                ['name' => $record->firstName(), 'ticket' => $record->ticket_ref],
+                withBadge: true,
+            );
+
             $approved++;
         }
 

@@ -54,9 +54,10 @@ The home screen reads top to bottom the way the week runs:
    approval.
 2. **Registrations per day** — the last 14 days. This is the curve to watch after a
    school visit or a poster drop; a flat day usually means a campaign stalled.
-3. **Conversion funnel** — form started → OTP verified → confirmed. A gap between
-   the first two means people are not receiving the code; a gap between the last two
-   means they are receiving it and not finishing.
+3. **Conversion funnel** — form started → confirmed. Registration no longer has a
+   code step, so this should be nearly flat; a real gap means people are opening
+   the form and abandoning it, which is a question about the form, not about
+   WhatsApp.
 4. **Registrations by city** and **how they heard about us** — where to spend the
    remaining outreach budget.
 5. **Check-in rate** and **arrivals by hour** — live during the event.
@@ -77,16 +78,21 @@ are counted, they have a QR, and the gate treats them like anyone else; they jus
 have no agenda and no profile. Expect a good share of walk-up traffic to be here,
 and do not read a low student count as a problem until you have looked at this tab.
 
-**"Awaiting OTP" is the tab to watch.** Anyone sitting there started the form and
-never entered the code, so they have no ticket. A handful is normal. A spike means
-WhatsApp delivery has a problem — check *Messaging → Delivery log* before assuming
-people lost interest.
+**"Awaiting OTP" should stay near empty.** Fair registration does not ask for a
+code any more: the form is submitted, the badge is issued, and the QR goes to the
+number given on WhatsApp. Anyone in this tab is a visitor pass started at the gate
+and not finished, since those are phone-only and still ask for a code.
 
-> **While WhatsApp is not yet connected,** nothing is actually sent, so the
-> verification page shows the pending code itself in a dashed amber panel. That is
-> how you test the flow end to end today. It is a real code with the real
-> ten-minute expiry, not a master key, and the panel disappears as soon as the
-> WhatsApp credentials go in. Every code is also readable in the delivery log.
+> **Because the number is no longer checked, a mistyped digit sends somebody's
+> badge to a stranger** — and that person cannot get it back themselves. When
+> somebody says their badge never arrived, look them up by name in
+> *Registrations*, correct the number, and use **Resend badge**. That is now the
+> normal repair, so it is worth the desk knowing it.
+
+> **While WhatsApp is not yet connected,** nothing is actually delivered. The
+> messages are still written, queued and visible in *Messaging → Delivery log*
+> with their full text, which is how you check the flow end to end today. They
+> start arriving the moment the WhatsApp credentials go in.
 
 Filters: type, status, city, language, attending day, registration date range,
 checked-in yes/no, walk-in yes/no. Search covers name, phone, email and ticket
@@ -136,13 +142,17 @@ can create in thirty seconds.
 
 Working the queue: open the record, check the name, the institution and the job
 title against the address. If it is plainly the person's personal address and the
-institution checks out, **Approve** — that confirms the RSVP, issues the badge and
-sends the email with the PDF attached. If you cannot tell, phone the institution
-before approving. Reject the ones that are clearly not who they claim to be.
+institution checks out, **Approve** — that confirms the RSVP, issues the badge,
+sends the email with the PDF attached, and sends the QR to their WhatsApp. If you
+cannot tell, phone the institution before approving. Reject the ones that are
+clearly not who they claim to be.
 
 **Invitation letters** lists everyone who asked for a formal letter — usually needed
 for travel authorisation or a visa. These have lead times attached to them and
 should be handled first each morning.
+
+A delegate whose address is institutional skips the queue: the badge is issued on
+submission, the email goes out with the PDF, and the QR goes to their WhatsApp.
 
 Row actions mirror the fair track, except **Resend** sends the email rather than a
 WhatsApp message, and it re-attaches the badge PDF and the calendar invite.

@@ -167,6 +167,28 @@ return [
         'download_link_ttl' => 60 * 24 * 7, // minutes a signed badge URL stays valid
     ],
 
+    /*
+    |---------------------------------------------------------------------------
+    | Registration
+    |---------------------------------------------------------------------------
+    |
+    | Whether a fair registration has to answer a WhatsApp code before its badge
+    | is issued.
+    |
+    | Off, which is how the fair runs: the form is the whole thing. The badge is
+    | made and sent to the number given, and nobody is held at a code screen —
+    | which is where registrations were being abandoned, on a school computer or
+    | a borrowed phone.
+    |
+    | The cost is that the number is taken on trust. A mistyped digit sends
+    | somebody's badge to a stranger and cannot be recovered by that person, and
+    | a number can be entered by someone who does not hold it. Turn this on for
+    | a cycle where that matters; nothing else has to change.
+    */
+    'registration' => [
+        'verify_phone' => (bool) env('REGISTRATION_VERIFY_PHONE', false),
+    ],
+
     'cities' => [
         'Sulaimani', 'Erbil', 'Duhok', 'Halabja', 'Ranya', 'Chamchamal', 'Kalar', 'Koya',
         'Shaqlawa', 'Zakho', 'Dukan', 'Penjwen', 'Qaladze', 'Darbandikhan', 'Sayed Sadiq',

@@ -134,8 +134,28 @@ class Registration extends Model implements AuthenticatableContract
         return $this->type === self::TYPE_STUDENT && filled($this->password);
     }
 
-    /** Verified means the phone answered its code. It is what unlocks the services. */
-    public function isVerified(): bool
+    /**
+     * Confirmed: the registration is complete and a badge has been issued.
+     *
+     * This is what unlocks the services. It used to be `verified_at`, back when
+     * every registration answered a code — but a phone code is a way of
+     * confirming a registration, not the meaning of one, and reading it as the
+     * meaning locked students out of the scholarship the day the code was
+     * dropped.
+     */
+    public function isConfirmed(): bool
+    {
+        return $this->status === self::STATUS_CONFIRMED;
+    }
+
+    /**
+     * This number answered a code.
+     *
+     * Only ever true where phone verification was switched on — see
+     * `nextstep.registration.verify_phone` — and for the visitor passes issued
+     * at the gate, which are phone-only and still ask.
+     */
+    public function phoneVerified(): bool
     {
         return $this->verified_at !== null;
     }
@@ -149,7 +169,7 @@ class Registration extends Model implements AuthenticatableContract
     public function canApplyForScholarship(): bool
     {
         return $this->isStudentAccount()
-            && $this->isVerified()
+            && $this->isConfirmed()
             && in_array($this->education_stage, ['grade12', 'graduate'], true);
     }
 

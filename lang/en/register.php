@@ -27,7 +27,7 @@ return [
         ],
     ],
 
-    'after_note' => 'We send a 6-digit code to your WhatsApp to confirm the number. That is the last step.',
+    'after_note' => 'That is everything. Your badge is issued the moment you press the button, and we send it to your WhatsApp with the QR on it — so check the number before you submit.',
 
     'types' => [
         'student' => ['label' => 'Student', 'note' => 'Creates your Next Step account'],

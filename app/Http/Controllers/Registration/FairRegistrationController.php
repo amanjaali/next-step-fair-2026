@@ -17,13 +17,18 @@ use Illuminate\View\View;
 /**
  * Expo registration: one short form for students, a shorter one for parents.
  *
- * The flow is deliberately: submit → verify the phone by code → issue the ticket.
- * A badge is never created for a number that has not answered.
+ * Submit and it is done — the badge is issued on the spot and sent to the number
+ * given, with the QR on it. There is no code to wait for, because the code screen
+ * is where registrations were being lost: a school computer, a borrowed phone, a
+ * message that arrives four minutes later to a handset in another room.
+ *
+ * Phone verification still exists and is one setting away
+ * (`nextstep.registration.verify_phone`); with it on, the flow returns to submit →
+ * code → badge, and everything below routes through the same two methods.
  *
  * A student is also creating their Next Step ID, and the badge and the account are
- * issued by the same code — one form, one verification, and from then on the expo,
- * the panels, the seminars, the workshops, Zankoline and the scholarship all know
- * who they are.
+ * issued together — one form, and from then on the expo, the panels, the seminars,
+ * the workshops, Zankoline and the scholarship all know who they are.
  */
 class FairRegistrationController extends Controller
 {
@@ -76,6 +81,8 @@ class FairRegistrationController extends Controller
 
         $registration = Registration::create($this->answers($request) + [
             'track' => Registration::TRACK_FAIR,
+            // Confirmed on submission unless a code is being asked for; the status
+            // is corrected a line later either way.
             'status' => Registration::STATUS_AWAITING_OTP,
             'phone' => $request->normalisedPhone(),
             'phone_country' => $request->input('phone_country', '+964'),
@@ -90,9 +97,46 @@ class FairRegistrationController extends Controller
             'user_agent' => substr((string) $request->userAgent(), 0, 500),
         ]);
 
-        $this->otp->send($registration);
+        return $this->finish($request, $registration);
+    }
 
-        return redirect()->route('register.fair.verify', $registration->ticket_id);
+    /**
+     * The last step of any registration: a code, or the badge itself.
+     *
+     * Both paths end in the same place — `confirm()` issues the badge and sends
+     * it — so nothing downstream has to know which way somebody came.
+     */
+    private function finish(Request $request, Registration $registration): RedirectResponse
+    {
+        if (config('nextstep.registration.verify_phone')) {
+            $this->otp->send($registration);
+
+            return redirect()->route('register.fair.verify', $registration->ticket_id);
+        }
+
+        $this->confirm($registration);
+        $this->signIn($request, $registration);
+
+        return redirect()->route('register.fair.done', $registration->ticket_id);
+    }
+
+    /**
+     * Sign the new registrant in, and pick up whatever they were doing.
+     *
+     * Somebody who has just filled in this form is the person whose record it is
+     * — a number already registered is turned away above, so a form submission
+     * can never take over an existing badge. Anyone who arrived by pressing "add
+     * to my agenda" is returned to that session, now saved.
+     */
+    private function signIn(Request $request, Registration $registration): void
+    {
+        Auth::guard('attendee')->login($registration, remember: true);
+        $request->session()->regenerate();
+        $registration->forceFill(['last_signed_in_at' => now()])->save();
+
+        if ($sessionId = $request->session()->pull('attendee.pending_session')) {
+            $registration->savedSessions()->syncWithoutDetaching([$sessionId]);
+        }
     }
 
     /**
@@ -111,9 +155,7 @@ class FairRegistrationController extends Controller
         $pass->fill($this->answers($request))->save();
 
         if ($pass->status !== Registration::STATUS_CONFIRMED) {
-            $this->otp->send($pass);
-
-            return redirect()->route('register.fair.verify', $pass->ticket_id);
+            return $this->finish($request, $pass);
         }
 
         $this->confirm($pass);
@@ -200,21 +242,11 @@ class FairRegistrationController extends Controller
             ]);
         }
 
+        // Answering the code proves the number, which is what stamps verified_at.
+        $record->forceFill(['verified_at' => $record->verified_at ?? now()])->save();
+
         $this->confirm($record);
-
-        /*
-         * Verifying the code proves the phone number, which is exactly what signing
-         * in proves — so the new registrant is signed in here rather than being
-         * asked for the same number again a moment later. Anyone who arrived by
-         * pressing "add to my agenda" is returned to that session, now saved.
-         */
-        Auth::guard('attendee')->login($record, remember: true);
-        $request->session()->regenerate();
-        $record->forceFill(['last_signed_in_at' => now()])->save();
-
-        if ($sessionId = $request->session()->pull('attendee.pending_session')) {
-            $record->savedSessions()->syncWithoutDetaching([$sessionId]);
-        }
+        $this->signIn($request, $record);
 
         return redirect()->route('register.fair.done', $record->ticket_id);
     }
@@ -308,14 +340,17 @@ class FairRegistrationController extends Controller
         ]);
     }
 
-    /** Issues the ticket: badge artwork, then the WhatsApp confirmation. */
+    /**
+     * Issues the ticket: badge artwork, then the WhatsApp message carrying it.
+     *
+     * `verified_at` is deliberately not touched here. It means one thing — this
+     * number answered a code — and stamping it on every confirmation would make
+     * the dashboard's own record of who was verified worthless.
+     */
     private function confirm(Registration $registration): void
     {
         $registration->forceFill([
             'status' => Registration::STATUS_CONFIRMED,
-            // Kept when they already exist: completing a visitor pass reissues the
-            // badge, it does not re-prove the phone number.
-            'verified_at' => $registration->verified_at ?? now(),
             'confirmed_at' => $registration->confirmed_at ?? now(),
         ])->save();
 

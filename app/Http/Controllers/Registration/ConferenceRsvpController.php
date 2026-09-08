@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 /**
- * Conference RSVP: one short form, e-mail confirmation.
+ * Conference RSVP: one short form, then the badge on WhatsApp and by e-mail.
  *
  * Four audiences — a ministry, a public body, a company, or a person coming on
  * their own account. The form is the same for all of them, and only an individual
@@ -22,6 +22,10 @@ use Illuminate\View\View;
  *
  * Institutional addresses are confirmed straight away; free-mail addresses go to
  * the protocol team, and the badge follows the approval rather than the RSVP.
+ *
+ * Both messages go out, because a delegate reads one or the other and rarely
+ * both: the e-mail carries the badge as a PDF for a diary, the WhatsApp message
+ * carries the QR as a picture for the gate.
  */
 class ConferenceRsvpController extends Controller
 {
@@ -121,5 +125,24 @@ class ConferenceRsvpController extends Controller
 
         Mail::to($registration->email)
             ->queue(new RsvpConfirmation($registration, $pending, $message->id));
+
+        /*
+         * And the QR itself, to the phone that will be carrying it.
+         *
+         * Only once there is a badge to send: an RSVP waiting on the protocol
+         * team has nothing to show at a gate, and a QR sent before approval is a
+         * promise the site has not made.
+         */
+        if (! $pending) {
+            $this->dispatcher->whatsapp(
+                $registration,
+                'rsvp_confirmed',
+                [
+                    'name' => $registration->firstName(),
+                    'ticket' => $registration->ticket_ref,
+                ],
+                withBadge: true,
+            );
+        }
     }
 }

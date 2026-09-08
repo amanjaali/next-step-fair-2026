@@ -353,7 +353,7 @@ return [
         'arrival_curve' => 'Arrivals by hour',
         'page_views' => 'QR scans',
         'form_started' => 'Form started',
-        'otp_verified' => 'OTP verified',
+        'badge_issued' => 'Badge issued',
         'confirmed' => 'Confirmed',
     ],
 

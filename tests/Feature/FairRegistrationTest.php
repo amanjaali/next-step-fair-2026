@@ -57,7 +57,11 @@ class FairRegistrationTest extends TestCase
         ], $overrides);
     }
 
-    public function test_a_student_registration_creates_a_pending_record_and_sends_an_otp(): void
+    /**
+     * The form is the whole thing: a badge, a message carrying it, and a signed-in
+     * account, in one submission. No code screen stands between them.
+     */
+    public function test_registering_issues_the_badge_and_sends_it_on_whatsapp(): void
     {
         Queue::fake();
 
@@ -66,18 +70,66 @@ class FairRegistrationTest extends TestCase
         $registration = Registration::firstOrFail();
 
         $this->assertSame(Registration::TRACK_FAIR, $registration->track);
-        $this->assertSame(Registration::STATUS_AWAITING_OTP, $registration->status);
+        $this->assertSame(Registration::STATUS_CONFIRMED, $registration->status);
         $this->assertSame('7704112288', $registration->phone);
         // Nobody picks days any more: a badge is valid for the whole run.
         $this->assertSame([1, 2, 3], $registration->dayList());
 
-        // No badge before the number has answered.
+        $this->assertNotNull($registration->badge_generated_at);
+        $this->assertNotNull($registration->confirmed_at);
+
+        // Nobody answered a code, so nothing claims they did.
+        $this->assertNull($registration->verified_at);
+        $this->assertDatabaseCount('otp_verifications', 0);
+
+        $response->assertRedirect(route('register.fair.done', ['locale' => 'en', 'registration' => $registration->ticket_id]));
+
+        $this->assertTrue(
+            Message::where('registration_id', $registration->id)
+                ->where('template_key', 'registration_confirmed_student')
+                ->exists()
+        );
+
+        Queue::assertPushed(SendWhatsAppMessage::class);
+    }
+
+    /** The QR itself travels with the message, not a link to fetch it. */
+    public function test_the_message_carries_the_badge(): void
+    {
+        Queue::fake();
+
+        $this->post('/en/register/fair', $this->payload());
+
+        Queue::assertPushed(SendWhatsAppMessage::class, function (SendWhatsAppMessage $job) {
+            return $job->withBadge === true;
+        });
+    }
+
+    /** Registering signs them in — they have just proved who they are by doing it. */
+    public function test_registering_signs_the_student_in(): void
+    {
+        $this->post('/en/register/fair', $this->payload());
+
+        $this->assertAuthenticatedAs(Registration::firstOrFail(), 'attendee');
+    }
+
+    /**
+     * Phone verification is one setting away, and turning it on puts the code
+     * screen back exactly where it was.
+     */
+    public function test_the_code_step_returns_when_phone_verification_is_switched_on(): void
+    {
+        config(['nextstep.registration.verify_phone' => true]);
+
+        $response = $this->post('/en/register/fair', $this->payload());
+
+        $registration = Registration::firstOrFail();
+
+        $this->assertSame(Registration::STATUS_AWAITING_OTP, $registration->status);
         $this->assertNull($registration->badge_generated_at);
+        $this->assertDatabaseCount('otp_verifications', 1);
 
         $response->assertRedirect(route('register.fair.verify', ['locale' => 'en', 'registration' => $registration->ticket_id]));
-
-        $this->assertDatabaseCount('otp_verifications', 1);
-        Queue::assertPushed(SendWhatsAppMessage::class);
     }
 
     /**
@@ -87,6 +139,8 @@ class FairRegistrationTest extends TestCase
      */
     public function test_the_test_mode_code_is_shown_only_when_nothing_can_be_sent(): void
     {
+        config(['nextstep.registration.verify_phone' => true]);
+
         $this->post('/en/register/fair', $this->payload());
         $registration = Registration::firstOrFail();
         $url = '/en/register/fair/verify/'.$registration->ticket_id;
@@ -113,6 +167,8 @@ class FairRegistrationTest extends TestCase
 
     public function test_verifying_the_otp_issues_a_badge_and_queues_the_confirmation(): void
     {
+        config(['nextstep.registration.verify_phone' => true]);
+
         $this->post('/en/register/fair', $this->payload());
         $registration = Registration::firstOrFail();
 
@@ -138,6 +194,8 @@ class FairRegistrationTest extends TestCase
 
     public function test_a_wrong_code_does_not_issue_a_badge(): void
     {
+        config(['nextstep.registration.verify_phone' => true]);
+
         $this->post('/en/register/fair', $this->payload());
         $registration = Registration::firstOrFail();
 
