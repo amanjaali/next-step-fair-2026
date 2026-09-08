@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Registration;
+use App\Support\Svg;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Browsershot\Browsershot;
@@ -255,9 +256,8 @@ class BadgeService
      * Blade view, or the ministry appears on the badge only where Chrome is
      * installed.
      *
-     * SVG is skipped rather than guessed at: GD cannot read it, and an
-     * exception here would take the whole badge down with it. The browser
-     * render, which handles SVG properly, is the one that runs where it matters.
+     * An SVG is rendered to a picture first — see Svg::rasterise — because that
+     * is the format a logo actually arrives in.
      *
      * @param  \GdImage  $canvas
      */
@@ -270,11 +270,29 @@ class BadgeService
         foreach (ns_partner_marks() as $mark) {
             $path = public_path(ltrim($mark['src'], '/'));
 
-            if (! is_readable($path) || strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'svg') {
+            if (! is_readable($path)) {
                 continue;
             }
 
-            $source = @imagecreatefromstring((string) file_get_contents($path));
+            /*
+             * GD cannot read SVG, and a logo uploaded as one is the normal case
+             * — it is what a designer sends and what the rest of the site
+             * prefers. So it is rendered to a picture first, by Imagick or by
+             * whichever converter the machine has, and the result cached.
+             *
+             * If the machine has none, the mark is left out rather than drawn
+             * badly, and the brand images screen says so at the moment of
+             * upload instead of letting it fail quietly here.
+             */
+            $bytes = strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'svg'
+                ? Svg::rasterise($path, $height)
+                : (string) file_get_contents($path);
+
+            if (! $bytes) {
+                continue;
+            }
+
+            $source = @imagecreatefromstring($bytes);
 
             if ($source === false) {
                 continue;

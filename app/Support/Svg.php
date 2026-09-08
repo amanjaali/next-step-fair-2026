@@ -6,6 +6,7 @@ use DOMAttr;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
+use Symfony\Component\Process\Process;
 
 /**
  * An allowlist for uploaded SVG.
@@ -126,6 +127,128 @@ final class Svg
         }
 
         return file_put_contents($absolutePath, $cleaned) !== false;
+    }
+
+    /**
+     * Whether this machine can turn an SVG into a picture at all.
+     *
+     * It matters because of one artefact: the badge PNG that goes out on
+     * WhatsApp is composed by GD, and GD cannot read SVG. Everywhere else — the
+     * website, the printed PDF, the share cards — draws SVG properly, so an SVG
+     * logo looks perfect right up until somebody opens their badge.
+     */
+    public static function canRasterise(): bool
+    {
+        return self::rasteriser() !== null;
+    }
+
+    /**
+     * An SVG as PNG bytes, at the given height, or null if this machine has no
+     * way to do it faithfully.
+     *
+     * Faithfully is the point. A partner's logo drawn approximately is worse
+     * than a partner's logo left out — so this uses a real renderer or nothing,
+     * rather than a best-effort PHP one that would quietly reshape a ministry's
+     * seal.
+     *
+     * The result is cached beside the source: badges are generated one per
+     * registrant, and a fair issues thousands.
+     */
+    public static function rasterise(string $absolutePath, int $height): ?string
+    {
+        if (! is_readable($absolutePath)) {
+            return null;
+        }
+
+        $cache = dirname($absolutePath).'/.raster';
+        $key = $cache.'/'.hash('xxh128', $absolutePath.filemtime($absolutePath)).'-'.$height.'.png';
+
+        if (is_readable($key)) {
+            return (string) file_get_contents($key);
+        }
+
+        $png = self::render($absolutePath, $height);
+
+        if ($png === null) {
+            return null;
+        }
+
+        if (! is_dir($cache)) {
+            @mkdir($cache, 0o755, true);
+        }
+
+        @file_put_contents($key, $png);
+
+        return $png;
+    }
+
+    /** Imagick first, then the usual command-line converters. */
+    private static function render(string $path, int $height): ?string
+    {
+        $tool = self::rasteriser();
+
+        if ($tool === 'imagick') {
+            try {
+                $image = new \Imagick;
+                $image->setBackgroundColor(new \ImagickPixel('transparent'));
+                $image->readImage($path);
+                $image->setImageFormat('png32');
+                $image->resizeImage(0, $height * 2, \Imagick::FILTER_LANCZOS, 1);
+
+                return $image->getImageBlob();
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        $target = tempnam(sys_get_temp_dir(), 'mark').'.png';
+
+        $command = match ($tool) {
+            'rsvg-convert' => ['rsvg-convert', '-h', (string) ($height * 2), '-o', $target, $path],
+            'inkscape' => ['inkscape', $path, '--export-type=png', '--export-height='.($height * 2), '--export-filename='.$target],
+            default => null,
+        };
+
+        if ($command === null) {
+            return null;
+        }
+
+        $process = new Process($command);
+        $process->setTimeout(20);
+        $process->run();
+
+        $png = $process->isSuccessful() && is_readable($target) ? (string) file_get_contents($target) : null;
+
+        @unlink($target);
+
+        return $png ?: null;
+    }
+
+    /** @return 'imagick'|'rsvg-convert'|'inkscape'|null */
+    private static function rasteriser(): ?string
+    {
+        static $found;
+
+        if ($found !== null) {
+            return $found ?: null;
+        }
+
+        if (extension_loaded('imagick')) {
+            return $found = 'imagick';
+        }
+
+        foreach (['rsvg-convert', 'inkscape'] as $binary) {
+            $which = new Process(['which', $binary]);
+            $which->run();
+
+            if ($which->isSuccessful() && trim($which->getOutput()) !== '') {
+                return $found = $binary;
+            }
+        }
+
+        $found = false;
+
+        return null;
     }
 
     private static function cleanNode(DOMNode $node): void

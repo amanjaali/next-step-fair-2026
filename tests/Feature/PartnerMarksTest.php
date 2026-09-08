@@ -234,6 +234,73 @@ class PartnerMarksTest extends TestCase
         );
     }
 
+    /**
+     * The badge picture, not just the badge markup.
+     *
+     * The markup carrying a mark proves nothing about the WhatsApp badge: that
+     * one is composed by GD, and an uploaded logo it cannot read is dropped
+     * without a word. This draws the real picture and counts what came out.
+     */
+    public function test_an_uploaded_logo_is_drawn_on_the_badge_picture(): void
+    {
+        // A real 8x8 PNG, because GD has to be able to open it.
+        $png = imagecreatetruecolor(8, 8);
+        ob_start();
+        imagepng($png);
+        Storage::disk('public')->put('brand/ksa.png', (string) ob_get_clean());
+        imagedestroy($png);
+
+        $registration = $this->registrant();
+
+        $before = $this->markPixels($registration);
+
+        $this->upload('brand/ksa.png');
+
+        $this->assertGreaterThan(
+            $before,
+            $this->markPixels($registration),
+            'The uploaded logo did not reach the badge picture.'
+        );
+    }
+
+    /** How much of the badge's mark panel is drawn on: white pixels in that band. */
+    private function markPixels(Registration $registration): int
+    {
+        $service = app(BadgeService::class);
+        $method = new \ReflectionMethod($service, 'fallbackPng');
+
+        $image = imagecreatefromstring($method->invoke($service, $registration));
+        $white = 0;
+
+        for ($x = 300; $x < 704; $x += 4) {
+            for ($y = 96; $y < 184; $y += 4) {
+                if (imagecolorat($image, $x, $y) === 0xFFFFFF) {
+                    $white++;
+                }
+            }
+        }
+
+        imagedestroy($image);
+
+        return $white;
+    }
+
+    private function registrant(): Registration
+    {
+        return Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_STUDENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Asman Shina',
+            'phone' => '7701119955',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+        ]);
+    }
+
     /** An upload replaces a shipped mark rather than sitting beside it. */
     public function test_an_upload_replaces_the_shipped_ministry_mark(): void
     {

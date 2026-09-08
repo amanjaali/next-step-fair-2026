@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Forms\Components\ImageUpload;
 use App\Models\Setting;
+use App\Support\Svg;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
@@ -84,8 +85,8 @@ class BrandImages extends Page
                     ->description(__('admin.images.partners_help'))
                     ->columns(2)
                     ->schema([
-                        $this->slot('mohe', __('admin.images.mohe')),
-                        $this->slot('krg', __('admin.images.krg')),
+                        $this->slot('mohe', __('admin.images.mohe'), __('admin.images.partner_help')),
+                        $this->slot('krg', __('admin.images.krg'), __('admin.images.partner_help')),
                         // No file ships for this one: the association joined
                         // after the design was drawn, so its mark appears in
                         // the header, the footer and the partners page the
@@ -144,5 +145,42 @@ class BrandImages extends Page
                 ->persistent()
                 ->send();
         }
+
+        $this->warnAboutSvgOnBadges($after);
+    }
+
+    /**
+     * An SVG partner mark cannot always be drawn on the badge.
+     *
+     * The website, the printed PDF and the share cards all handle SVG; the
+     * badge picture sent on WhatsApp is composed by GD, which cannot read one,
+     * so it is converted first — and that needs Imagick or a converter on the
+     * machine. Where there is none, the mark would simply not appear on the
+     * badge, and nothing would say why. This says why, naming the partner, at
+     * the moment the file is chosen.
+     *
+     * @param  array<string, string>  $marks
+     */
+    private function warnAboutSvgOnBadges(array $marks): void
+    {
+        if (Svg::canRasterise()) {
+            return;
+        }
+
+        $affected = collect(['mohe', 'krg', 'ksa'])
+            ->filter(fn (string $slot) => str_ends_with(strtolower($marks[$slot] ?? ''), '.svg'))
+            ->map(fn (string $slot) => __("admin.images.$slot"))
+            ->implode(', ');
+
+        if ($affected === '') {
+            return;
+        }
+
+        Notification::make()
+            ->title(__('admin.images.svg_badge_title'))
+            ->body(__('admin.images.svg_badge_body', ['partners' => $affected]))
+            ->danger()
+            ->persistent()
+            ->send();
     }
 }
