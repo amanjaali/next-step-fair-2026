@@ -48,8 +48,15 @@ class SendWhatsAppMessage implements ShouldQueue
 
         try {
             $mediaUrl = null;
+            $linkParam = null;
+
+            // The badge travels two ways in the same message: the picture in the
+            // template's header, and the link on its button. A template approved
+            // without one of them simply ignores what it was not given, so both
+            // are offered whenever there is a badge to offer.
             if ($this->withBadge && $message->registration) {
                 $mediaUrl = $dispatcher->badgeUrl($message->registration);
+                $linkParam = $dispatcher->badgeLinkParam($message->registration);
             }
 
             $providerId = $gateway->sendTemplate(
@@ -58,6 +65,7 @@ class SendWhatsAppMessage implements ShouldQueue
                 $message->locale,
                 $this->variables,
                 $mediaUrl,
+                $linkParam,
             );
 
             $message->forceFill([

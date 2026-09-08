@@ -74,4 +74,18 @@ class MessageDispatcher
             ['ticket' => $registration->ticket_id]
         );
     }
+
+    /**
+     * What a URL button appends to the address approved with the template.
+     *
+     * The template is approved as https://…/{{1}}, so this is "b/<ticket>" and
+     * never a whole address. It does not expire, unlike the picture link above:
+     * this is the one somebody opens in October to find the badge they were sent
+     * in September, and a signature that has run out would be worse than useless
+     * to them.
+     */
+    public function badgeLinkParam(Registration $registration): string
+    {
+        return ltrim(route('badge.link', $registration->ticket_id, absolute: false), '/');
+    }
 }

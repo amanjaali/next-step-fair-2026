@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\BadgeLinkController;
 use App\Http\Controllers\CaptchaController;
 use App\Http\Controllers\Checkin\CheckinController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\OtpiqWebhookController;
 use App\Http\Controllers\QrCampaignController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\WhatsAppWebhookController;
@@ -50,9 +52,21 @@ Route::post('rsvp/{ticket}/cancel', [TicketController::class, 'cancel'])
 // Campaign QR codes: /q/{code} redirects to the target and records the scan.
 Route::get('q/{code}', [QrCampaignController::class, 'redirect'])->name('qr.redirect');
 
+/*
+ * The badge link sent on WhatsApp. Short, because a URL button is approved with
+ * a fixed address and given only the tail of one at send time.
+ */
+Route::get('b/{ticket}', BadgeLinkController::class)
+    ->middleware('throttle:60,1')
+    ->name('badge.link');
+
 // Delivery-status callbacks from the WhatsApp Cloud API.
 Route::match(['get', 'post'], 'webhooks/whatsapp', WhatsAppWebhookController::class)
     ->name('webhooks.whatsapp')->withoutMiddleware([ValidateCsrfToken::class]);
+
+// The same, from OTPIQ, who report on their own sms id rather than Meta's.
+Route::post('webhooks/otpiq', OtpiqWebhookController::class)
+    ->name('webhooks.otpiq')->withoutMiddleware([ValidateCsrfToken::class]);
 
 /*
 |--------------------------------------------------------------------------

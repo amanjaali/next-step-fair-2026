@@ -16,14 +16,21 @@ use Illuminate\Support\Str;
  */
 class LogWhatsAppGateway implements WhatsAppGateway
 {
-    public function sendTemplate(Message $message, string $template, string $locale, array $variables = [], ?string $mediaUrl = null): ?string
-    {
+    public function sendTemplate(
+        Message $message,
+        string $template,
+        string $locale,
+        array $variables = [],
+        ?string $mediaUrl = null,
+        ?string $linkParam = null,
+    ): ?string {
         Log::channel(config('logging.default'))->info('[whatsapp:log] template', [
             'template' => $template,
             'locale' => $locale,
             'to' => $message->recipient,
             'variables' => $variables,
             'media' => $mediaUrl,
+            'link' => $linkParam,
             'preview' => $message->preview,
         ]);
 

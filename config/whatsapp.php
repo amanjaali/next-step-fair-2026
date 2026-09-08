@@ -1,15 +1,45 @@
 <?php
 
 /**
- * Meta WhatsApp Business Cloud API.
+ * WhatsApp delivery.
  *
- * The `log` driver writes messages to the delivery log without calling Meta, which
- * is what runs until the production credentials and approved templates land. Switch
- * WHATSAPP_DRIVER=cloud_api once the templates below are approved.
+ * Three drivers:
+ *
+ *   log        writes the fully rendered message to the delivery log and calls
+ *              nobody. This is what runs until an account is live, and it is
+ *              how the whole flow is checked end to end without spending a
+ *              message or needing a public address.
+ *   otpiq      OTPIQ, who hold the WhatsApp Business account for Iraq and
+ *              Kurdistan and pass our sends to Meta. Templates are built and
+ *              approved in their dashboard — see docs/whatsapp-otpiq.md.
+ *   cloud_api  Meta directly, for an account we hold ourselves.
+ *
+ * Whichever is set, everything above the gateway is the same: the queue, the
+ * retries, the delivery log and the admin's resend button.
  */
 return [
 
     'driver' => env('WHATSAPP_DRIVER', 'log'),
+
+    'otpiq' => [
+        'base_url' => env('OTPIQ_BASE_URL', 'https://api.otpiq.com/api'),
+        'api_key' => env('OTPIQ_API_KEY'),
+        // Both come from the WhatsApp account in the OTPIQ dashboard, not from Meta.
+        'account_id' => env('OTPIQ_WHATSAPP_ACCOUNT_ID'),
+        'phone_id' => env('OTPIQ_WHATSAPP_PHONE_ID'),
+        // Shared with OTPIQ so a delivery report can be told from a stranger's post.
+        'webhook_secret' => env('OTPIQ_WEBHOOK_SECRET'),
+        'timeout' => 20,
+        /*
+         * OTPIQ document the body slots of a template and nothing else. Turn
+         * these on only once their support confirms the account takes a header
+         * image and a URL button parameter, and that the template was approved
+         * with them: a shape the provider does not expect is a rejected send,
+         * not a message with a piece missing.
+         */
+        'send_header_image' => (bool) env('OTPIQ_SEND_HEADER_IMAGE', false),
+        'send_button_link' => (bool) env('OTPIQ_SEND_BUTTON_LINK', false),
+    ],
 
     'cloud_api' => [
         'base_url' => env('WHATSAPP_BASE_URL', 'https://graph.facebook.com/v21.0'),
@@ -34,6 +64,8 @@ return [
         'registration_confirmed_student' => 'registration_confirmed_student',
         'registration_confirmed_parent' => 'registration_confirmed_parent',
         'registration_confirmed_visitor' => 'registration_confirmed_visitor',
+        // The conference track: a delegate is approved by the protocol team first.
+        'rsvp_confirmed' => 'rsvp_confirmed',
         'event_reminder_3days' => 'event_reminder_3days',
         'event_reminder_1day' => 'event_reminder_1day',
         'day_of_directions' => 'day_of_directions',

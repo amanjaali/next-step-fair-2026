@@ -16,8 +16,14 @@ use RuntimeException;
  */
 class CloudApiWhatsAppGateway implements WhatsAppGateway
 {
-    public function sendTemplate(Message $message, string $template, string $locale, array $variables = [], ?string $mediaUrl = null): ?string
-    {
+    public function sendTemplate(
+        Message $message,
+        string $template,
+        string $locale,
+        array $variables = [],
+        ?string $mediaUrl = null,
+        ?string $linkParam = null,
+    ): ?string {
         $components = [];
 
         if ($mediaUrl) {
@@ -34,6 +40,18 @@ class CloudApiWhatsAppGateway implements WhatsAppGateway
                     fn ($value) => ['type' => 'text', 'text' => (string) $value],
                     array_values($variables)
                 ),
+            ];
+        }
+
+        if ($linkParam) {
+            // A URL button carries only what is appended to the address approved
+            // with the template, so this is the tail of the badge link and never
+            // the whole one.
+            $components[] = [
+                'type' => 'button',
+                'sub_type' => 'url',
+                'index' => '0',
+                'parameters' => [['type' => 'text', 'text' => $linkParam]],
             ];
         }
 

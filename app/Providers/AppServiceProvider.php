@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Services\Messaging\CloudApiWhatsAppGateway;
 use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Services\Messaging\LogWhatsAppGateway;
+use App\Services\Messaging\OtpiqWhatsAppGateway;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -20,13 +21,17 @@ class AppServiceProvider extends ServiceProvider
     {
         /*
          * The WhatsApp gateway is swapped by config, not by code. `log` records
-         * every message in the delivery log without calling Meta, which is what
-         * runs until the templates are approved and the credentials arrive.
+         * every message in the delivery log without calling anybody, which is
+         * what runs until the templates are approved and the keys arrive — and
+         * it stays the default, so a missing setting cannot start sending real
+         * messages to real people by accident.
          */
         $this->app->bind(WhatsAppGateway::class, function () {
-            return config('whatsapp.driver') === 'cloud_api'
-                ? $this->app->make(CloudApiWhatsAppGateway::class)
-                : $this->app->make(LogWhatsAppGateway::class);
+            return match (config('whatsapp.driver')) {
+                'otpiq' => $this->app->make(OtpiqWhatsAppGateway::class),
+                'cloud_api' => $this->app->make(CloudApiWhatsAppGateway::class),
+                default => $this->app->make(LogWhatsAppGateway::class),
+            };
         });
     }
 

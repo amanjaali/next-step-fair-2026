@@ -1,10 +1,19 @@
 # WhatsApp templates — submission and approval
 
-Everything on the fair track — the OTP, the confirmation that carries the QR badge,
-the reminders — goes out over the WhatsApp Business Cloud API. Meta only permits
-**pre-approved templates** outside a 24-hour customer-service window, and every one
-of our sends is outside that window, so each message below has to be submitted and
-approved before it can be delivered.
+Everything on the fair track — the confirmation that carries the QR badge, the
+reminders — goes out over WhatsApp. Meta only permits **pre-approved templates**
+outside a 24-hour customer-service window, and every one of our sends is outside
+that window, so each message below has to be submitted and approved before it can
+be delivered.
+
+> **Sending through OTPIQ instead of Meta directly?** The bodies below are still
+> the source of truth — copy them into OTPIQ's template builder — but the
+> account setup, the keys and the delivery webhook are different. See
+> **[whatsapp-otpiq.md](whatsapp-otpiq.md)**.
+>
+> The `next_step_otp` template is kept here for the day phone verification is
+> switched back on. Registration does not use it: the forms are protected by a
+> picture code typed on the page, and no code is sent to anybody.
 
 Approval usually takes minutes but Meta allows itself **up to 24 hours**, and a
 rejection restarts the clock. Submit all templates in all three languages **at least
@@ -141,6 +150,48 @@ and variable order.
 **KU:** سڵاو **{{1}}**، تۆمارکردنت بۆ پێشانگای هەنگاوی داهاتوو ٢٠٢٦ پشتڕاست کرایەوە. ٢٨–٣٠ی ئەیلولی ٢٠٢٦، کارگەی کولتوری، سلێمانی. ڕۆژەکانت: **{{2}}**. چوونەژوورەوە بۆ خۆت و منداڵەکەت بەخۆڕاییە. باجەکەت هاوپێچە. ئەم نامەیە پاشەکەوت بکە — QRەکە لە دەروازە پیشان بدە. بلیت: **{{3}}**
 
 **AR:** مرحباً **{{1}}**، تم تأكيد تسجيلك في معرض Next Step 2026. ٢٨–٣٠ أيلول ٢٠٢٦، مصنع الثقافة، السليمانية. أيامك: **{{2}}**. الدخول مجاني لك ولابنك أو ابنتك. بطاقتك مرفقة. احفظ هذه الرسالة — واعرض رمز QR عند المدخل. التذكرة: **{{3}}**
+
+---
+
+### 3b. `registration_confirmed_visitor` — utility
+
+The visitor pass. Same category, header and variable order as the two above, but
+the pass covers the whole run, so `{{2}}` always reads as all three days.
+
+- **Variables:** `{{1}}` = name, `{{2}}` = days, `{{3}}` = ticket reference
+
+> Hello **{{1}}**, your visitor pass for Next Step Fair 2026 is ready.
+>
+> 28–30 September 2026, Cultural Factory, Sulaimani. Valid all three days. Entry is free.
+>
+> Your badge is attached. Save this message — show the QR at the entrance.
+> Ticket: **{{3}}**
+
+**KU:** سڵاو **{{1}}**، پاسی سەردانکەریت بۆ پێشانگای هەنگاوی داهاتوو ٢٠٢٦ ئامادەیە. ٢٨–٣٠ی ئەیلولی ٢٠٢٦، کارگەی کولتوری، سلێمانی. بۆ هەر سێ ڕۆژەکە بەکاردێت. چوونەژوورەوە بەخۆڕاییە. باجەکەت هاوپێچە. ئەم نامەیە پاشەکەوت بکە — QRەکە لە دەروازە پیشان بدە. بلیت: **{{3}}**
+
+**AR:** مرحباً **{{1}}**، تصريح الزائر الخاص بك لمعرض Next Step 2026 جاهز. ٢٨–٣٠ أيلول ٢٠٢٦، مصنع الثقافة، السليمانية. صالح طوال الأيام الثلاثة. الدخول مجاني. بطاقتك مرفقة. احفظ هذه الرسالة — واعرض رمز QR عند المدخل. التذكرة: **{{3}}**
+
+---
+
+### 3c. `rsvp_confirmed` — utility
+
+The conference track. It is not sent when the form is submitted: a delegate is
+confirmed by the protocol team, and this goes out with that decision. Note the
+shorter variable list — **the ticket is `{{2}}` here, not `{{3}}`.**
+
+- **Header:** Image (the delegate badge)
+- **Variables:** `{{1}}` = name, `{{2}}` = ticket reference
+
+> Hello **{{1}}**, your place at the Next Step Conference 2026 is confirmed.
+>
+> 28 September 2026, Cultural Factory, Sulaimani. Doors 09:00, the opening session begins at 10:00.
+>
+> Your badge is attached. Save this message — show the QR at the delegate entrance.
+> Ticket: **{{2}}**
+
+**KU:** سڵاو **{{1}}**، شوێنەکەت لە کۆنفرانسی هەنگاوی داهاتوو ٢٠٢٦ پشتڕاست کرایەوە. ٢٨ی ئەیلولی ٢٠٢٦، کارگەی کولتوری، سلێمانی. دەرگاکان ٠٩:٠٠، دانیشتنی کردنەوە لە ١٠:٠٠ دەست پێدەکات. باجەکەت هاوپێچە. ئەم نامەیە پاشەکەوت بکە — QRەکە لە دەروازەی نوێنەران پیشان بدە. بلیت: **{{2}}**
+
+**AR:** مرحباً **{{1}}**، تم تأكيد مقعدك في مؤتمر Next Step 2026. ٢٨ أيلول ٢٠٢٦، مصنع الثقافة، السليمانية. الأبواب ٠٩:٠٠، وتبدأ الجلسة الافتتاحية ١٠:٠٠. بطاقتك مرفقة. احفظ هذه الرسالة — واعرض رمز QR عند مدخل المدعوين. التذكرة: **{{2}}**
 
 ---
 
