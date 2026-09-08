@@ -52,6 +52,17 @@ rm -f bootstrap/cache/services.php bootstrap/cache/packages.php
 rm -rf storage/framework/views/*.php
 ok "Cleared"
 
+# ------------------------------------------------------------ runtime folders
+#
+# Laravel writes compiled views, cached data, sessions and logs into these. They
+# are empty, so a zip or a clone can arrive without them — and the failure is
+# not obvious: composer install runs the framework at the end of its own
+# install, which stops on "Please provide a valid cache path" before a single
+# package is configured.
+mkdir -p storage/framework/views storage/framework/cache/data \
+         storage/framework/sessions storage/framework/testing \
+         storage/app/public storage/logs bootstrap/cache
+
 # ---------------------------------------------------------------- dependencies
 step "Installing dependencies (a few minutes the first time)"
 

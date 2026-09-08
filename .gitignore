@@ -29,6 +29,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-storage/framework/views/*
-storage/framework/cache/data/*
-storage/framework/sessions/*
+# The runtime folders themselves are kept — each holds its own .gitignore, so a
+# fresh clone or an unzipped copy has somewhere to compile views into. Ignoring
+# them from here instead left the folders missing, and `composer install` on a
+# new machine died with "Please provide a valid cache path".
