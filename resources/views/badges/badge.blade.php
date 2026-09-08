@@ -30,9 +30,9 @@
          * mark any more. inline-block rather than flex — DomPDF has neither flex
          * nor grid, and this file is the printed badge as well as the picture.
          */
-        .partners { background: #ffffff; padding: 1.6mm 2.4mm; margin-top: 5mm; }
-        .partners img { height: 7mm; width: auto; vertical-align: middle; }
-        .partners .rule { display: inline-block; width: 0.4mm; height: 5.5mm; background: rgba(5, 7, 8, 0.18); vertical-align: middle; margin: 0 2mm; }
+        .partners { background: #ffffff; padding: 2.4mm 3mm; margin-top: 5mm; }
+        .partners img { height: 13mm; width: auto; vertical-align: middle; }
+        .partners .rule { display: inline-block; width: 0.4mm; height: 10mm; background: rgba(5, 7, 8, 0.18); vertical-align: middle; margin: 0 2.5mm; }
 
         .name { font-size: {{ mb_strlen($registration->full_name) > 26 ? '15pt' : '19pt' }}; font-weight: bold; line-height: 1.05; margin-top: 6mm; }
         .institution { font-size: 10pt; font-weight: bold; line-height: 1.3; margin-top: 2mm; }

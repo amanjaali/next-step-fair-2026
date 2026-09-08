@@ -204,10 +204,17 @@ class ShareKit
     /**
      * Where the person's name is drawn on the finished card, in image pixels.
      *
-     * The top corner opposite the wordmark, which is empty on all three cards by
-     * design. Absolute rather than tied to the layout, so the browser drawing it
-     * and the card behind it cannot drift apart — and one definition, read by
-     * both the page and the script.
+     * The bottom corner opposite the handle. It used to be the top corner, until
+     * the partnership marks came up to the top row at the size a strategic
+     * partner is due and took that space; down here the name sits on the line
+     * with @nextstepfair, which is where a signature belongs anyway.
+     *
+     * `x` is the inset from the outer edge and `y` the baseline, so the same two
+     * numbers work in Kurdish and Arabic, where the card is mirrored.
+     *
+     * Absolute rather than tied to the layout, so the browser drawing it and the
+     * card behind it cannot drift apart — and one definition, read by both the
+     * page and the script.
      *
      * The name goes on in the browser rather than being baked in. It has to:
      * there are as many names as there are people, and a Kurdish or Arabic one
@@ -220,9 +227,11 @@ class ShareKit
     public static function nameSlot(string $format): array
     {
         return match ($format) {
-            self::FORMAT_STORY => ['width' => 1080, 'height' => 1920, 'x' => 92, 'y' => 214, 'size' => 40, 'max' => 560],
-            self::FORMAT_OG => ['width' => 1200, 'height' => 630, 'x' => 64, 'y' => 92, 'size' => 30, 'max' => 460],
-            default => ['width' => 1080, 'height' => 1080, 'x' => 84, 'y' => 140, 'size' => 36, 'max' => 520],
+            // The baselines are the handle's own, measured in the browser, and
+            // the widths are what is left on that line beside it.
+            self::FORMAT_STORY => ['width' => 1080, 'height' => 1920, 'x' => 92, 'y' => 1757, 'size' => 34, 'max' => 320],
+            self::FORMAT_OG => ['width' => 1200, 'height' => 630, 'x' => 64, 'y' => 568, 'size' => 24, 'max' => 380],
+            default => ['width' => 1080, 'height' => 1080, 'x' => 84, 'y' => 981, 'size' => 30, 'max' => 400],
         };
     }
 

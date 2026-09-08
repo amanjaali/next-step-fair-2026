@@ -433,15 +433,20 @@ if (! function_exists('ns_brand')) {
 
 if (! function_exists('ns_partner_marks')) {
     /**
-     * The partnership lockup — the marks, in the order they are always shown.
+     * The strategic lockup — the two marks that stand beside the Next Step one.
      *
-     * One definition, because these appear on the header, the footer, the card
-     * people post and the badge people carry, and a partner shown in one place
-     * and missed in another is the kind of thing a ministry notices. Adding a
-     * partner is a line here rather than an edit in four templates.
+     * The Ministry and the Students Association, in that order, and drawn at a
+     * size that reads as a partnership rather than as a credit line. This is the
+     * same pair as the site header, and it is deliberately not the full partner
+     * list: the footer strip and the sponsors page carry everybody, and a lockup
+     * that grows with each new partner stops being a lockup.
+     *
+     * One definition, because these appear on the card people post and the badge
+     * people wear, and a partner shown in one place and missed in the other is
+     * the kind of thing a ministry notices.
      *
      * A mark with nothing uploaded and nothing shipped is left out entirely: a
-     * broken image where a ministry's logo should be is worse than a gap.
+     * broken image where a partner's logo should be is worse than a gap.
      *
      * @return list<array{slug: string, src: string, name: string}>
      */
@@ -449,7 +454,6 @@ if (! function_exists('ns_partner_marks')) {
     {
         $marks = [
             ['slug' => 'mohe', 'src' => ns_brand('mohe', 'assets/brand/mohe.png'), 'name' => __('site.header.mohe')],
-            ['slug' => 'krg', 'src' => ns_brand('krg', 'assets/brand/krg.png'), 'name' => __('site.header.krg_alt')],
             ['slug' => 'ksa', 'src' => ns_brand('ksa'), 'name' => __('site.header.ksa')],
         ];
 

@@ -49,7 +49,7 @@ export default function shareCard() {
 
         if (name) {
             // The card is right-to-left in Kurdish and Arabic, so the name sits
-            // in the corner opposite the wordmark either way.
+            // in the corner opposite the handle either way.
             const rtl = document.documentElement.dir === 'rtl';
 
             // Wait for the webfont, or the first paint measures a fallback face

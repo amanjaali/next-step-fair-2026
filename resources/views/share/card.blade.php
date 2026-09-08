@@ -98,10 +98,12 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            /* Zero on the square and wide cards: the partnership panel above
-               costs real height there, and with justify-content: center the
-               block still breathes whenever there is slack to breathe into. */
-            padding-block: {{ $story ? 34 : 0 }}px;
+            /* Trimmed so the block below actually reaches the bottom padding:
+               once the column overflows its box, space-between stops working
+               and the footer floats at a different height in each language —
+               and the name drawn onto the finished picture sits at one fixed
+               height for all of them. */
+            padding-block: {{ $story ? 34 : ($wide ? 8 : 12) }}px;
         }
 
         .kicker {
@@ -110,7 +112,7 @@
             letter-spacing: 0.24em;
             text-transform: uppercase;
             color: {{ $accent }};
-            margin-bottom: {{ $story ? 28 : ($wide ? 12 : 22) }}px;
+            margin-bottom: {{ $story ? 28 : ($wide ? 12 : 18) }}px;
         }
 
         h1 {
@@ -134,7 +136,7 @@
             display: flex;
             gap: {{ $wide ? 44 : 60 }}px;
             flex-wrap: wrap;
-            padding-top: {{ $story ? 42 : ($wide ? 22 : 36) }}px;
+            padding-top: {{ $story ? 42 : ($wide ? 20 : 30) }}px;
             border-top: 2px solid rgba(255, 255, 255, 0.22);
         }
 
@@ -170,44 +172,47 @@
             display: flex;
             align-items: center;
             gap: 30px;
-            margin-top: {{ $story ? 46 : ($wide ? 18 : 34) }}px;
+            margin-top: {{ $story ? 46 : ($wide ? 16 : 28) }}px;
         }
 
         .handle { font-size: {{ $story ? 34 : ($wide ? 21 : 29) }}px; font-weight: 700; color: rgba(255, 255, 255, 0.6); }
 
         /*
-         * The wordmark and the partnership marks, stacked at the top of the card.
+         * The lockup: our wordmark and the strategic partners' marks, side by
+         * side on one row at the top of the card.
          *
-         * They used to sit in the bottom corner, where a feed thumbnail crops
-         * them off and nobody reads them. Up here they are under the name of the
-         * thing they are backing, which is where a partner expects to be — and
-         * the corner opposite stays clear for the attendee's name, drawn on
-         * afterwards by the browser.
+         * Beside rather than beneath, for two reasons. These are strategic
+         * partners, so they are drawn at the wordmark's own weight rather than
+         * as a credit line — stacked at that size they pushed the headline off
+         * the card. And a row costs no height at all: it is as tall as the
+         * wordmark was on its own.
          *
-         * align-items rather than text-align: this is a flex column, and a bare
-         * block child stretches to its full width, which turns both the wordmark
-         * and the white panel into full-width bars.
+         * The marks used to sit in the bottom corner, which is the part a feed
+         * thumbnail crops. The attendee's name has gone there instead, drawn on
+         * afterwards by the browser: it is one line, it survives the crop, and
+         * it belongs next to the handle.
          */
         .head {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: {{ $story ? 34 : ($wide ? 12 : 20) }}px;
-            /* A little air under the panel: on the wide card the middle
-               block fills its space, so nothing else separates the two. */
-            margin-bottom: {{ $story ? 0 : ($wide ? 10 : 16) }}px;
+            align-items: center;
+            gap: {{ $story ? 34 : ($wide ? 22 : 28) }}px;
         }
 
         .partners {
             display: flex;
             align-items: center;
-            gap: {{ $wide ? 12 : 18 }}px;
+            gap: {{ $story ? 24 : ($wide ? 14 : 20) }}px;
             background: #fff;
-            padding: {{ $story ? '14px 20px' : ($wide ? '8px 12px' : '11px 16px') }};
+            padding: {{ $story ? '20px 26px' : ($wide ? '12px 16px' : '16px 22px') }};
         }
 
-        .partners img { height: {{ $story ? 58 : ($wide ? 28 : 38) }}px; width: auto; display: block; }
-        .partners .rule { width: 2px; height: {{ $story ? 46 : ($wide ? 22 : 30) }}px; background: rgba(5, 7, 8, 0.18); }
+        /*
+         * Sized against the wordmark beside them, not against the body text.
+         * Roughly half its height, which is what a mark of a different shape
+         * needs to read as its equal rather than as a footnote.
+         */
+        .partners img { height: {{ $story ? 124 : ($wide ? 66 : 96) }}px; width: auto; display: block; }
+        .partners .rule { width: 2px; height: {{ $story ? 96 : ($wide ? 50 : 74) }}px; background: rgba(5, 7, 8, 0.18); }
     </style>
 </head>
 <body>

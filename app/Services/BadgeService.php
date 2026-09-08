@@ -169,26 +169,26 @@ class BadgeService
         imagefilledrectangle($image, 56, 156, 56 + (int) (strlen($chip) * 13) + 32, 200, $white);
         $write($chip, 13, 72, 187, true, $ink);
 
-        $this->drawMarks($image, 56, 212, 36);
+        // Strategic partners, so the marks are drawn at a size that reads as
+        // one — which moves everything below them down, including the QR.
+        $this->drawMarks($image, 56, 210, 72);
 
-        // 304 rather than 296: the panel above ends at 264, and a 30pt name has
-        // ascenders that reached into it.
-        $write($registration->full_name, mb_strlen($registration->full_name) > 26 ? 24 : 30, 56, 304, true);
+        $write($registration->full_name, mb_strlen($registration->full_name) > 26 ? 24 : 30, 56, 336, true);
 
         if ($registration->isConference()) {
-            $write((string) $registration->organization, 16, 56, 342, true);
+            $write((string) $registration->organization, 16, 56, 372, true);
             if ($registration->position) {
-                $write((string) $registration->position, 14, 56, 372);
+                $write((string) $registration->position, 14, 56, 400);
             }
         } else {
-            $write(trim($registration->city.' · '.$registration->daysLabel(), ' ·'), 14, 56, 342);
+            $write(trim($registration->city.' · '.$registration->daysLabel(), ' ·'), 14, 56, 372);
         }
 
         // White quiet zone behind the QR, as scan reliability requires.
         $qrPng = $this->qr->png($this->tickets->verifyUrl($registration), 460);
         $qrImage = imagecreatefromstring($qrPng);
-        imagefilledrectangle($image, 56, 396, 616, 956, $white);
-        imagecopyresampled($image, $qrImage, 86, 426, 0, 0, 500, 500, imagesx($qrImage), imagesy($qrImage));
+        imagefilledrectangle($image, 56, 420, 596, 960, $white);
+        imagecopyresampled($image, $qrImage, 86, 450, 0, 0, 480, 480, imagesx($qrImage), imagesy($qrImage));
 
         $write('TICKET '.$registration->ticket_ref, 13, 56, 1004, true);
         $write(ns_event_dates().' · '.config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city'), 11, 56, 1034);
