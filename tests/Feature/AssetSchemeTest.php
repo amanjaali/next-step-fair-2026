@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Providers\AppServiceProvider;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -55,7 +56,7 @@ class AssetSchemeTest extends TestCase
     {
         config(['app.url' => 'http://a-host-that-is-not-listening:9999']);
 
-        $url = \Illuminate\Support\Facades\Storage::disk('public')->url('brand/logo.png');
+        $url = Storage::disk('public')->url('brand/logo.png');
 
         $this->assertSame('/storage/brand/logo.png', $url);
         $this->assertStringNotContainsString('9999', $url);
