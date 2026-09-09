@@ -20,7 +20,7 @@
 
             {{-- Cobalt badge, carrying the institution as the second line. --}}
             <div class="bg-cobalt text-white px-8 pt-[34px] pb-[30px] {{ $pending ? 'opacity-60' : '' }}">
-                <div class="flex justify-between items-start gap-4 mb-[26px]">
+                <div class="flex justify-between items-start gap-4 mb-5">
                     <div>
                         <div class="font-[family-name:var(--ns-display)] text-[20px] font-bold leading-[1.1]">
                             Next Step<br>Conference {{ config('nextstep.event.year') }}
@@ -29,6 +29,11 @@
                             {{ __('site.common.day', ['n' => 1]) }} · {{ ns_day_date(1) }}
                         </div>
                     </div>
+
+                    <x-ns.partnership />
+                </div>
+
+                <div class="mb-[22px]">
                     <span class="bg-white text-cobalt font-[family-name:var(--ns-display)] text-[10.5px] font-bold tracking-[0.18em] px-[10px] py-[6px]">
                         {{ $registration->typeChip() }}
                     </span>

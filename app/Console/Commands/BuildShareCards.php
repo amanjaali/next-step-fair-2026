@@ -45,7 +45,27 @@ class BuildShareCards extends Command
         if (! $process->isSuccessful()) {
             $this->newLine();
             $this->error('The cards were not rendered.');
-            $this->line('Node and Playwright are needed for this: npm install playwright');
+
+            /*
+             * The two ways this fails are both about the browser that takes the
+             * screenshots, and both have one command each. Printing them beats
+             * printing a stack trace at somebody who is trying to get a logo
+             * onto a picture.
+             */
+            $output = $process->getOutput().$process->getErrorOutput();
+
+            if (str_contains($output, "Cannot find module 'playwright'")) {
+                $this->line('The browser that takes the screenshots is not installed yet. Run these two, then try again:');
+                $this->newLine();
+                $this->line('    npm install --save-dev playwright');
+                $this->line('    npx playwright install chromium');
+            } elseif (str_contains($output, 'Executable doesn\'t exist') || str_contains($output, 'playwright install')) {
+                $this->line('Playwright is installed but its browser is not. Run this, then try again:');
+                $this->newLine();
+                $this->line('    npx playwright install chromium');
+            } else {
+                $this->line('Check that the site is running and reachable at '.$url.'.');
+            }
 
             return self::FAILURE;
         }

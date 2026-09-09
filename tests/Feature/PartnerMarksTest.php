@@ -154,6 +154,28 @@ class PartnerMarksTest extends TestCase
     /* ------------------------------------------- the card and the badge --- */
 
     /**
+     * The badge drawn on screen after registering.
+     *
+     * It is separate markup from the badge that is printed and sent, which is
+     * how it came to be the only one of the four without the partnership on it
+     * — and it is the one a registrant looks at first.
+     */
+    public function test_the_badge_on_the_confirmation_page_carries_the_partnership(): void
+    {
+        $this->upload();
+
+        $registration = $this->registrant();
+
+        $html = $this->get('/en/register/fair/done/'.$registration->ticket_id)
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('/storage/brand/ksa.png', $html);
+        $this->assertStringContainsString('/assets/brand/mohe.png', $html);
+        $this->assertStringContainsString(__('site.common.in_partnership'), $html);
+    }
+
+    /**
      * The card people post carries the marks at the top, not the bottom.
      *
      * A feed thumbnail crops the bottom corner, and that is where these used to

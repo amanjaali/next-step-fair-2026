@@ -20,13 +20,22 @@
 
             {{-- The badge as the registrant sees it, magenta for the fair track. --}}
             <div class="bg-magenta text-white px-8 pt-[34px] pb-[30px]">
-                <div class="flex justify-between items-start gap-4 mb-[26px]">
+                {{-- The same arrangement as the badge that is printed and sent:
+                     the event on one side, the partnership on the other, and the
+                     type below. Somebody holding one and looking at this should
+                     see the same badge. --}}
+                <div class="flex justify-between items-start gap-4 mb-5">
                     <div>
                         <div class="font-[family-name:var(--ns-display)] text-[21px] font-bold leading-[1.1]">
                             Next Step Fair<br>{{ config('nextstep.event.year') }}
                         </div>
                         <div class="ns-eyebrow !text-white/75 !text-[10px] mt-[7px]">{{ __('site.common.edition_4') }}</div>
                     </div>
+
+                    <x-ns.partnership />
+                </div>
+
+                <div class="mb-[22px]">
                     <span class="bg-white text-magenta font-[family-name:var(--ns-display)] text-[10.5px] font-bold tracking-[0.18em] px-[10px] py-[6px]">
                         {{ $registration->typeChip() }}
                     </span>
