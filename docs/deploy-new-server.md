@@ -16,11 +16,13 @@ Public repository, no credentials needed to read it:
 https://github.com/amanjaali/next-step-fair-2026
 ```
 
-The live branch is **`scholarship-dashboard`**, not `main`. Clone it directly:
+`main` carries the current version, so a plain clone is enough:
 
 ```
-git clone -b scholarship-dashboard https://github.com/amanjaali/next-step-fair-2026.git
+git clone https://github.com/amanjaali/next-step-fair-2026.git
 ```
+
+(`scholarship-dashboard` points at the same commit and is kept as history.)
 
 Built CSS and JS are committed under `public/build`, so Node is not needed on the
 server unless you intend to change the front end there.
@@ -89,7 +91,7 @@ allows. Set PHP-FPM's `pm.max_children` against the real memory, not the default
 
 ```bash
 # 1. Code
-git clone -b scholarship-dashboard https://github.com/amanjaali/next-step-fair-2026.git
+git clone https://github.com/amanjaali/next-step-fair-2026.git
 cd next-step-fair-2026
 composer install --no-dev --optimize-autoloader
 
