@@ -27,10 +27,29 @@ class ImageUpload
 {
     public const TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
 
-    /** A logo or brand mark: small, and usually SVG or a transparent PNG. */
+    /**
+     * A partner mark has to survive the badge as well as the website, so SVG is
+     * not offered here.
+     *
+     * The badge picture people receive on WhatsApp is composed by GD, which
+     * cannot read SVG. It can be converted first, but only on a machine that
+     * has Imagick or a converter, and most do not — so an SVG partner logo is
+     * perfect everywhere on the site and absent from the one thing three
+     * thousand people are sent. Refusing it at the door beats explaining it
+     * afterwards.
+     */
+    public const MARK_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+
+    /** A logo or brand mark: small, and usually a transparent PNG. */
     public static function logo(string $name): FileUpload
     {
         return self::base($name)->maxSize(4096);
+    }
+
+    /** A partner's mark, which also has to be drawable onto a badge. */
+    public static function mark(string $name): FileUpload
+    {
+        return self::base($name)->maxSize(4096)->acceptedFileTypes(self::MARK_TYPES);
     }
 
     /** A photograph: the same rules, more room. */

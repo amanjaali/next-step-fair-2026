@@ -346,10 +346,10 @@ its own photograph.
 | Slot | Where it shows |
 | --- | --- |
 | **Logo — for light backgrounds** | The header, the browser tab, the dashboard |
-| **Logo — for dark backgrounds** | The footer, the share card, the check-in app |
+| **Logo — for dark backgrounds** | The footer and the check-in app |
 | **Ministry of Higher Education** | Beside the Next Step logo in the header, and in the footer strip |
 | **Kurdistan Regional Government** | The partnership strip in the footer |
-| **Kurdistan Students Association** | Third in the header after the ministry mark, the footer strip, the badge, the share card, and the partners page |
+| **Kurdistan Students Association** | Beside the ministry mark in the header, the footer strip, the badge, and the partners page |
 | **Default share picture** | What Facebook, WhatsApp and LinkedIn show for a page with no picture of its own — 1200 × 630 |
 
 Same rule: **empty means the logo the site was built with.** Clearing an upload
@@ -358,32 +358,27 @@ restores it rather than leaving a gap in the header of every page.
 **The Kurdistan Students Association is the exception**, because no file for it
 ships with the site: while its box is empty, nothing at all is drawn for it —
 no gap, no broken image. Upload the logo and it appears in the header in the
-agreed order (Next Step · MOHE · KSA), in the footer strip, on the share card
-and on the partners page, in all three languages, on every page at once. A PNG
-with a transparent background is best; any shape works, since the header caps
-the mark at 40px tall and 64px wide so a wide logo cannot push the menu onto a
-second line.
+agreed order (Next Step · MOHE · KSA), in the footer strip, on the badge and on
+the partners page, in all three languages, on every page at once. **Upload a
+PNG** — the partner boxes take PNG, JPG or WEBP, because the mark has to be
+drawn onto the badge as well as shown on a page, and the badge cannot use an
+SVG. Any shape works: the header caps the mark at 40px tall and 64px wide so a
+wide logo cannot push the menu onto a second line.
 
-> **One place does not update by itself: the card people post.**
+> **Badges already issued keep the badge they were made with.**
 >
-> Those eighteen pictures — three languages, three audiences, two shapes — are
-> baked in advance rather than drawn on request, because Kurdish and Arabic
-> lettering only comes out right from a browser. Everywhere else on the site,
-> including the QR badge, picks up a new logo the moment it is uploaded. The
-> cards need one command, run by whoever looks after the server, with the site
-> running:
+> Everything from now on — every page, and every badge as it is created — uses
+> the new logo immediately. Badges made before the change are files on disk, and
+> they stay as they are until somebody refreshes them:
 >
 > ```
-> php artisan share:cards
+> php artisan nextstep:regenerate-badges
 > ```
 >
-> Until that is run, a newly uploaded mark is on every page and not on the
-> cards. It is worth doing straight after any logo change and checking one card
-> on *My Next Step → Tell people you are coming*.
+> Worth running after any logo change if people have already registered.
 
-The partnership marks sit at the **top** of the card and of the badge, under the
-Next Step name — not in the bottom corner, which is the part a feed thumbnail
-crops off.
+The partnership marks sit at the **top** of the badge, in the corner opposite
+the event name, under the words "In partnership with".
 
 The ministry and the regional government also appear as partners in the directory
 and on the sponsors page. Those are separate records under *Universities,
@@ -563,47 +558,6 @@ Attach the partner either by picking an existing **university or sponsor**, or b
 typing a name and uploading a logo for an organisation that is not in the directory.
 
 ---
-
-## What attendees post
-
-Every confirmed registration is offered a card and a caption — on the confirmation
-page, and again any time from *My Next Step → Share*. It is not something you
-operate; it runs itself. Two things are worth knowing.
-
-**The captions are per audience, in three languages**, and they live in
-`lang/{en,ku,ar}/share.php`. If the tone needs to change for a particular group, that
-is the file. There is no dashboard screen for it because the wording is written once
-per edition, not maintained week to week.
-
-**The cards are pre-rendered images.** After changing the artwork, the line printed
-on a card, or the event dates, somebody has to re-run one command or the pictures
-will still show the old dates:
-
-```bash
-node tools/build-share-cards.cjs
-```
-
-Put it on the release checklist next to `npm run build`.
-
-**The link in the post is `/attending`, not the home page.** That page exists so the
-preview LinkedIn and Facebook draw shows the card rather than a generic logo, and so
-somebody who clicked because a friend is going lands on a page about that, with a
-register button on it. If you ever change the wording or the artwork, ask LinkedIn
-and Facebook to re-read the page — both cache the first version they see:
-
-- LinkedIn: <https://www.linkedin.com/post-inspector/>
-- Facebook: <https://developers.facebook.com/tools/debug/>
-
-Neither needs an account of ours or any API key. A share button is a plain link, and
-the preview is read straight off the page.
-
-**The person's name is drawn onto the card in their browser**, not stored on the
-picture. That is why every card in `public/assets/share` is blank where the name
-goes — it is not a mistake, and re-rendering will not change it.
-
-**No badge QR appears on any of them**, and it never should. That code is what opens
-the gate — posted publicly, anybody who screenshots it can walk in on that ticket. If
-somebody asks for their badge in a shareable format, the story card is the answer.
 
 ---
 

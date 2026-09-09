@@ -122,10 +122,8 @@ return [
         'slot_help' => 'Leave empty to keep the one the site ships with. PNG, JPG, WEBP or SVG, up to 4 MB.',
         'partner_help' => 'Leave empty to keep the one the site ships with. PNG with a transparent background, up to 4 MB — a partner mark goes on the badge as well as the website, and the badge picture cannot always use an SVG.',
         'save' => 'Save the logos',
-        'svg_badge_title' => 'This logo will not appear on the badges',
-        'svg_badge_body' => 'The badge picture sent on WhatsApp cannot use an SVG on this server, so :partners will be missing from it. The website and the printed badge are fine. Upload a PNG version of that logo instead, or ask your developer to install Imagick on the server.',
-        'rebuild_cards' => 'The share cards still show the old logos',
-        'rebuild_cards_body' => 'Every page and every badge is updated already. The cards people post are pictures built in advance — ask whoever looks after the server to run: php artisan share:cards',
+        'reissue_badges' => 'Badges already issued still show the old logos',
+        'reissue_badges_body' => 'Every page is updated already, and every badge from now on. Badges made before this change keep the artwork they were made with — to refresh them, ask whoever looks after the server to run: php artisan nextstep:regenerate-badges',
     ],
 
     'partners' => [

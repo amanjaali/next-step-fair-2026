@@ -151,7 +151,7 @@ class PartnerMarksTest extends TestCase
         $this->assertSame('/storage/brand/ksa.png', $ksa->fresh()->logoUrl());
     }
 
-    /* ------------------------------------------- the card and the badge --- */
+    /* ------------------------------------------------------- the badge --- */
 
     /**
      * The badge drawn on screen after registering.
@@ -173,41 +173,6 @@ class PartnerMarksTest extends TestCase
         $this->assertStringContainsString('/storage/brand/ksa.png', $html);
         $this->assertStringContainsString('/assets/brand/mohe.png', $html);
         $this->assertStringContainsString(__('site.common.in_partnership'), $html);
-    }
-
-    /**
-     * The card people post carries the marks at the top, not the bottom.
-     *
-     * A feed thumbnail crops the bottom corner, and that is where these used to
-     * sit — so the partnership was on the artwork and invisible in the place the
-     * artwork is actually seen.
-     */
-    public function test_the_share_card_carries_the_marks_above_the_headline(): void
-    {
-        $this->upload();
-
-        $html = $this->get('/en/share/card/student/feed')->assertOk()->getContent();
-
-        $this->assertStringContainsString('/storage/brand/ksa.png', $html);
-        $this->assertStringContainsString('/assets/brand/mohe.png', $html);
-        $this->assertStringContainsString(__('site.common.in_partnership'), $html);
-
-        // Above the headline, which is the whole point of the move.
-        $this->assertLessThan(
-            strpos($html, '<h1>'),
-            strpos($html, '/storage/brand/ksa.png'),
-            'The partnership marks are below the headline — they were meant to move to the top.'
-        );
-    }
-
-    public function test_the_marks_are_no_longer_repeated_in_the_card_footer(): void
-    {
-        $this->upload();
-
-        $html = $this->get('/en/share/card/student/feed')->assertOk()->getContent();
-
-        $this->assertSame(1, substr_count($html, '/storage/brand/ksa.png'));
-        $this->assertSame(1, substr_count($html, '/assets/brand/mohe.png'));
     }
 
     /**

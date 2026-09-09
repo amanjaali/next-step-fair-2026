@@ -52,8 +52,10 @@
                     <img src="{{ $qrUrl }}" alt="QR" width="180" height="180" class="block w-[180px] h-[180px]">
                 </div>
 
-                <div class="ns-num font-[family-name:var(--ns-display)] text-[11px] tracking-[0.12em] text-white/75 mt-[14px]">
-                    {{ __('register.done.ticket', ['id' => $registration->ticket_ref]) }}
+                <div class="font-[family-name:var(--ns-display)] text-[11px] tracking-[0.12em] text-white/75 mt-[14px]">
+                    {{-- Only the reference is Latin. Isolating the whole line instead put
+                         the Arabic word for "ticket" on the wrong end of it. --}}
+                    {!! __('register.done.ticket', ['id' => '<span class="ns-num">'.e($registration->ticket_ref).'</span>']) !!}
                 </div>
             </div>
 
@@ -108,7 +110,6 @@
         </div>
 
         <div class="mt-14 pt-12 border-t border-[rgba(5,7,8,0.14)]">
-            <x-ns.share-block :registration="$registration" />
         </div>
     </div>
 </x-layouts.site>

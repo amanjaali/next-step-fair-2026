@@ -102,7 +102,15 @@ class SvgUploadTest extends TestCase
 
     /* ------------------------------------------------- through the dashboard */
 
-    public function test_a_logo_uploaded_as_svg_is_stored_clean(): void
+    /**
+     * A partner mark is refused as SVG, on purpose.
+     *
+     * It has to be drawn onto the badge picture as well as shown on a page, and
+     * the renderer that composes that badge cannot read SVG on most machines.
+     * Accepting one produces a logo that is perfect everywhere except the thing
+     * three thousand people are sent, which is the worst place to be wrong.
+     */
+    public function test_a_partner_mark_will_not_take_an_svg(): void
     {
         $this->seed();
         Storage::fake('public');
@@ -112,9 +120,28 @@ class SvgUploadTest extends TestCase
         Livewire::test(BrandImages::class)
             ->set('data.brand.ksa', UploadedFile::fake()->createWithContent('ksa.svg', self::HOSTILE))
             ->call('save')
+            ->assertHasErrors('data.brand.ksa');
+
+        $this->assertArrayNotHasKey('ksa', Setting::get('brand_images', []));
+    }
+
+    /**
+     * The Next Step logo itself still takes an SVG — it is only drawn by
+     * browsers, where SVG is the better file.
+     */
+    public function test_a_logo_uploaded_as_svg_is_stored_clean(): void
+    {
+        $this->seed();
+        Storage::fake('public');
+
+        $this->actingAs(User::where('email', 'editor@nextstepfair.com')->firstOrFail());
+
+        Livewire::test(BrandImages::class)
+            ->set('data.brand.logo_light', UploadedFile::fake()->createWithContent('logo.svg', self::HOSTILE))
+            ->call('save')
             ->assertHasNoErrors();
 
-        $path = Setting::get('brand_images')['ksa'] ?? null;
+        $path = Setting::get('brand_images')['logo_light'] ?? null;
 
         $this->assertNotNull($path, 'the SVG was refused instead of being cleaned');
         $this->assertStringEndsWith('.svg', $path);

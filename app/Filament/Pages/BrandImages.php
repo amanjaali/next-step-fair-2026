@@ -4,7 +4,6 @@ namespace App\Filament\Pages;
 
 use App\Filament\Forms\Components\ImageUpload;
 use App\Models\Setting;
-use App\Support\Svg;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
@@ -105,7 +104,13 @@ class BrandImages extends Page
     /** One upload box. See ImageUpload for the types, the size and the SVG rule. */
     private function slot(string $key, string $label, ?string $help = null): FileUpload
     {
-        return ImageUpload::logo("brand.{$key}")
+        // A partner mark goes on the badge as well as the page, and the badge
+        // cannot take an SVG — so those three boxes accept pictures only.
+        $upload = in_array($key, ['mohe', 'krg', 'ksa'], true)
+            ? ImageUpload::mark("brand.{$key}")
+            : ImageUpload::logo("brand.{$key}");
+
+        return $upload
             ->label($label)
             ->helperText($help ?? __('admin.images.slot_help'))
             ->directory('brand')
@@ -130,57 +135,20 @@ class BrandImages extends Page
         Notification::make()->title(__('admin.notify.saved'))->success()->send();
 
         /*
-         * One place does not follow: the cards people post are pictures built in
-         * advance, so a logo uploaded here reaches every page and every badge at
-         * once and those eighteen files not at all. The gap is invisible, and
-         * "the logo is missing" turns up a week before the fair. Said here, at
-         * the moment it becomes true, rather than in a document nobody is
-         * reading while uploading a file.
+         * Nothing has to be rebuilt for this to take effect any more. Every
+         * place a mark appears — the header, the footer, the partners page, and
+         * every form of the badge — reads it when it draws, so an upload is
+         * live on the next page load. Badges already issued keep the artwork
+         * they were made with until somebody runs nextstep:regenerate-badges,
+         * which is the one thing worth saying here.
          */
         if ($before !== $after) {
             Notification::make()
-                ->title(__('admin.images.rebuild_cards'))
-                ->body(__('admin.images.rebuild_cards_body'))
+                ->title(__('admin.images.reissue_badges'))
+                ->body(__('admin.images.reissue_badges_body'))
                 ->warning()
                 ->persistent()
                 ->send();
         }
-
-        $this->warnAboutSvgOnBadges($after);
-    }
-
-    /**
-     * An SVG partner mark cannot always be drawn on the badge.
-     *
-     * The website, the printed PDF and the share cards all handle SVG; the
-     * badge picture sent on WhatsApp is composed by GD, which cannot read one,
-     * so it is converted first — and that needs Imagick or a converter on the
-     * machine. Where there is none, the mark would simply not appear on the
-     * badge, and nothing would say why. This says why, naming the partner, at
-     * the moment the file is chosen.
-     *
-     * @param  array<string, string>  $marks
-     */
-    private function warnAboutSvgOnBadges(array $marks): void
-    {
-        if (Svg::canRasterise()) {
-            return;
-        }
-
-        $affected = collect(['mohe', 'krg', 'ksa'])
-            ->filter(fn (string $slot) => str_ends_with(strtolower($marks[$slot] ?? ''), '.svg'))
-            ->map(fn (string $slot) => __("admin.images.$slot"))
-            ->implode(', ');
-
-        if ($affected === '') {
-            return;
-        }
-
-        Notification::make()
-            ->title(__('admin.images.svg_badge_title'))
-            ->body(__('admin.images.svg_badge_body', ['partners' => $affected]))
-            ->danger()
-            ->persistent()
-            ->send();
     }
 }

@@ -100,17 +100,7 @@
             </div>
         @endif
 
-        {{-- Word of mouth is how most people find this fair, so the ask comes
-             early — while the person is still pleased they registered. --}}
-        <div class="border-s-[6px] border-magenta bg-white px-6 py-5 mb-9 flex items-center justify-between gap-6 flex-wrap">
-            <div class="min-w-0">
-                <div class="font-[family-name:var(--ns-display)] text-[19px] font-semibold mb-1">{{ __('share.title') }}</div>
-                <p class="ns-body !text-[14.5px] max-w-[54ch]">{{ __('share.lead') }}</p>
-            </div>
-            <a href="{{ route('me.share') }}" class="ns-btn ns-btn-magenta ns-btn-sm shrink-0">{{ __('share.kicker') }}</a>
-        </div>
-
-        {{-- A visitor pass gets in, but has no agenda. Offer the upgrade rather than
+                {{-- A visitor pass gets in, but has no agenda. Offer the upgrade rather than
              showing an empty agenda they cannot fill. --}}
         @if ($registration->isQuickPass())
             <div class="border-s-[6px] border-[#F2A93B] bg-[#FFF8EC] px-6 py-5 mb-9">

@@ -1,6 +1,5 @@
 import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
-import shareCard from './share-card';
 
 Alpine.plugin(collapse);
 
@@ -395,5 +394,3 @@ if (reduced || !('IntersectionObserver' in window)) {
     risers.forEach((el) => observer.observe(el));
 }
 
-/* Puts the person's name on their share card, where there is one on the page. */
-shareCard();

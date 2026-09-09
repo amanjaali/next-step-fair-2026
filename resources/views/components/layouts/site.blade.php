@@ -30,20 +30,30 @@
     <meta property="og:description" content="{{ $description ?? __('site.seo.default_description') }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:locale" content="{{ $localeConfig['html_lang'] }}">
-    {{-- 1200×630 is the shape LinkedIn and Facebook draw in a feed, and both
-         want the dimensions declared: without them the first crawl often shows
-         no picture at all, and the first crawl is the one that gets cached. --}}
-    <meta property="og:image" content="{{ $ogImage ?? url(ns_brand('share_default', 'assets/share/'.app()->getLocale().'-student-og.png')) }}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="{{ $title ?? config('nextstep.event.name') }}">
+    {{-- The picture a link shows in a feed. It comes from the dashboard now —
+         Logos & brand marks → Default share picture — and if nothing is
+         uploaded the tags are left out entirely rather than pointing at a file
+         that is not there: a link with no picture looks plain, a link with a
+         broken one looks abandoned.
+
+         1200×630 is the shape LinkedIn and Facebook draw, and both want the
+         dimensions declared: without them the first crawl often shows no
+         picture at all, and the first crawl is the one that gets cached. --}}
+    @if ($social = $ogImage ?? ns_brand('share_default'))
+        <meta property="og:image" content="{{ url($social) }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="{{ $title ?? config('nextstep.event.name') }}">
+    @endif
 
     {{-- LinkedIn reads Open Graph and ignores the Twitter tags; X reads these.
          Repeating the values is what makes the same link look right in both. --}}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $title ?? config('nextstep.event.name') }}">
     <meta name="twitter:description" content="{{ $description ?? __('site.seo.default_description') }}">
-    <meta name="twitter:image" content="{{ $ogImage ?? url(ns_brand('share_default', 'assets/share/'.app()->getLocale().'-student-og.png')) }}">
+    @isset($social)
+        <meta name="twitter:image" content="{{ url($social) }}">
+    @endisset
 
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="apple-touch-icon" href="{{ ns_brand('logo_dark', 'assets/brand/nextstep-transparent-sm.png') }}">

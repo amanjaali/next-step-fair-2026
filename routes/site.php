@@ -5,7 +5,6 @@ use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\Attendee\InterestsController;
 use App\Http\Controllers\Attendee\ProfileController;
 use App\Http\Controllers\Attendee\QuickPassController;
-use App\Http\Controllers\Attendee\ShareController;
 use App\Http\Controllers\Attendee\SignInController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ContactController;
@@ -143,18 +142,8 @@ Route::post('signout', [SignInController::class, 'signOut'])->name('attendee.sig
 Route::get('join', [ProfileController::class, 'join'])->name('attendee.join');
 Route::post('agenda/save/{session}', [ProfileController::class, 'toggle'])->name('me.agenda.toggle');
 
-/*
-| Where a shared link lands. Public by design — it is opened by people who have
-| never been here, and it carries no ticket and names nobody.
-*/
-Route::get('attending/{who?}', [ShareController::class, 'attending'])->name('attending');
-
 // Following an offer out of the popup, counted on the way past.
 Route::get('popup/go/{item}', [OfferPopupController::class, 'go'])->name('popup.go');
-
-// The artwork, as a page. The finished PNGs are screenshots of this, and it
-// stays reachable so a card can be checked in all three languages.
-Route::get('share/card/{variant}/{format}', [ShareController::class, 'card'])->name('share.card');
 
 Route::middleware('auth:attendee')->group(function () {
     Route::get('me', [ProfileController::class, 'show'])->name('me');
@@ -170,7 +159,6 @@ Route::middleware('auth:attendee')->group(function () {
     Route::post('me/edit', [ProfileController::class, 'update'])->name('me.update');
 
     // Telling people they are coming, which is how most people hear about this.
-    Route::get('me/share', [ShareController::class, 'show'])->name('me.share');
 
     // What they want to study, and who teaches it.
     Route::get('me/interests', [InterestsController::class, 'edit'])->name('me.interests');

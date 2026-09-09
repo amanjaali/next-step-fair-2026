@@ -355,59 +355,6 @@ the person by name and ticket, and the space the registration pitch used to hold
 carries their agenda, the scholarship, the opportunities, Zankoline, the exhibitor
 list and the seminars — with the cards filtered to what that person can actually use.
 
-## Telling people you are coming
-
-Most people who find this fair hear about it from somebody they know, so the moment
-a registration is confirmed the confirmation page asks for a post — and hands over
-both halves of it.
-
-- **A picture at the size the platform wants** — 1080×1080 for a feed, 1080×1920 for
-  a story, so nothing is cropped on the way in.
-- **A caption already written in the first person, for that person.** A grade 12
-  student is choosing a life, a parent is helping somebody else choose one, a
-  director general is representing an institution. One line for all three would be
-  posted by none of them, so there are six — in all three languages.
-- **WhatsApp, Facebook and LinkedIn** open with it filled in. Instagram has no web
-  composer, so the page says so plainly and offers the picture to save rather than a
-  button that opens the wrong screen.
-
-**A shared link goes to `/{lang}/attending/{who}`, not the home page.** It carries
-Open Graph and Twitter Card tags pointing at a 1200×630 render of the same card, so
-the post shows a real preview instead of a logo on a white square — and somebody who
-clicked because a friend is going lands on a page about that, with a register button
-on it. None of that needs a Meta or LinkedIn account, an app, or an API key: a share
-button is a plain link and the preview is read off the page. After changing the
-wording or the artwork, re-crawl the page in [LinkedIn's Post
-Inspector](https://www.linkedin.com/post-inspector/) and [Facebook's Sharing
-Debugger](https://developers.facebook.com/tools/debug/) — both cache the first
-version they see.
-
-**The person's name is drawn onto the card in their own browser**, on a canvas, and
-never written to disk. There are as many names as there are people, and a Kurdish or
-Arabic one needs contextual shaping and bidi that a browser does correctly and PHP's
-image libraries do not. If the script does not run, the download falls back to the
-plain card. The slot geometry lives in `ShareKit::nameSlot()` and is read by both the
-page and the script, so the drawing and the artwork cannot drift apart.
-
-**Nothing offered for sharing carries the badge QR.** That code is the entry
-credential: posted to a public feed it is a free pass for whoever screenshots it
-first. The cards carry the event, the dates and the partnership marks, and nothing
-that identifies one person.
-
-The eighteen cards — three languages, three audiences, two shapes — are pre-rendered
-PNGs in `public/assets/share`. They are screenshots of a real page at
-`/{lang}/share/card/{variant}/{format}`, taken by `tools/build-share-cards.cjs`:
-
-```bash
-php artisan serve &
-php artisan share:cards          # or: node tools/build-share-cards.cjs
-```
-
-Rendering at build time rather than on the server settles the hard part for good —
-Kurdish and Arabic need contextual shaping and bidi, which a browser does correctly
-and PHP's image libraries do not. Re-run it after changing the artwork, the wording
-on the card, or the event dates.
-
 ## Attendee accounts
 
 **A registration is the account.** Students set an email and a password when they
