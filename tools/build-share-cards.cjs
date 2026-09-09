@@ -36,6 +36,8 @@ const written = [];
     executablePath: process.env.CHROMIUM_PATH || undefined,
   });
 
+  console.log(`Reading the cards from ${BASE}`);
+
   for (const locale of LOCALES) {
     for (const variant of VARIANTS) {
       for (const [format, [width, height]] of Object.entries(FORMATS)) {
@@ -45,15 +47,36 @@ const written = [];
         });
 
         const url = `${BASE}/${locale}/share/card/${variant}/${format}`;
-        const response = await page.goto(url, { waitUntil: 'networkidle' });
+
+        /*
+         * 'load', not 'networkidle'. Idle means half a second with no request
+         * in flight, and one request that never finishes — a webfont host the
+         * machine cannot reach, a browser extension, a hanging analytics beacon
+         * — means it never arrives and the whole build dies on a timeout with
+         * nothing to show for it. The page's own load event is a fact about the
+         * page; idle is a guess about the network.
+         */
+        const response = await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 
         if (!response || !response.ok()) {
           throw new Error(`${url} returned ${response ? response.status() : 'nothing'}`);
         }
 
         // Webfonts decide the line breaks, so nothing is measured until they
-        // have actually loaded.
-        await page.evaluate(() => document.fonts.ready);
+        // have loaded — or until it is clear they are not going to. A card set
+        // in the fallback face is worth more than no card at all.
+        await Promise.race([
+          page.evaluate(() => document.fonts.ready),
+          page.waitForTimeout(8000),
+        ]);
+
+        // And the marks, which are the whole reason for a rebuild.
+        await page.evaluate(() => Promise.all(
+          [...document.images].map((image) => image.complete
+            ? null
+            : new Promise((resolve) => { image.onload = image.onerror = resolve; }))
+        ));
+
         await page.waitForTimeout(150);
 
         const file = path.join(OUT, `${locale}-${variant}-${format}.png`);
