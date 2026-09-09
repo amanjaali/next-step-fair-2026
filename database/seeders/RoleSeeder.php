@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -70,7 +71,23 @@ class RoleSeeder extends Seeder
             $role->syncPermissions($permissions === 'all' ? self::PERMISSIONS : $permissions);
         }
 
-        // Seed accounts. Passwords are rotated on handover — see docs/admin-guide.md.
+        /*
+         * The password these accounts are created with.
+         *
+         * "password" only where the site is a laptop. Anywhere else the seeder
+         * insists on being told one, or invents a strong one and prints it
+         * once — because a known password on an account that can issue entry
+         * credentials is not a placeholder, it is a way in, and the repository
+         * this seeder lives in is public.
+         */
+        $password = (string) (env('SEED_STAFF_PASSWORD') ?: (
+            app()->environment('local') ? 'password' : Str::password(20)
+        ));
+
+        if ($password !== 'password' && ! env('SEED_STAFF_PASSWORD')) {
+            $this->command?->warn("Staff accounts created with this password — save it now, it is not shown again:\n\n    {$password}\n");
+        }
+
         $accounts = [
             ['Avin Qadir', 'admin@nextstepfair.com', 'Super Admin', 'Organizer and Co-Founder'],
             ['Registration Desk', 'registration@nextstepfair.com', 'Registration Manager', 'Registration Manager'],
@@ -85,7 +102,7 @@ class RoleSeeder extends Seeder
                 ['email' => $email],
                 [
                     'name' => $name,
-                    'password' => Hash::make('password'),
+                    'password' => Hash::make($password),
                     'job_title' => $title,
                     'locale' => 'en',
                     'is_active' => true,

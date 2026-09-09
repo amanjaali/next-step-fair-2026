@@ -108,9 +108,14 @@ also set `APP_ENV=local`, `APP_DEBUG=true`, `DB_CONNECTION=sqlite`,
 `MAIL_MAILER=log` — which is exactly what `setup.sh` does for you.
 </details>
 
-Sign in at `/admin`. The seeder creates five accounts, one per role, all with the
-password `password` — **rotate these before the site is reachable from the
-internet** (see `docs/admin-guide.md`).
+Sign in at `/admin`. The seeder creates one account per role.
+
+**The password depends on where you are.** On a local machine (`APP_ENV=local`)
+it is `password`, for convenience. Anywhere else the seeder either uses
+`SEED_STAFF_PASSWORD` from your `.env`, or invents a strong one and prints it
+once as it runs — save it then, because it is not shown again. These accounts
+can issue entry credentials, so a known password on them is a way into the
+venue, not a placeholder.
 
 | Email | Role |
 | --- | --- |
