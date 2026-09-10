@@ -31,14 +31,16 @@ return [
         'webhook_secret' => env('OTPIQ_WEBHOOK_SECRET'),
         'timeout' => 20,
         /*
-         * OTPIQ document the body slots of a template and nothing else. Turn
-         * these on only once their support confirms the account takes a header
-         * image and a URL button parameter, and that the template was approved
-         * with them: a shape the provider does not expect is a rejected send,
-         * not a message with a piece missing.
+         * Master switches. Header image is also gated per template in
+         * otpiq_header_image — only locales whose Meta template has an IMAGE
+         * header may receive imageUrl, or OTPIQ rejects the whole send.
+         *
+         * public_url: HTTPS origin OTPIQ/Meta use to fetch ticket/{id}/badge.png.
+         * Must be publicly reachable (production domain or ngrok when local).
          */
         'send_header_image' => (bool) env('OTPIQ_SEND_HEADER_IMAGE', false),
         'send_button_link' => (bool) env('OTPIQ_SEND_BUTTON_LINK', false),
+        'public_url' => env('OTPIQ_PUBLIC_URL'),
     ],
 
     'cloud_api' => [
@@ -58,6 +60,10 @@ return [
     | Template names must match what Meta approved, exactly. Each one needs an
     | approved variant per language (en / ku / ar) before it can be sent — see
     | docs/whatsapp-templates.md for the submission process and lead times.
+    |
+    | These are the logical keys the app uses. OTPIQ holds a separate template
+    | *name* per language (see otpiq_names below); Cloud API keeps one name and
+    | picks the language code instead.
     */
     'templates' => [
         'otp' => 'next_step_otp',
@@ -73,7 +79,46 @@ return [
         'post_event_thankyou_survey' => 'post_event_thankyou_survey',
     ],
 
-    // Meta language codes for template selection.
+    /*
+    | OTPIQ template names as they appear in the dashboard. Conference RSVP sends
+    | rsvp_confirmed_{locale} on submit.
+    */
+    'otpiq_names' => [
+        'rsvp_confirmed' => [
+            'en' => 'rsvp_confirmed_en',
+            'ku' => 'rsvp_confirmed_ku',
+            'ar' => 'rsvp_confirmed_ar',
+        ],
+    ],
+
+    /*
+    | Body placeholders actually approved in OTPIQ, in order. Extra values the
+    | app still knows must not be sent — Meta rejects a mismatched parameter
+    | count. Ticket still travels on the URL button when OTPIQ_SEND_BUTTON_LINK
+    | is on (and in the Kurdish body as {{2}}).
+    */
+    'otpiq_body' => [
+        'rsvp_confirmed' => [
+            'en' => ['name'],
+            'ku' => ['name', 'ticket'],
+            'ar' => ['name'],
+        ],
+    ],
+
+    /*
+    | Locales whose OTPIQ template was approved with an IMAGE header. Only the
+    | English rsvp_confirmed variant has an IMAGE header today; ku/ar still get
+    | the badge via the URL button.
+    */
+    'otpiq_header_image' => [
+        'rsvp_confirmed' => [
+            'en' => true,
+            'ku' => false,
+            'ar' => false,
+        ],
+    ],
+
+    // Meta language codes for template selection (Cloud API).
     'language_codes' => [
         'en' => 'en',
         'ku' => 'ku',

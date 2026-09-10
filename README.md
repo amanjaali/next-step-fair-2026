@@ -9,12 +9,12 @@ The site runs in three languages (English, Kurdish Sorani, Arabic) with a genuin
 right-to-left mirror for KU and AR. Four ways in share one pipeline but are handled
 separately end to end:
 
-| Track | Who | Asks for | Confirmation | Account |
-| --- | --- | --- | --- | --- |
-| **Expo — student** (magenta) | Students | One short form, plus an email and password | WhatsApp code, then a QR badge | Yes — the Next Step ID |
-| **Expo — parent** (magenta) | Parents | Name, phone, city | WhatsApp code, then a QR badge | No |
-| **Visitor pass** (magenta) | Anyone walking in | Name and phone | WhatsApp code, then a QR badge | No |
-| **Conference** (cobalt) | Government, official, private sector, individuals | Seven fields | Email with an A6 PDF badge and `.ics` | No |
+| Track                        | Who                                               | Asks for                                   | Confirmation                          | Account                |
+| ---------------------------- | ------------------------------------------------- | ------------------------------------------ | ------------------------------------- | ---------------------- |
+| **Expo — student** (magenta) | Students                                          | One short form, plus an email and password | WhatsApp code, then a QR badge        | Yes — the Next Step ID |
+| **Expo — parent** (magenta)  | Parents                                           | Name, phone, city                          | WhatsApp code, then a QR badge        | No                     |
+| **Visitor pass** (magenta)   | Anyone walking in                                 | Name and phone                             | WhatsApp code, then a QR badge        | No                     |
+| **Conference** (cobalt)      | Government, official, private sector, individuals | Seven fields                               | Email with an A6 PDF badge and `.ics` | No                     |
 
 **Students register once.** That one account carries them through the expo, the
 panels, the seminars, the workshops, Zankoline and the National Scholarship
@@ -106,6 +106,7 @@ php artisan serve
 also set `APP_ENV=local`, `APP_DEBUG=true`, `DB_CONNECTION=sqlite`,
 `SESSION_DRIVER=file`, `CACHE_STORE=file`, `QUEUE_CONNECTION=sync` and
 `MAIL_MAILER=log` — which is exactly what `setup.sh` does for you.
+
 </details>
 
 Sign in at `/admin`. The seeder creates one account per role.
@@ -117,13 +118,13 @@ once as it runs — save it then, because it is not shown again. These accounts
 can issue entry credentials, so a known password on them is a way into the
 venue, not a placeholder.
 
-| Email | Role |
-| --- | --- |
-| `admin@nextstepfair.com` | Super Admin |
+| Email                           | Role                 |
+| ------------------------------- | -------------------- |
+| `admin@nextstepfair.com`        | Super Admin          |
 | `registration@nextstepfair.com` | Registration Manager |
-| `editor@nextstepfair.com` | Content Editor |
-| `gate@nextstepfair.com` | Check-in Staff |
-| `partnerships@nextstepfair.com` | Sponsor Manager |
+| `editor@nextstepfair.com`       | Content Editor       |
+| `gate@nextstepfair.com`         | Check-in Staff       |
+| `partnerships@nextstepfair.com` | Sponsor Manager      |
 
 `DemoDataSeeder` generates ~700 registrations, check-ins, delivery-log entries and
 QR-campaign scans so the dashboard widgets have something to draw. Skip it on
@@ -164,51 +165,51 @@ marked **required**.
 
 ### Application
 
-| Variable | Notes |
-| --- | --- |
-| `APP_KEY` | **Required.** Also the key used to derive the PII lookup hashes — changing it makes existing phone/email lookups miss. |
-| `APP_URL` | **Required.** Used for QR payloads, badge URLs, canonical tags and the sitemap. |
-| `APP_TIMEZONE` | `Asia/Baghdad`. Event times, reminders and the arrival curve all read this. |
-| `APP_LOCALE` | `en`. The fallback locale for language-neutral pages. |
+| Variable       | Notes                                                                                                                  |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `APP_KEY`      | **Required.** Also the key used to derive the PII lookup hashes — changing it makes existing phone/email lookups miss. |
+| `APP_URL`      | **Required.** Used for QR payloads, badge URLs, canonical tags and the sitemap.                                        |
+| `APP_TIMEZONE` | `Asia/Baghdad`. Event times, reminders and the arrival curve all read this.                                            |
+| `APP_LOCALE`   | `en`. The fallback locale for language-neutral pages.                                                                  |
 
 ### Database, queue, cache
 
-| Variable | Notes |
-| --- | --- |
-| `DB_*` | **Required.** MySQL 8.0+, utf8mb4. |
+| Variable           | Notes                                                                                    |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| `DB_*`             | **Required.** MySQL 8.0+, utf8mb4.                                                       |
 | `QUEUE_CONNECTION` | `database` works; Redis is recommended — every WhatsApp send and badge render is queued. |
-| `CACHE_STORE` | Redis recommended. Rate limiters and the OTP throttle use the cache. |
-| `SESSION_DRIVER` | `database`. |
+| `CACHE_STORE`      | Redis recommended. Rate limiters and the OTP throttle use the cache.                     |
+| `SESSION_DRIVER`   | `database`.                                                                              |
 
 ### Storage
 
-| Variable | Notes |
-| --- | --- |
-| `FILESYSTEM_DISK` | `public` locally. |
-| `BADGE_DISK` | Where rendered badges are written. Use `s3` in production so badge downloads are served from signed, expiring URLs rather than a guessable public path. |
-| `AWS_*` | Required only when `BADGE_DISK=s3`. |
+| Variable          | Notes                                                                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FILESYSTEM_DISK` | `public` locally.                                                                                                                                       |
+| `BADGE_DISK`      | Where rendered badges are written. Use `s3` in production so badge downloads are served from signed, expiring URLs rather than a guessable public path. |
+| `AWS_*`           | Required only when `BADGE_DISK=s3`.                                                                                                                     |
 
 ### Mail — conference track
 
 Conference RSVPs are confirmed by email with the badge PDF and a calendar invite
 attached, so mail is not optional for that track.
 
-| Variable | Notes |
-| --- | --- |
-| `MAIL_MAILER` | `smtp`, or `resend` with `RESEND_KEY`. |
+| Variable            | Notes                                                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `MAIL_MAILER`       | `smtp`, or `resend` with `RESEND_KEY`.                                                                                                                             |
 | `MAIL_FROM_ADDRESS` | **Required.** Must be on a domain with SPF, DKIM and DMARC configured — these messages go to ministries and university leadership, and they must not land in spam. |
 
 ### WhatsApp — fair track
 
-| Variable | Notes |
-| --- | --- |
-| `WHATSAPP_DRIVER` | `log` (default) or `cloud_api`. |
-| `WHATSAPP_BASE_URL` | `https://graph.facebook.com/v21.0`. |
-| `WHATSAPP_PHONE_NUMBER_ID` | From the Meta app, WhatsApp → API setup. |
-| `WHATSAPP_BUSINESS_ACCOUNT_ID` | WABA id, used for template lookups. |
-| `WHATSAPP_TOKEN` | Permanent system-user token, not the 24-hour test token. |
+| Variable                        | Notes                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `WHATSAPP_DRIVER`               | `log` (default) or `cloud_api`.                                            |
+| `WHATSAPP_BASE_URL`             | `https://graph.facebook.com/v21.0`.                                        |
+| `WHATSAPP_PHONE_NUMBER_ID`      | From the Meta app, WhatsApp → API setup.                                   |
+| `WHATSAPP_BUSINESS_ACCOUNT_ID`  | WABA id, used for template lookups.                                        |
+| `WHATSAPP_TOKEN`                | Permanent system-user token, not the 24-hour test token.                   |
 | `WHATSAPP_WEBHOOK_VERIFY_TOKEN` | Any random string; paste the same value into Meta's webhook configuration. |
-| `OTP_SMS_FALLBACK` | Reserved for an SMS fallback provider. |
+| `OTP_SMS_FALLBACK`              | Reserved for an SMS fallback provider.                                     |
 
 **The `log` driver is the default and the system is fully functional on it.** Every
 message is written to the delivery log with its rendered body; the queue, the retry
@@ -226,22 +227,22 @@ the pending code in a dashed test-mode panel — type it in and the flow complet
 There is no fixed or master code: each registration still gets a real random one,
 with the same expiry and attempt limits as production. Setting
 `WHATSAPP_DRIVER=cloud_api` or `APP_DEBUG=false` removes the panel, so it cannot
-reach a live site. The code is also always visible in *Messaging → Delivery log*.
+reach a live site. The code is also always visible in _Messaging → Delivery log_.
 
 ### Ticketing
 
-| Variable | Notes |
-| --- | --- |
+| Variable           | Notes                                                                                                                                                                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `TICKET_QR_SECRET` | **Required.** HMAC key that signs every ticket QR. Generate with `php artisan nextstep:qr-secret`. Rotating it invalidates every badge already issued — after a rotation run `php artisan nextstep:badges:regenerate` and re-send. |
 
 ### Bot protection and analytics
 
-| Variable | Notes |
-| --- | --- |
-| `TURNSTILE_ENABLED` | `false` locally. Turn on in production. |
-| `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile keys. |
-| `GA4_MEASUREMENT_ID` | Conversion events fire on registration completion. |
-| `META_PIXEL_ID`, `TIKTOK_PIXEL_ID` | Optional; scripts are only emitted when set. |
+| Variable                                      | Notes                                              |
+| --------------------------------------------- | -------------------------------------------------- |
+| `TURNSTILE_ENABLED`                           | `false` locally. Turn on in production.            |
+| `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile keys.                         |
+| `GA4_MEASUREMENT_ID`                          | Conversion events fire on registration completion. |
+| `META_PIXEL_ID`, `TIKTOK_PIXEL_ID`            | Optional; scripts are only emitted when set.       |
 
 ## Event configuration
 
@@ -280,21 +281,21 @@ event hours; a nightly sitemap rebuild.
 
 ## Console commands
 
-| Command | What it does |
-| --- | --- |
-| `nextstep:qr-secret` | Generates and writes `TICKET_QR_SECRET`. `--force` to rotate. |
-| `nextstep:badges:regenerate` | Re-renders badge assets. Use after a QR-secret rotation or a badge design change. |
-| `nextstep:reminders {three-days\|one-day\|day-of}` | Queues the reminder wave. Skips anyone who already received that template. |
-| `nextstep:session-reminders` | 15-minute reminders for bookmarked sessions. |
-| `nextstep:sitemap` | Rebuilds `public/sitemap.xml` across all three locales. |
+| Command                                            | What it does                                                                      |
+| -------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `nextstep:qr-secret`                               | Generates and writes `TICKET_QR_SECRET`. `--force` to rotate.                     |
+| `nextstep:badges:regenerate`                       | Re-renders badge assets. Use after a QR-secret rotation or a badge design change. |
+| `nextstep:reminders {three-days\|one-day\|day-of}` | Queues the reminder wave. Skips anyone who already received that template.        |
+| `nextstep:session-reminders`                       | 15-minute reminders for bookmarked sessions.                                      |
+| `nextstep:sitemap`                                 | Rebuilds `public/sitemap.xml` across all three locales.                           |
 
 ## Three ways to attend
 
-| | Who it is for | What they get |
-| --- | --- | --- |
-| **Visitor pass** (`/register/quick`) | Anyone who just wants to walk in | Name and phone, one screen. A QR badge on WhatsApp, valid all three days. No account. |
-| **Full registration** (`/register/fair`) | Students and parents | Everything above, plus a personal agenda, session reminders and a profile. |
-| **Conference RSVP** (`/register/conference`) | Government and officials | Delegate badge by email as an A6 PDF, plus a calendar invite. |
+|                                              | Who it is for                    | What they get                                                                         |
+| -------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------- |
+| **Visitor pass** (`/register/quick`)         | Anyone who just wants to walk in | Name and phone, one screen. A QR badge on WhatsApp, valid all three days. No account. |
+| **Full registration** (`/register/fair`)     | Students and parents             | Everything above, plus a personal agenda, session reminders and a profile.            |
+| **Conference RSVP** (`/register/conference`) | Government and officials         | Delegate badge by email as an A6 PDF, plus a calendar invite.                         |
 
 A visitor pass is a real registration underneath, so the gate scanner, the head
 count and the capacity figures all include it.
@@ -327,7 +328,7 @@ at all.
 - **Next Step** gets the answers: which fields attract the most interest, which
   countries are most wanted, **where demand outruns supply**, which exhibitors
   generated qualified engagement, and whether matching actually moved anyone to a
-  desk. Admin → *Platform → Insights*.
+  desk. Admin → _Platform → Insights_.
 
 Consent is a separate gate from matching: a student who declines to be contacted
 still counts toward an institution's demand figures but appears unnamed.
@@ -340,8 +341,8 @@ Full write-up, including the scoring weights and the queries behind each dashboa
 A registration form is a cost paid up front against a promise. **`/opportunities`**
 is where that promise is paid back: scholarships the ministry has opened, a tuition
 reduction a university negotiated with Next Step, a free summer school, a place on a
-programme. Partners' offers are entered in the dashboard under *Platform →
-Opportunities* in all three languages, and only badge holders can open them.
+programme. Partners' offers are entered in the dashboard under _Platform →
+Opportunities_ in all three languages, and only badge holders can open them.
 
 - **The audience is chosen per offer** — everyone, students, parents, or grade 12 and
   recent leavers. A parent is never shown a school-leaver scholarship, and a
@@ -355,7 +356,7 @@ Opportunities* in all three languages, and only badge holders can open them.
   the end of the season; one column for both would flatter every placement equally.
 
 **The home page is not the same page twice.** Signed out it sells the fair and its one
-large button says *register*. Signed in that button is already spent: the hero greets
+large button says _register_. Signed in that button is already spent: the hero greets
 the person by name and ticket, and the space the registration pitch used to hold now
 carries their agenda, the scholarship, the opportunities, Zankoline, the exhibitor
 list and the seminars — with the cards filtered to what that person can actually use.
@@ -385,7 +386,7 @@ shown and not editable: it is the identity behind the badge, it was proved with 
 code, and letting a signed-in session change it would be a way to move somebody
 else's badge onto your own handset. That one goes through the desk.
 
-**The agenda and registration are connected.** Pressing *add to my agenda* as a
+**The agenda and registration are connected.** Pressing _add to my agenda_ as a
 guest holds that session, offers the choice of registering or signing in, and
 attaches the session the moment either finishes — so the click is never wasted and
 nobody has to find the session again afterwards.
@@ -423,7 +424,7 @@ Two separate systems, both self-hosted:
    a truncated HMAC. No name, no phone, no email is encoded, so a photographed
    badge leaks nothing. `/verify/{uuid}` shows a public "valid ticket" page with no
    personal data; only an authenticated scanner sees the registrant.
-2. **Campaign QR** — generate a tracked code for any URL from *QR campaigns* in the
+2. **Campaign QR** — generate a tracked code for any URL from _QR campaigns_ in the
    admin. Codes resolve at `/q/{code}`, record a scan with referrer and user agent,
    then redirect. Used for posters, school visits and partner materials, with scan
    counts on the dashboard.
@@ -462,15 +463,15 @@ It is the whole platform drawn out: seven pages, twenty-one sections, one diagra
 per flow, each followed by the files it lives in. Every audience and every path
 they can take, from a poster QR code to a lead in a university's dashboard.
 
-| Page | Covers |
-| --- | --- |
-| Start here | The four audiences and five surfaces; how a URL finds its language |
-| Getting a badge | The three doors, the four-step wizard, completing a visitor pass, the duplicate-number check, the conference RSVP |
+| Page              | Covers                                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Start here        | The four audiences and five surfaces; how a URL finds its language                                                                         |
+| Getting a badge   | The three doors, the four-step wizard, completing a visitor pass, the duplicate-number check, the conference RSVP                          |
 | After registering | The Next Step ID and the agenda, the opportunities board, the National Scholarship Program, the interest questions and the matching engine |
-| Exhibitors | Claiming an institution, the portal, booth scans, leads and the reports they answer |
-| Event days | Gate check-in online and offline, messaging, campaign QR codes |
-| Behind it | The dashboard, the data model, what runs when, the three logins and every rate limit |
-| Every URL | The complete route reference |
+| Exhibitors        | Claiming an institution, the portal, booth scans, leads and the reports they answer                                                        |
+| Event days        | Gate check-in online and offline, messaging, campaign QR codes                                                                             |
+| Behind it         | The dashboard, the data model, what runs when, the three logins and every rate limit                                                       |
+| Every URL         | The complete route reference                                                                                                               |
 
 The diagrams are pre-rendered SVG, so the pages carry no diagram code. To change
 one, edit `docs/system-map/_source/map.html` and re-run the two commands in

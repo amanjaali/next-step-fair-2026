@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Providers\AppServiceProvider;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
@@ -21,6 +22,12 @@ class AssetSchemeTest extends TestCase
     {
         config(['app.url' => $appUrl]);
         URL::forceScheme(null);
+
+        // UrlGenerator falls back to the request scheme when nothing is forced,
+        // so the request must match the URL under test (not APP_URL from .env).
+        $request = Request::create($appUrl);
+        $this->app->instance('request', $request);
+        URL::setRequest($request);
         URL::useOrigin($appUrl);
 
         (new AppServiceProvider($this->app))->boot();
@@ -36,6 +43,29 @@ class AssetSchemeTest extends TestCase
     public function test_a_site_with_a_certificate_still_forces_https(): void
     {
         $this->assertSame('https', $this->schemeFor('https://nextstepfair.com'));
+    }
+
+    /** Local `artisan serve` cannot terminate TLS; keep assets on http even if APP_URL is https. */
+    public function test_local_does_not_force_https_even_when_app_url_is_https(): void
+    {
+        $previous = $this->app['env'];
+        $this->app['env'] = 'local';
+
+        try {
+            config(['app.url' => 'https://nextstepfair.com']);
+            URL::forceScheme(null);
+
+            $request = Request::create('http://127.0.0.1:8000');
+            $this->app->instance('request', $request);
+            URL::setRequest($request);
+            URL::useOrigin('http://127.0.0.1:8000');
+
+            (new AppServiceProvider($this->app))->boot();
+
+            $this->assertSame('http', parse_url(asset('build/assets/app.css'), PHP_URL_SCHEME) ?: '');
+        } finally {
+            $this->app['env'] = $previous;
+        }
     }
 
     /** The shipped example points at the real domain, which will have a certificate. */

@@ -9,14 +9,12 @@ use Illuminate\Support\Facades\Hash;
 /**
  * Phone verification for the fair track.
  *
- * A ticket is only issued once the number has answered a code, which is what
- * guarantees the badge can actually reach the registrant before we promise it.
+ * OTP delivery is not sent over WhatsApp — conference RSVP is the only track
+ * that uses OTPIQ. In local debug mode the code is shown on the verify screen.
  */
 class OtpService
 {
-    public function __construct(private readonly MessageDispatcher $dispatcher) {}
-
-    /** Issues a fresh code and queues it to WhatsApp. */
+    /** Issues a fresh code. */
     public function send(Registration $registration): OtpVerification
     {
         $code = $this->generateCode();
@@ -30,36 +28,26 @@ class OtpService
             'expires_at' => now()->addMinutes((int) config('whatsapp.otp.ttl_minutes')),
         ]);
 
-        $this->dispatcher->whatsapp($registration, 'otp', ['code' => $code]);
+        if ($this->inTestMode()) {
+            cache()->put($this->previewKey($verification), $code, now()->addMinutes(15));
+        }
 
         return $verification;
     }
 
-    /**
-     * The pending code, but only while no real message can be delivered.
-     *
-     * The code itself is hashed, so this reads it back out of the rendered message
-     * in the delivery log. Both guards must hold: the gateway must be the `log`
-     * driver, which sends nothing, and the app must be in debug mode. Setting
-     * WHATSAPP_DRIVER=cloud_api or APP_DEBUG=false turns it off, so it cannot
-     * follow the site to production.
-     */
+    /** The pending code, only while running in local test mode. */
     public function testingCode(Registration $registration): ?string
     {
-        if (config('whatsapp.driver') !== 'log' || ! config('app.debug')) {
+        if (! $this->inTestMode()) {
             return null;
         }
 
-        $message = $registration->messages()
-            ->where('template_key', 'otp')
+        $verification = $registration->otpVerifications()
+            ->whereNull('verified_at')
             ->latest('id')
             ->first();
 
-        $length = (int) config('whatsapp.otp.length');
-
-        return $message && preg_match('/\b(\d{'.$length.'})\b/', (string) $message->preview, $m)
-            ? $m[1]
-            : null;
+        return $verification ? cache()->get($this->previewKey($verification)) : null;
     }
 
     /** True if a new code may be requested, i.e. the cooldown has elapsed. */
@@ -127,5 +115,15 @@ class OtpService
         $length = (int) config('whatsapp.otp.length', 6);
 
         return str_pad((string) random_int(0, (10 ** $length) - 1), $length, '0', STR_PAD_LEFT);
+    }
+
+    private function inTestMode(): bool
+    {
+        return (bool) config('app.debug');
+    }
+
+    private function previewKey(OtpVerification $verification): string
+    {
+        return "registration-otp-preview:{$verification->id}";
     }
 }

@@ -82,7 +82,7 @@ class AppServiceProvider extends ServiceProvider
 
         /*
          * Follow the address the site is actually served at, not the environment
-         * name.
+         * name — except locally, where `php artisan serve` is plain HTTP only.
          *
          * This used to force https for anything running in production. On a
          * server without a certificate that points every stylesheet and script at
@@ -90,8 +90,12 @@ class AppServiceProvider extends ServiceProvider
          * page as raw unstyled HTML while the HTML itself returns 200. Reading
          * APP_URL means the site is https the moment the certificate exists and
          * APP_URL says so, and plain http until then.
+         *
+         * Local keeps HTTP even when APP_URL is copied from production as https,
+         * otherwise every asset request becomes an unsupported SSL handshake
+         * against the built-in server.
          */
-        if (str_starts_with((string) config('app.url'), 'https://')) {
+        if (! $this->app->environment('local') && str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
 
@@ -118,28 +122,28 @@ class AppServiceProvider extends ServiceProvider
      */
     private function configureRateLimiters(): void
     {
-        RateLimiter::for('registration', fn (Request $request) => [
+        RateLimiter::for('registration', fn(Request $request) => [
             Limit::perMinute(6)->by($request->ip()),
             Limit::perDay(40)->by($request->ip()),
         ]);
 
         // The route parameter is the ticket id, so a flood against one ticket is
         // limited separately from a flood from one address.
-        RateLimiter::for('otp', fn (Request $request) => [
+        RateLimiter::for('otp', fn(Request $request) => [
             Limit::perMinute(5)->by($request->ip()),
-            Limit::perMinute(6)->by('otp:'.(string) $request->route('registration')),
+            Limit::perMinute(6)->by('otp:' . (string) $request->route('registration')),
         ]);
 
         // Sign-in sends a real WhatsApp message per attempt, and the phone number
         // is the only credential — so throttle the number as well as the address.
-        RateLimiter::for('otp-signin', fn (Request $request) => [
+        RateLimiter::for('otp-signin', fn(Request $request) => [
             Limit::perMinute(5)->by($request->ip()),
             Limit::perHour(15)->by($request->ip()),
-            Limit::perMinute(3)->by('signin:'.Registration::phoneHash((string) $request->input('phone'))),
+            Limit::perMinute(3)->by('signin:' . Registration::phoneHash((string) $request->input('phone'))),
         ]);
 
-        RateLimiter::for('leads', fn (Request $request) => Limit::perMinute(4)->by($request->ip()));
+        RateLimiter::for('leads', fn(Request $request) => Limit::perMinute(4)->by($request->ip()));
 
-        RateLimiter::for('checkin-scan', fn (Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('checkin-scan', fn(Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));
     }
 }

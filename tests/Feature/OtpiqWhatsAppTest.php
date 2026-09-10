@@ -12,6 +12,7 @@ use App\Services\Messaging\OtpiqWhatsAppGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 /**
@@ -42,8 +43,8 @@ class OtpiqWhatsAppTest extends TestCase
     private function registrant(array $attributes = []): Registration
     {
         return Registration::create(array_merge([
-            'track' => Registration::TRACK_FAIR,
-            'type' => Registration::TYPE_STUDENT,
+            'track' => Registration::TRACK_CONFERENCE,
+            'type' => Registration::TYPE_GOVERNMENT,
             'status' => Registration::STATUS_CONFIRMED,
             'locale' => 'ku',
             'full_name' => 'Zardasht Aziz',
@@ -60,7 +61,7 @@ class OtpiqWhatsAppTest extends TestCase
         return Message::create([
             'registration_id' => $registration->id,
             'channel' => 'whatsapp',
-            'template_key' => 'registration_confirmed_student',
+            'template_key' => 'rsvp_confirmed',
             'locale' => $registration->locale,
             'recipient' => $registration->msisdn(),
             'preview' => 'preview',
@@ -83,9 +84,8 @@ class OtpiqWhatsAppTest extends TestCase
     }
 
     /**
-     * The variables are handed down as a named array and arrive at OTPIQ as
-     * "1", "2", "3" — so the order of that array is the order of the
-     * placeholders in the approved template.
+     * Conference RSVP uses rsvp_confirmed_*. Kurdish keeps name + ticket;
+     * English drops ticket from the body (badge travels on the URL button).
      */
     public function test_variables_become_numbered_body_parameters_in_order(): void
     {
@@ -98,9 +98,9 @@ class OtpiqWhatsAppTest extends TestCase
 
         app(OtpiqWhatsAppGateway::class)->sendTemplate(
             $message,
-            'registration_confirmed_student',
+            'rsvp_confirmed',
             'ku',
-            ['name' => 'Zardasht', 'days' => 'Day 1, Day 2, Day 3', 'ticket' => '90FD-2F0A-905B'],
+            ['name' => 'Zardasht', 'ticket' => '90FD-2F0A-905B'],
         );
 
         Http::assertSent(function (ClientRequest $request) {
@@ -109,14 +109,37 @@ class OtpiqWhatsAppTest extends TestCase
             return $request->url() === 'https://api.otpiq.com/api/sms'
                 && $request->hasHeader('Authorization', 'Bearer sk_test_key')
                 && $body['smsType'] === 'whatsapp-template'
-                && $body['templateName'] === 'registration_confirmed_student'
+                && $body['templateName'] === 'rsvp_confirmed_ku'
                 && $body['whatsappAccountId'] === 'acc_123'
                 && $body['whatsappPhoneId'] === 'phone_456'
                 && $body['templateParameters']['body'] === [
                     '1' => 'Zardasht',
-                    '2' => 'Day 1, Day 2, Day 3',
-                    '3' => '90FD-2F0A-905B',
+                    '2' => '90FD-2F0A-905B',
                 ];
+        });
+    }
+
+    /** Conference RSVP templates were created as rsvp_confirmed_{locale}. */
+    public function test_locale_suffixed_otpiq_names_are_used(): void
+    {
+        Http::fake(['*' => Http::response(['smsId' => 'otpiq-rsvp'], 200)]);
+
+        $registration = $this->registrant(['locale' => 'en']);
+        $message = $this->message($registration);
+        $message->forceFill(['template_key' => 'rsvp_confirmed', 'locale' => 'en'])->save();
+
+        app(OtpiqWhatsAppGateway::class)->sendTemplate(
+            $message,
+            'rsvp_confirmed',
+            'en',
+            ['name' => 'Dr. Rezan', 'ticket' => 'NSF26'],
+        );
+
+        Http::assertSent(function (ClientRequest $request) {
+            $body = $request->data();
+
+            return $body['templateName'] === 'rsvp_confirmed_en'
+                && $body['templateParameters']['body'] === ['1' => 'Dr. Rezan'];
         });
     }
 
@@ -128,7 +151,7 @@ class OtpiqWhatsAppTest extends TestCase
         $registration = $this->registrant();
         app(OtpiqWhatsAppGateway::class)->sendTemplate($this->message($registration), 't', 'en');
 
-        Http::assertSent(fn (ClientRequest $request) => $request->data()['phoneNumber'] === '9647701113322');
+        Http::assertSent(fn(ClientRequest $request) => $request->data()['phoneNumber'] === '9647701113322');
     }
 
     public function test_the_provider_id_is_kept_so_a_delivery_report_can_find_the_message(): void
@@ -149,54 +172,107 @@ class OtpiqWhatsAppTest extends TestCase
         $this->assertNull($message->delivered_at);
     }
 
-    /**
-     * The badge picture and the button link are offered only when the account is
-     * set up for them — a shape the provider does not expect is a rejected send,
-     * which loses the whole message rather than one part of it.
-     */
-    public function test_the_badge_pieces_are_left_out_until_they_are_switched_on(): void
+    /** Without mediaUrl / linkParam, header and buttons are omitted. */
+    public function test_the_badge_pieces_are_omitted_when_not_provided(): void
     {
         Http::fake(['*' => Http::response(['smsId' => 'otpiq-3'], 200)]);
 
         $registration = $this->registrant();
 
         app(OtpiqWhatsAppGateway::class)->sendTemplate(
-            $this->message($registration), 't', 'en', ['name' => 'Z'], 'https://example.test/badge.png', 'b/xyz'
+            $this->message($registration),
+            't',
+            'en',
+            ['name' => 'Z']
         );
 
         Http::assertSent(function (ClientRequest $request) {
             $parameters = $request->data()['templateParameters'];
 
-            return ! isset($parameters['header']) && ! isset($parameters['buttons']);
+            return ! isset($parameters['header']) && ! isset($parameters['buttons'])
+                && ! array_key_exists('deliveryReport', $request->data());
         });
     }
 
-    public function test_the_badge_pieces_are_sent_once_they_are_switched_on(): void
+    public function test_the_payload_matches_the_otpiq_whatsapp_template_example(): void
     {
-        config([
-            'whatsapp.otpiq.send_header_image' => true,
-            'whatsapp.otpiq.send_button_link' => true,
-        ]);
-
         Http::fake(['*' => Http::response(['smsId' => 'otpiq-4'], 200)]);
 
-        $registration = $this->registrant();
+        $registration = $this->registrant(['locale' => 'en']);
+        $message = $this->message($registration);
+        $message->forceFill(['template_key' => 'rsvp_confirmed', 'locale' => 'en'])->save();
 
         app(OtpiqWhatsAppGateway::class)->sendTemplate(
-            $this->message($registration), 't', 'en', ['name' => 'Z'], 'https://example.test/badge.png', 'b/xyz'
+            $message,
+            'rsvp_confirmed',
+            'en',
+            ['name' => 'Z'],
+            'https://example.test/badge.png',
+            'b/xyz'
         );
 
         Http::assertSent(function (ClientRequest $request) {
-            $parameters = $request->data()['templateParameters'];
+            $body = $request->data();
+            $parameters = $body['templateParameters'];
 
-            return $parameters['header']['image']['link'] === 'https://example.test/badge.png'
-                && $parameters['buttons'][0]['parameter'] === 'b/xyz';
+            return $body['smsType'] === 'whatsapp-template'
+                && $body['provider'] === 'whatsapp'
+                && $body['templateName'] === 'rsvp_confirmed_en'
+                && ! array_key_exists('deliveryReport', $body)
+                && $parameters['header']['imageUrl'] === 'https://example.test/badge.png'
+                && data_get($parameters, 'buttons.0.1') === 'b/xyz'
+                && $parameters['body'] === ['1' => 'Z'];
         });
+    }
+
+    /** Local uses OTPIQ_PUBLIC_URL when set, otherwise APP_URL — always the badge PNG. */
+    public function test_local_env_uses_the_generated_badge_url(): void
+    {
+        $previous = $this->app['env'];
+        $this->app['env'] = 'local';
+        config([
+            'whatsapp.otpiq.public_url' => 'https://www.nextstepfair.com',
+            'app.url' => 'http://127.0.0.1:8000',
+        ]);
+
+        try {
+            $registration = $this->registrant();
+            $registration->forceFill(['ticket_id' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'])->save();
+
+            $url = app(MessageDispatcher::class)->badgeUrl($registration);
+
+            $this->assertStringContainsString('https://www.nextstepfair.com/ticket/', $url);
+            $this->assertStringContainsString('badge.png', $url);
+            $this->assertStringContainsString('signature=', $url);
+        } finally {
+            $this->app['env'] = $previous;
+        }
+    }
+
+    /** Production sends the generated badge PNG. */
+    public function test_production_uses_the_generated_badge_url(): void
+    {
+        $previous = $this->app['env'];
+        $this->app['env'] = 'production';
+        config(['app.url' => 'https://www.nextstepfair.com']);
+
+        try {
+            $registration = $this->registrant();
+            $registration->forceFill(['ticket_id' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'])->save();
+
+            $url = app(MessageDispatcher::class)->badgeUrl($registration);
+
+            $this->assertStringContainsString('https://www.nextstepfair.com/ticket/', $url);
+            $this->assertStringContainsString('badge.png', $url);
+            $this->assertStringNotContainsString('storage.database.krd', $url);
+        } finally {
+            $this->app['env'] = $previous;
+        }
     }
 
     public function test_a_rejected_send_is_recorded_with_the_provider_reason(): void
     {
-        Http::fake(['*' => Http::response(['message' => 'template not found'], 422)]);
+        Http::fake(['*' => Http::response(['error' => 'template not found'], 422)]);
 
         $registration = $this->registrant();
         $message = $this->message($registration);
@@ -211,6 +287,19 @@ class OtpiqWhatsAppTest extends TestCase
 
         $this->assertSame(Message::STATUS_FAILED, $message->status);
         $this->assertStringContainsString('template not found', (string) $message->error);
+    }
+
+    /** Sends never include deliveryReport — OTPIQ example has none. */
+    public function test_the_send_payload_has_no_delivery_report(): void
+    {
+        Http::fake(['*' => Http::response(['smsId' => 'otpiq-no-webhook'], 200)]);
+
+        $registration = $this->registrant();
+        app(OtpiqWhatsAppGateway::class)->sendTemplate($this->message($registration), 'rsvp_confirmed', 'en', [
+            'name' => 'Mohammed',
+        ], 'https://storage.database.krd/example.png', 'b/xyz');
+
+        Http::assertSent(fn(ClientRequest $request) => ! array_key_exists('deliveryReport', $request->data()));
     }
 
     /* ------------------------------------------------------------- webhook -- */

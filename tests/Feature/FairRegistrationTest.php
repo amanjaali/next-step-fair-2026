@@ -58,10 +58,10 @@ class FairRegistrationTest extends TestCase
     }
 
     /**
-     * The form is the whole thing: a badge, a message carrying it, and a signed-in
-     * account, in one submission. No code screen stands between them.
+     * The form is the whole thing: a badge and a signed-in account, in one
+     * submission. No code screen stands between them. WhatsApp is conference-only.
      */
-    public function test_registering_issues_the_badge_and_sends_it_on_whatsapp(): void
+    public function test_registering_issues_the_badge_without_whatsapp(): void
     {
         Queue::fake();
 
@@ -84,25 +84,13 @@ class FairRegistrationTest extends TestCase
 
         $response->assertRedirect(route('register.fair.done', ['locale' => 'en', 'registration' => $registration->ticket_id]));
 
-        $this->assertTrue(
+        $this->assertFalse(
             Message::where('registration_id', $registration->id)
-                ->where('template_key', 'registration_confirmed_student')
+                ->where('channel', 'whatsapp')
                 ->exists()
         );
 
-        Queue::assertPushed(SendWhatsAppMessage::class);
-    }
-
-    /** The QR itself travels with the message, not a link to fetch it. */
-    public function test_the_message_carries_the_badge(): void
-    {
-        Queue::fake();
-
-        $this->post('/en/register/fair', $this->payload());
-
-        Queue::assertPushed(SendWhatsAppMessage::class, function (SendWhatsAppMessage $job) {
-            return $job->withBadge === true;
-        });
+        Queue::assertNotPushed(SendWhatsAppMessage::class);
     }
 
     /** Registering signs them in — they have just proved who they are by doing it. */
@@ -133,11 +121,10 @@ class FairRegistrationTest extends TestCase
     }
 
     /**
-     * Until the WhatsApp templates are approved nothing is delivered, so the
-     * verify page shows the pending code. It must vanish the moment either guard
-     * flips — a live site would otherwise print anyone's OTP on the page.
+     * Until OTP delivery is wired for the fair track, the verify page shows the
+     * pending code in debug mode only.
      */
-    public function test_the_test_mode_code_is_shown_only_when_nothing_can_be_sent(): void
+    public function test_the_test_mode_code_is_shown_only_in_debug(): void
     {
         config(['nextstep.registration.verify_phone' => true]);
 
@@ -145,13 +132,10 @@ class FairRegistrationTest extends TestCase
         $registration = Registration::firstOrFail();
         $url = '/en/register/fair/verify/'.$registration->ticket_id;
 
-        config(['whatsapp.driver' => 'log', 'app.debug' => true]);
+        config(['app.debug' => true]);
         $this->get($url)->assertOk()->assertSee('Test mode');
 
         config(['app.debug' => false]);
-        $this->get($url)->assertOk()->assertDontSee('Test mode');
-
-        config(['app.debug' => true, 'whatsapp.driver' => 'cloud_api']);
         $this->get($url)->assertOk()->assertDontSee('Test mode');
     }
 
@@ -165,7 +149,7 @@ class FairRegistrationTest extends TestCase
         $this->assertTrue(Registration::wherePhone('7704112288')->exists());
     }
 
-    public function test_verifying_the_otp_issues_a_badge_and_queues_the_confirmation(): void
+    public function test_verifying_the_otp_issues_a_badge_without_whatsapp(): void
     {
         config(['nextstep.registration.verify_phone' => true]);
 
@@ -185,9 +169,9 @@ class FairRegistrationTest extends TestCase
         $this->assertNotNull($registration->verified_at);
         $this->assertNotNull($registration->badge_generated_at);
 
-        $this->assertTrue(
+        $this->assertFalse(
             Message::where('registration_id', $registration->id)
-                ->where('template_key', 'registration_confirmed_student')
+                ->where('channel', 'whatsapp')
                 ->exists()
         );
     }

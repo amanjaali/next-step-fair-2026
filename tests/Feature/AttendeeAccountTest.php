@@ -233,7 +233,7 @@ class AttendeeAccountTest extends TestCase
         $pass = Registration::wherePhone('7719990003')->firstOrFail();
 
         $this->assertNotNull($pass->badge_generated_at);
-        $this->assertTrue($pass->messages()->where('template_key', 'registration_confirmed_visitor')->exists());
+        $this->assertFalse($pass->messages()->where('channel', 'whatsapp')->exists());
         $this->assertAuthenticatedAs($pass, 'attendee');
     }
 
@@ -295,14 +295,14 @@ class AttendeeAccountTest extends TestCase
             ->assertSee(__('register.duplicate.resend'))
             ->assertDontSee($existing->ticket_id);
 
-        // And the button sends that badge to the number on the record.
+        // Duplicate resend only re-issues OTP for unverified records; fair track has no WhatsApp.
         $this->followingRedirects()
             ->post('/en/register/duplicate/resend')
             ->assertOk()
             ->assertSee(__('register.duplicate.resent'));
 
-        $this->assertTrue(
-            $existing->messages()->where('template_key', 'registration_confirmed_student')->exists()
+        $this->assertFalse(
+            $existing->messages()->where('channel', 'whatsapp')->exists()
         );
     }
 

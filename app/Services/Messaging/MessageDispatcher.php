@@ -16,13 +16,17 @@ use Illuminate\Support\Facades\URL;
  */
 class MessageDispatcher
 {
-    /** Queues a WhatsApp template message against a registration. */
+    /** Queues a WhatsApp template message for a conference RSVP registration. */
     public function whatsapp(
         Registration $registration,
         string $templateKey,
         array $variables = [],
         bool $withBadge = false,
-    ): Message {
+    ): ?Message {
+        if (! $registration->isConference()) {
+            return null;
+        }
+
         $locale = $registration->locale;
         $template = MessageTemplate::where('key', $templateKey)
             ->where('channel', 'whatsapp')
@@ -49,7 +53,7 @@ class MessageDispatcher
         return $message;
     }
 
-    /** Records an e-mail in the delivery log; the Mailable itself is queued separately. */
+    /** Records an e-mail in the delivery log (no outbound mail is sent). */
     public function logEmail(Registration $registration, string $templateKey, string $subject, string $preview): Message
     {
         return Message::create([
@@ -65,14 +69,31 @@ class MessageDispatcher
         ]);
     }
 
-    /** Signed, expiring URL for the badge image sent as a WhatsApp media message. */
+    /**
+     * Header image URL for WhatsApp templateParameters.header.imageUrl.
+     *
+     * Always the generated badge PNG for this registration. OTPIQ/Meta must be
+     * able to fetch it over HTTPS — set OTPIQ_PUBLIC_URL to your public origin
+     * (production domain or an ngrok tunnel when developing locally).
+     */
     public function badgeUrl(Registration $registration): string
     {
-        return URL::temporarySignedRoute(
-            'ticket.png',
-            now()->addMinutes((int) config('nextstep.badge.download_link_ttl')),
-            ['ticket' => $registration->ticket_id]
-        );
+        $public = config('whatsapp.otpiq.public_url') ?: config('app.url');
+        $previous = config('app.url');
+
+        URL::forceRootUrl(rtrim((string) $public, '/'));
+        URL::forceScheme(str_starts_with((string) $public, 'https') ? 'https' : 'http');
+
+        try {
+            return URL::temporarySignedRoute(
+                'ticket.png',
+                now()->addMinutes((int) config('nextstep.badge.download_link_ttl')),
+                ['ticket' => $registration->ticket_id]
+            );
+        } finally {
+            URL::forceRootUrl(rtrim((string) $previous, '/'));
+            URL::forceScheme(str_starts_with((string) $previous, 'https') ? 'https' : 'http');
+        }
     }
 
     /**

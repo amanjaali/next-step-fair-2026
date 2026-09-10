@@ -7,6 +7,7 @@ use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Services\Messaging\MessageDispatcher;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -55,9 +56,25 @@ class SendWhatsAppMessage implements ShouldQueue
             // without one of them simply ignores what it was not given, so both
             // are offered whenever there is a badge to offer.
             if ($this->withBadge && $message->registration) {
-                $mediaUrl = $dispatcher->badgeUrl($message->registration);
-                $linkParam = $dispatcher->badgeLinkParam($message->registration);
+                if ($this->shouldSendHeaderImage($message)) {
+                    $mediaUrl = $dispatcher->badgeUrl($message->registration);
+                }
+
+                if (config('whatsapp.otpiq.send_button_link')) {
+                    $linkParam = $dispatcher->badgeLinkParam($message->registration);
+                }
             }
+
+            Log::info('SendWhatsAppMessage job running', [
+                'message_id' => $message->id,
+                'driver' => $gateway->name(),
+                'template_key' => $message->template_key,
+                'locale' => $message->locale,
+                'recipient' => $message->recipient,
+                'with_badge' => $this->withBadge,
+                'media_url' => $mediaUrl,
+                'link_param' => $linkParam,
+            ]);
 
             $providerId = $gateway->sendTemplate(
                 $message,
@@ -83,6 +100,11 @@ class SendWhatsAppMessage implements ShouldQueue
                 ])->save();
             }
         } catch (Throwable $e) {
+            Log::error('SendWhatsAppMessage job failed', [
+                'message_id' => $this->messageId,
+                'error' => $e->getMessage(),
+            ]);
+
             $message->forceFill([
                 'status' => Message::STATUS_FAILED,
                 'error' => $e->getMessage(),
@@ -100,5 +122,16 @@ class SendWhatsAppMessage implements ShouldQueue
             'error' => $e->getMessage(),
             'failed_at' => now(),
         ]);
+    }
+
+    private function shouldSendHeaderImage(Message $message): bool
+    {
+        if (! config('whatsapp.otpiq.send_header_image')) {
+            return false;
+        }
+
+        $logicalKey = $message->template_key;
+
+        return (bool) config("whatsapp.otpiq_header_image.$logicalKey.{$message->locale}", false);
     }
 }

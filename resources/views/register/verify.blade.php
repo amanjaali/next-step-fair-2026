@@ -12,9 +12,7 @@
             <div class="bg-bone-200 p-5 mb-6 font-[family-name:var(--ns-body)] text-[15px]">{{ session('status') }}</div>
         @endif
 
-        {{-- Test mode only. Present when WHATSAPP_DRIVER=log (nothing is actually
-             sent) and APP_DEBUG=true. Both go the other way in production, so this
-             panel cannot follow the site live. --}}
+        {{-- Test mode only. Present when APP_DEBUG is on (no OTP is sent). --}}
         @if ($testingCode)
             <div class="border-2 border-dashed border-[#F2A93B] bg-[#FFF8EC] p-5 mb-6" role="status">
                 <div class="ns-eyebrow !text-[10.5px] !text-[#8A6100] mb-2">Test mode · no WhatsApp message was sent</div>

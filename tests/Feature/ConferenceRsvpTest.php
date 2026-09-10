@@ -3,14 +3,12 @@
 namespace Tests\Feature;
 
 use App\Jobs\SendWhatsAppMessage;
-use App\Mail\RsvpConfirmation;
 use App\Models\Message;
 use App\Models\Registration;
 use App\Services\BadgeService;
 use Database\Seeders\MessageTemplateSeeder;
 use Database\Seeders\ProgrammeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
@@ -24,7 +22,6 @@ class ConferenceRsvpTest extends TestCase
         parent::setUp();
         $this->seed(ProgrammeSeeder::class);
         $this->seed(MessageTemplateSeeder::class);
-        Mail::fake();
     }
 
     /** Seven fields and a tick box — the whole form. */
@@ -55,15 +52,15 @@ class ConferenceRsvpTest extends TestCase
         $this->assertNotNull($registration->badge_generated_at);
         $this->assertSame([1], $registration->dayList());
 
-        Mail::assertQueued(RsvpConfirmation::class, fn ($mail) => $mail->pending === false);
+        $this->assertTrue(
+            Message::where('registration_id', $registration->id)
+                ->where('channel', 'whatsapp')
+                ->where('template_key', 'rsvp_confirmed')
+                ->exists()
+        );
     }
 
-    /**
-     * A delegate gets the QR on WhatsApp as well as the e-mail.
-     *
-     * They read one or the other and rarely both: the e-mail is for the diary,
-     * the WhatsApp message is what is open in their hand at the door.
-     */
+    /** A delegate gets the QR on WhatsApp at submit. */
     public function test_a_confirmed_delegate_is_sent_the_badge_on_whatsapp(): void
     {
         Queue::fake();
@@ -82,19 +79,29 @@ class ConferenceRsvpTest extends TestCase
         Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === true);
     }
 
-    /** Nothing is sent to a phone before the protocol team has approved it. */
-    public function test_a_pending_delegate_is_not_sent_a_qr_they_cannot_use(): void
+    /** Pending free-mail delegates still receive the badge on WhatsApp at submit. */
+    public function test_a_pending_delegate_is_sent_the_badge_on_whatsapp(): void
     {
+        Queue::fake();
+
         $this->post('/en/register/conference', $this->payload(['email' => 'delegate@gmail.com']));
 
         $registration = Registration::conference()->firstOrFail();
 
-        $this->assertFalse(
-            Message::where('registration_id', $registration->id)->where('channel', 'whatsapp')->exists()
+        $this->assertSame(Registration::STATUS_PENDING, $registration->status);
+        $this->assertNotNull($registration->badge_generated_at);
+
+        $this->assertTrue(
+            Message::where('registration_id', $registration->id)
+                ->where('channel', 'whatsapp')
+                ->where('template_key', 'rsvp_confirmed')
+                ->exists()
         );
+
+        Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === true);
     }
 
-    public function test_a_free_mail_address_goes_to_the_protocol_team_without_a_badge(): void
+    public function test_a_free_mail_address_goes_to_the_protocol_team_with_a_badge(): void
     {
         $this->post('/en/register/conference', $this->payload([
             'email' => 'delegate@gmail.com',
@@ -103,9 +110,13 @@ class ConferenceRsvpTest extends TestCase
         $registration = Registration::conference()->firstOrFail();
 
         $this->assertSame(Registration::STATUS_PENDING, $registration->status);
-        $this->assertNull($registration->badge_generated_at);
+        $this->assertNotNull($registration->badge_generated_at);
 
-        Mail::assertQueued(RsvpConfirmation::class, fn ($mail) => $mail->pending === true);
+        $this->assertTrue(
+            Message::where('registration_id', $registration->id)
+                ->where('channel', 'whatsapp')
+                ->exists()
+        );
     }
 
     public function test_the_badge_carries_the_institution(): void

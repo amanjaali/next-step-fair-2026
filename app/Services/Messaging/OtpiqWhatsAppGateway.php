@@ -5,6 +5,7 @@ namespace App\Services\Messaging;
 use App\Models\Message;
 use App\Services\Messaging\Contracts\WhatsAppGateway;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
@@ -15,12 +16,17 @@ use RuntimeException;
  * Meta's. What crosses this class is the same as for Meta: a template name, a
  * language, and the values that fill its numbered slots.
  *
- * The one thing to keep in mind while reading this: OTPIQ take template
- * parameters as a map keyed "1", "2", "3", not as a list. The order of the array
- * handed down from the dispatcher is therefore the order of the placeholders in
- * the approved template, and renaming a key in a caller changes nothing while
- * reordering two of them silently swaps a name for a ticket number. The mapping
- * of every template to its slots is written down in docs/whatsapp-otpiq.md.
+ * Two OTPIQ-specific quirks live here:
+ *
+ * 1. Templates were created as separate names per language
+ *    (`rsvp_confirmed_en` / `_ku` / `_ar`), not one name with three language
+ *    codes. `config/whatsapp.otpiq_names` maps the app's logical key to those.
+ * 2. Body slot counts differ by language for the same logical message. Extra
+ *    values are stripped using `config/whatsapp.otpiq_body` so Meta does not
+ *    reject the send for a mismatched parameter count.
+ *
+ * Body parameters are a map keyed "1", "2", "3". The order of the filtered
+ * array is therefore the order of the placeholders in the approved template.
  */
 class OtpiqWhatsAppGateway implements WhatsAppGateway
 {
@@ -33,24 +39,26 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         ?string $linkParam = null,
     ): ?string {
         $config = config('whatsapp.otpiq');
-
-        $parameters = ['body' => $this->numbered($variables)];
+        $logicalKey = $message->template_key ?: $template;
+        $templateName = $this->resolveName($logicalKey, $locale, $template);
+        $bodyVariables = $this->bodyVariables($logicalKey, $locale, $variables);
 
         /*
-         * The badge picture and the button link are sent only when the account
-         * is configured for them. OTPIQ document the body slots and nothing
-         * else, so these two shapes are what their support confirms for the
-         * account — until then the badge travels as the link in the button, and
-         * the link as the address in the message text. A guess sent to a live
-         * template is a rejected send, not a missing picture.
+         * POST /api/sms — same shape as OTPIQ's WhatsApp-template example:
+         * phoneNumber, smsType, provider, templateName, whatsappAccountId,
+         * whatsappPhoneId, templateParameters { body, buttons, header }.
+         * No deliveryReport webhook.
          */
-        if ($mediaUrl && $config['send_header_image']) {
-            $parameters['header'] = ['image' => ['link' => $mediaUrl]];
+        $parameters = ['body' => $this->numbered($bodyVariables)];
+
+        if ($mediaUrl) {
+            $parameters['header'] = ['imageUrl' => $mediaUrl];
         }
 
-        if ($linkParam && $config['send_button_link']) {
-            $parameters['buttons'] = [
-                ['index' => 0, 'type' => 'url', 'parameter' => $linkParam],
+        if ($linkParam) {
+            // JSON object {"0":{"1":"b/…"}} — not a PHP array.
+            $parameters['buttons'] = (object) [
+                '0' => (object) ['1' => $linkParam],
             ];
         }
 
@@ -58,7 +66,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             'phoneNumber' => $this->normalise($message->recipient),
             'smsType' => 'whatsapp-template',
             'provider' => 'whatsapp',
-            'templateName' => $template,
+            'templateName' => $templateName,
             'whatsappAccountId' => $config['account_id'],
             'whatsappPhoneId' => $config['phone_id'],
             'templateParameters' => $parameters,
@@ -85,6 +93,40 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
     public function name(): string
     {
         return 'otpiq';
+    }
+
+    /** Logical key + locale → the exact name approved in the OTPIQ dashboard. */
+    private function resolveName(string $logicalKey, string $locale, string $fallback): string
+    {
+        return config("whatsapp.otpiq_names.$logicalKey.$locale")
+            ?? config("whatsapp.otpiq_names.$logicalKey")
+            ?? $fallback;
+    }
+
+    /**
+     * Keep only the named slots this locale's template expects, in that order.
+     * When there is no override, every variable is sent (OTP, reminders, etc.).
+     *
+     * @param  array<string, mixed>  $variables
+     * @return array<string, mixed>
+     */
+    private function bodyVariables(string $logicalKey, string $locale, array $variables): array
+    {
+        $keys = config("whatsapp.otpiq_body.$logicalKey.$locale");
+
+        if (! is_array($keys)) {
+            return $variables;
+        }
+
+        $filtered = [];
+
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $variables)) {
+                $filtered[$key] = $variables[$key];
+            }
+        }
+
+        return $filtered;
     }
 
     /** ['name' => 'Zardasht', 'ticket' => '90FD'] becomes ['1' => …, '2' => …]. */
@@ -114,32 +156,49 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             );
         }
 
-        // Delivery reports, so the admin's log shows what actually arrived rather
-        // than only what we handed over.
-        if ($config['webhook_secret']) {
-            $payload['deliveryReport'] = [
-                'webhookUrl' => route('webhooks.otpiq'),
-                'deliveryReportType' => 'all',
-                'webhookSecret' => $config['webhook_secret'],
-            ];
-        }
-
         // Kept for the admin: the exact body sent, which is the first thing worth
         // seeing when a provider rejects something.
         $message->forceFill(['payload' => $payload])->save();
 
+        $url = rtrim($config['base_url'], '/').'/sms';
+
+        Log::info('OTPIQ WhatsApp send starting', [
+            'message_id' => $message->id,
+            'template' => $payload['templateName'] ?? null,
+            'phone' => $payload['phoneNumber'] ?? null,
+            'payload' => $payload,
+        ]);
+
         $response = Http::withToken($config['api_key'])
             ->timeout($config['timeout'])
             ->acceptJson()
-            ->post(rtrim($config['base_url'], '/').'/sms', $payload);
+            ->post($url, $payload);
 
         if ($response->failed()) {
-            throw new RuntimeException(
-                'OTPIQ send failed: '.$response->json('message', $response->body())
-            );
+            $reason = $response->json('error')
+                ?? $response->json('message')
+                ?? $response->body();
+
+            Log::error('OTPIQ WhatsApp send failed', [
+                'message_id' => $message->id,
+                'status' => $response->status(),
+                'body' => $response->json() ?? $response->body(),
+                'payload' => $payload,
+            ]);
+
+            throw new RuntimeException('OTPIQ send failed: '.(is_string($reason) ? $reason : json_encode($reason)));
         }
 
-        return $response->json('smsId');
+        $smsId = $response->json('smsId');
+
+        Log::info('OTPIQ WhatsApp send accepted', [
+            'message_id' => $message->id,
+            'sms_id' => $smsId,
+            'remaining_credit' => $response->json('remainingCredit'),
+            'cost' => $response->json('cost'),
+        ]);
+
+        return $smsId;
     }
 
     /** OTPIQ want country code and number, digits only: 964770xxxxxxx. */

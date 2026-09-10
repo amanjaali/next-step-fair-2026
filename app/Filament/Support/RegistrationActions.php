@@ -2,7 +2,6 @@
 
 namespace App\Filament\Support;
 
-use App\Mail\RsvpConfirmation;
 use App\Models\Registration;
 use App\Services\BadgeService;
 use App\Services\Messaging\MessageDispatcher;
@@ -11,7 +10,6 @@ use Filament\Actions\BulkAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * The desk's day-to-day operations, shared by the fair and conference tables:
@@ -86,11 +84,11 @@ class RegistrationActions
             });
     }
 
-    /** Re-queues the confirmation on whichever channel the track uses. */
+    /** Re-queues the confirmation on WhatsApp. */
     public static function resend(): Action
     {
         return Action::make('resend')
-            ->label(fn (Registration $record) => $record->isFair() ? __('admin.actions.resend_whatsapp') : __('admin.actions.resend_email'))
+            ->label(__('admin.actions.resend_whatsapp'))
             ->icon('heroicon-m-paper-airplane')
             ->color('info')
             ->requiresConfirmation()
@@ -158,18 +156,17 @@ class RegistrationActions
 
             $badges->generate($record);
 
-            if ($record->email) {
-                Mail::to($record->email)->queue(new RsvpConfirmation($record, false));
+            if (
+                $record->isConference()
+                && ! $record->messages()->where('channel', 'whatsapp')->where('template_key', 'rsvp_confirmed')->exists()
+            ) {
+                app(MessageDispatcher::class)->whatsapp(
+                    $record,
+                    'rsvp_confirmed',
+                    ['name' => $record->firstName(), 'ticket' => $record->ticket_ref],
+                    withBadge: true,
+                );
             }
-
-            // The QR to the phone as well, which is what an approved delegate
-            // actually needs at the gate.
-            app(MessageDispatcher::class)->whatsapp(
-                $record,
-                'rsvp_confirmed',
-                ['name' => $record->firstName(), 'ticket' => $record->ticket_ref],
-                withBadge: true,
-            );
 
             $approved++;
         }
@@ -183,30 +180,19 @@ class RegistrationActions
         $sent = 0;
 
         foreach ($records as $record) {
-            if (! $record->badgeIssued()) {
+            if (! $record->isConference() || ! $record->badgeIssued()) {
                 continue;
             }
 
-            if ($record->isFair()) {
-                $dispatcher->whatsapp(
-                    $record,
-                    'registration_confirmed_'.$record->type,
-                    [
-                        'name' => $record->firstName(),
-                        'days' => $record->daysLabel(),
-                        'ticket' => $record->ticket_ref,
-                    ],
-                    withBadge: true,
-                );
-            } elseif ($record->email) {
-                Mail::to($record->email)->queue(new RsvpConfirmation($record, false));
-                $dispatcher->logEmail(
-                    $record,
-                    'badge_resent',
-                    __('notifications.email.badge_resent_subject', [], $record->locale),
-                    __('notifications.email.rsvp_badge_note', [], $record->locale),
-                );
-            }
+            $dispatcher->whatsapp(
+                $record,
+                'rsvp_confirmed',
+                [
+                    'name' => $record->firstName(),
+                    'ticket' => $record->ticket_ref,
+                ],
+                withBadge: true,
+            );
 
             $sent++;
         }

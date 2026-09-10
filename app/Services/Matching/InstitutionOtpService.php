@@ -2,18 +2,15 @@
 
 namespace App\Services\Matching;
 
-use App\Mail\InstitutionSignInCode;
 use App\Models\InstitutionOtp;
 use App\Models\InstitutionUser;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Sign-in codes for university staff.
  *
- * The attendee equivalent goes to WhatsApp because a student has a phone. This one
- * goes to the institutional e-mail address, because that is the credential a
- * university controls and the thing that proves someone speaks for it.
+ * Codes are shown in the test-mode panel when mail is not configured. Production
+ * delivery is handled outside this app — no outbound e-mail is sent from here.
  */
 class InstitutionOtpService
 {
@@ -28,10 +25,6 @@ class InstitutionOtpService
             'expires_at' => now()->addMinutes((int) config('whatsapp.otp.ttl_minutes')),
         ]);
 
-        Mail::to($user->email)->queue(new InstitutionSignInCode($user, $code));
-
-        // While mail cannot leave the machine there is no inbox to read, so keep
-        // the code in the cache for the test-mode panel. See testingCode().
         if ($this->inTestMode()) {
             cache()->put($this->previewKey($otp), $code, now()->addMinutes(15));
         }
@@ -67,13 +60,7 @@ class InstitutionOtpService
         return 'verified';
     }
 
-    /**
-     * The pending code, but only while mail cannot actually leave the machine.
-     *
-     * Same two guards as the attendee side: the `log` mailer delivers nothing, and
-     * debug mode is off in production. Either flipping removes the panel, and the
-     * cached copy is never written in the first place.
-     */
+    /** The pending code, only while running in local test mode. */
     public function testingCode(InstitutionUser $user): ?string
     {
         if (! $this->inTestMode()) {
@@ -87,7 +74,7 @@ class InstitutionOtpService
 
     private function inTestMode(): bool
     {
-        return config('mail.default') === 'log' && config('app.debug');
+        return config('app.debug');
     }
 
     private function previewKey(InstitutionOtp $otp): string

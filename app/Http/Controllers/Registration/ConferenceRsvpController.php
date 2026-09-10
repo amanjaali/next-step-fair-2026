@@ -4,28 +4,23 @@ namespace App\Http\Controllers\Registration;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreConferenceRsvpRequest;
-use App\Mail\RsvpConfirmation;
 use App\Models\Registration;
 use App\Services\BadgeService;
 use App\Services\Messaging\MessageDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 /**
- * Conference RSVP: one short form, then the badge on WhatsApp and by e-mail.
+ * Conference RSVP: one short form, then the badge on WhatsApp.
  *
  * Four audiences — a ministry, a public body, a company, or a person coming on
  * their own account. The form is the same for all of them, and only an individual
  * is spared the question about which organisation they represent.
  *
- * Institutional addresses are confirmed straight away; free-mail addresses go to
- * the protocol team, and the badge follows the approval rather than the RSVP.
- *
- * Both messages go out, because a delegate reads one or the other and rarely
- * both: the e-mail carries the badge as a PDF for a diary, the WhatsApp message
- * carries the QR as a picture for the gate.
+ * Institutional addresses are confirmed straight away; free-mail addresses stay
+ * pending for the protocol team, but the badge and WhatsApp still go to the
+ * phone on the form at submit time.
  */
 class ConferenceRsvpController extends Controller
 {
@@ -83,11 +78,9 @@ class ConferenceRsvpController extends Controller
             'user_agent' => substr((string) $request->userAgent(), 0, 500),
         ]);
 
-        if (! $needsReview) {
-            $this->badges->generate($registration);
-        }
+        $this->badges->generate($registration);
 
-        $this->sendConfirmation($registration, $needsReview);
+        $this->sendConfirmation($registration);
 
         return redirect()->route('register.conference.done', $registration->ticket_id);
     }
@@ -112,37 +105,16 @@ class ConferenceRsvpController extends Controller
         ]);
     }
 
-    private function sendConfirmation(Registration $registration, bool $pending): void
+    private function sendConfirmation(Registration $registration): void
     {
-        $subjectKey = $pending ? 'rsvp_subject_pending' : 'rsvp_subject';
-
-        $message = $this->dispatcher->logEmail(
+        $this->dispatcher->whatsapp(
             $registration,
-            $pending ? 'rsvp_pending' : 'rsvp_confirmed',
-            __("notifications.email.$subjectKey", [], $registration->locale),
-            __($pending ? 'notifications.email.rsvp_pending' : 'notifications.email.rsvp_confirmed', [], $registration->locale),
+            'rsvp_confirmed',
+            [
+                'name' => $registration->firstName(),
+                'ticket' => $registration->ticket_ref,
+            ],
+            withBadge: true,
         );
-
-        Mail::to($registration->email)
-            ->queue(new RsvpConfirmation($registration, $pending, $message->id));
-
-        /*
-         * And the QR itself, to the phone that will be carrying it.
-         *
-         * Only once there is a badge to send: an RSVP waiting on the protocol
-         * team has nothing to show at a gate, and a QR sent before approval is a
-         * promise the site has not made.
-         */
-        if (! $pending) {
-            $this->dispatcher->whatsapp(
-                $registration,
-                'rsvp_confirmed',
-                [
-                    'name' => $registration->firstName(),
-                    'ticket' => $registration->ticket_ref,
-                ],
-                withBadge: true,
-            );
-        }
     }
 }

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Registration;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFairRegistrationRequest;
 use App\Models\Registration;
-use App\Services\Messaging\MessageDispatcher;
 use App\Services\Messaging\OtpService;
 use App\Services\RegistrationConfirmer;
 use App\Services\TicketService;
@@ -17,10 +16,8 @@ use Illuminate\View\View;
 /**
  * Expo registration: one short form for students, a shorter one for parents.
  *
- * Submit and it is done — the badge is issued on the spot and sent to the number
- * given, with the QR on it. There is no code to wait for, because the code screen
- * is where registrations were being lost: a school computer, a borrowed phone, a
- * message that arrives four minutes later to a handset in another room.
+ * Submit and it is done — the badge is issued on the spot. WhatsApp via OTPIQ
+ * is sent only from the conference RSVP form, not here.
  *
  * Phone verification still exists and is one setting away
  * (`nextstep.registration.verify_phone`); with it on, the flow returns to submit →
@@ -35,7 +32,6 @@ class FairRegistrationController extends Controller
     public function __construct(
         private readonly OtpService $otp,
         private readonly RegistrationConfirmer $confirmer,
-        private readonly MessageDispatcher $dispatcher,
         private readonly TicketService $tickets,
     ) {}
 
@@ -220,7 +216,7 @@ class FairRegistrationController extends Controller
             'title' => __('register.step4.heading').' — '.config('nextstep.event.name'),
             'registration' => $record,
             'cooldown' => $this->otp->secondsUntilResend($record),
-            // Null unless the log driver is active and debug is on — see OtpService.
+            // Null unless debug is on — see OtpService.
             'testingCode' => $this->otp->testingCode($record),
         ]);
     }
@@ -268,10 +264,10 @@ class FairRegistrationController extends Controller
     }
 
     /**
-     * Send the badge that already exists on that number, to that number.
+     * Resend for a duplicate registration.
      *
-     * Nothing is echoed back to whoever pressed the button: the message goes to the
-     * WhatsApp number on the record, which is the only place it is any use.
+     * Confirmed fair registrations already have a badge on the done page — only
+     * unverified records get a fresh OTP code. WhatsApp via OTPIQ is conference-only.
      */
     public function resendDuplicate(Request $request): RedirectResponse
     {
@@ -285,20 +281,7 @@ class FairRegistrationController extends Controller
             return back();
         }
 
-        if ($record->status === Registration::STATUS_CONFIRMED) {
-            $this->dispatcher->whatsapp(
-                $record,
-                'registration_confirmed_'.$record->type,
-                [
-                    'name' => $record->firstName(),
-                    'days' => $record->daysLabel(),
-                    'ticket' => $record->ticket_ref,
-                ],
-                withBadge: true,
-            );
-        } else {
-            // Never verified, so there is no badge to send yet — the code that
-            // issues one is the useful thing to resend.
+        if ($record->status !== Registration::STATUS_CONFIRMED) {
             $this->otp->send($record);
         }
 
