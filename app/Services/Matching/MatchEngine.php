@@ -25,41 +25,82 @@ class MatchEngine
     /**
      * Recompute every match for one student.
      *
+     * Pass a preloaded institution collection when scoring many students in a
+     * row (seeders, rebuild jobs) so each call does not re-query the catalogue.
+     *
+     * @param  Collection<int, Organization>|null  $institutions
      * @return int number of matches stored
      */
-    public function forRegistration(Registration $registration): int
+    public function forRegistration(Registration $registration, ?Collection $institutions = null): int
     {
-        if (! $registration->canBeMatched()) {
-            return 0;
-        }
+        return $this->forRegistrations(collect([$registration]), $institutions);
+    }
 
-        $wanted = $registration->fields()->get();
-        $institutions = Organization::matchable()->with('fields')->get();
+    /**
+     * Recompute matches for a batch of students, loading the institution
+     * catalogue once and writing in bulk so long seeds stay under wait_timeout.
+     *
+     * @param  Collection<int, Registration>  $registrations
+     * @param  Collection<int, Organization>|null  $institutions
+     * @return int number of match rows stored
+     */
+    public function forRegistrations(Collection $registrations, ?Collection $institutions = null): int
+    {
+        $institutions ??= Organization::matchable()->with('fields')->get();
         $threshold = (int) config('taxonomy.match_threshold');
-        $kept = [];
+        $now = now();
+        $rows = [];
+        $keptByRegistration = [];
 
-        foreach ($institutions as $institution) {
-            $result = $this->score($registration, $institution, $wanted);
-
-            if ($result['score'] < $threshold) {
+        foreach ($registrations as $registration) {
+            if (! $registration->canBeMatched()) {
                 continue;
             }
 
-            MatchScore::updateOrCreate(
-                ['registration_id' => $registration->id, 'organization_id' => $institution->id],
-                ['score' => $result['score'], 'reasons' => $result['reasons'], 'computed_at' => now()],
-            );
+            $wanted = $registration->relationLoaded('fields')
+                ? $registration->fields
+                : $registration->fields()->get();
+            $kept = [];
 
-            $kept[] = $institution->id;
+            foreach ($institutions as $institution) {
+                $result = $this->score($registration, $institution, $wanted);
+
+                if ($result['score'] < $threshold) {
+                    continue;
+                }
+
+                $rows[] = [
+                    'registration_id' => $registration->id,
+                    'organization_id' => $institution->id,
+                    'score' => $result['score'],
+                    'reasons' => json_encode($result['reasons']),
+                    'computed_at' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+                $kept[] = $institution->id;
+            }
+
+            $keptByRegistration[$registration->id] = $kept;
+        }
+
+        foreach (array_chunk($rows, 500) as $chunk) {
+            MatchScore::upsert(
+                $chunk,
+                ['registration_id', 'organization_id'],
+                ['score', 'reasons', 'computed_at', 'updated_at'],
+            );
         }
 
         // Drop matches that no longer clear the threshold — a student who changes
         // their mind should not keep yesterday's recommendations.
-        MatchScore::where('registration_id', $registration->id)
-            ->whereNotIn('organization_id', $kept ?: [0])
-            ->delete();
+        foreach ($keptByRegistration as $registrationId => $kept) {
+            MatchScore::where('registration_id', $registrationId)
+                ->whereNotIn('organization_id', $kept ?: [0])
+                ->delete();
+        }
 
-        return count($kept);
+        return count($rows);
     }
 
     /** Recompute every student's matches against one institution. */
@@ -79,6 +120,8 @@ class MatchEngine
             ->with('fields')
             ->chunkById(200, function (Collection $batch) use ($organization, &$count) {
                 $threshold = (int) config('taxonomy.match_threshold');
+                $now = now();
+                $rows = [];
 
                 foreach ($batch as $registration) {
                     $result = $this->score($registration, $organization, $registration->fields);
@@ -90,11 +133,24 @@ class MatchEngine
                         continue;
                     }
 
-                    MatchScore::updateOrCreate(
-                        ['registration_id' => $registration->id, 'organization_id' => $organization->id],
-                        ['score' => $result['score'], 'reasons' => $result['reasons'], 'computed_at' => now()],
-                    );
+                    $rows[] = [
+                        'registration_id' => $registration->id,
+                        'organization_id' => $organization->id,
+                        'score' => $result['score'],
+                        'reasons' => json_encode($result['reasons']),
+                        'computed_at' => $now,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                     $count++;
+                }
+
+                if ($rows !== []) {
+                    MatchScore::upsert(
+                        $rows,
+                        ['registration_id', 'organization_id'],
+                        ['score', 'reasons', 'computed_at', 'updated_at'],
+                    );
                 }
             });
 

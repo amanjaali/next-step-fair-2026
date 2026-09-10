@@ -55,13 +55,18 @@ class MatchingDemoSeeder extends Seeder
         $this->seedInteractions();
 
         // Compute the matches the platform is built to produce.
+        // Load the catalogue once, score in memory, upsert in bulk, and reconnect
+        // between chunks — otherwise a long seed on a small AWS box hits
+        // wait_timeout and dies with "Connection refused" mid-matching.
         $engine = app(MatchEngine::class);
+        $institutions = Organization::matchable()->with('fields')->get();
+
         Registration::fair()->active()->whereNotNull('degree_level')->whereHas('fields')
+            ->with('fields')
             ->limit($this->scale())
-            ->chunkById(100, function ($batch) use ($engine) {
-                foreach ($batch as $registration) {
-                    $engine->forRegistration($registration);
-                }
+            ->chunkById(50, function ($batch) use ($engine, $institutions) {
+                DB::reconnect();
+                $engine->forRegistrations($batch, $institutions);
             });
     }
 
@@ -170,6 +175,7 @@ class MatchingDemoSeeder extends Seeder
             ->whereIn('type', [Registration::TYPE_STUDENT, Registration::TYPE_PARENT])
             ->limit($this->scale())
             ->chunkById(200, function ($batch) use ($weighted, $levels, $countries, $budgets, $grades, $goals, $languages) {
+                DB::reconnect();
                 foreach ($batch as $registration) {
                     // Draw from the weighted pool directly. array_flip() would
                     // collapse the repeated ids that carry the weighting and turn
@@ -217,6 +223,7 @@ class MatchingDemoSeeder extends Seeder
         Registration::fair()->active()->whereHas('fields')
             ->inRandomOrder()->limit(min(320, $this->scale()))
             ->chunkById(100, function ($batch) use ($organizations) {
+                DB::reconnect();
                 foreach ($batch as $registration) {
                     foreach ((array) array_rand($organizations->flip()->all(), random_int(1, 3)) as $organizationId) {
                         Interaction::firstOrCreate([
