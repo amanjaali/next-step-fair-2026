@@ -132,6 +132,9 @@ class SendWhatsAppMessage implements ShouldQueue
 
         $logicalKey = $message->template_key;
 
-        return (bool) config("whatsapp.otpiq_header_image.$logicalKey.{$message->locale}", false);
+        return (bool) config(
+            "whatsapp.otpiq_templates.$logicalKey.{$message->locale}.header_image",
+            false,
+        );
     }
 }

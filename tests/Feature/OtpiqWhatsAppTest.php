@@ -109,7 +109,7 @@ class OtpiqWhatsAppTest extends TestCase
             return $request->url() === 'https://api.otpiq.com/api/sms'
                 && $request->hasHeader('Authorization', 'Bearer sk_test_key')
                 && $body['smsType'] === 'whatsapp-template'
-                && $body['templateName'] === 'rsvp_confirmed_ku'
+                && $body['templateName'] === 'rsvp_confirmed_ku_2026'
                 && $body['whatsappAccountId'] === 'acc_123'
                 && $body['whatsappPhoneId'] === 'phone_456'
                 && $body['templateParameters']['body'] === [
@@ -119,7 +119,7 @@ class OtpiqWhatsAppTest extends TestCase
         });
     }
 
-    /** Conference RSVP templates were created as rsvp_confirmed_{locale}. */
+    /** Conference RSVP templates were created as rsvp_confirmed_{locale}_2026. */
     public function test_locale_suffixed_otpiq_names_are_used(): void
     {
         Http::fake(['*' => Http::response(['smsId' => 'otpiq-rsvp'], 200)]);
@@ -138,7 +138,7 @@ class OtpiqWhatsAppTest extends TestCase
         Http::assertSent(function (ClientRequest $request) {
             $body = $request->data();
 
-            return $body['templateName'] === 'rsvp_confirmed_en'
+            return $body['templateName'] === 'rsvp_confirmed_en_2026'
                 && $body['templateParameters']['body'] === ['1' => 'Dr. Rezan'];
         });
     }
@@ -217,7 +217,7 @@ class OtpiqWhatsAppTest extends TestCase
 
             return $body['smsType'] === 'whatsapp-template'
                 && $body['provider'] === 'whatsapp'
-                && $body['templateName'] === 'rsvp_confirmed_en'
+                && $body['templateName'] === 'rsvp_confirmed_en_2026'
                 && ! array_key_exists('deliveryReport', $body)
                 && $parameters['header']['imageUrl'] === 'https://example.test/badge.png'
                 && data_get($parameters, 'buttons.0.1') === 'b/xyz'

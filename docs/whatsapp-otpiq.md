@@ -57,22 +57,28 @@ Every message we start is a **template**: WhatsApp only allows free text in the
 24 hours after somebody writes to *us*, and nobody writes to us before they
 register.
 
-Create each template below **three times — once per language**, with the same
-template name each time. Bodies, in all three languages, are in
+Create each confirmation below **once per language**, using the `_en_2026` /
+`_ku_2026` / `_ar_2026` names in the table. Bodies, in all three languages, are in
 [whatsapp-templates.md](whatsapp-templates.md); copy them exactly.
 
-| Template name | Sent when | `{{1}}` | `{{2}}` | `{{3}}` |
+| Template name (per language) | Sent when | `{{1}}` | `{{2}}` | `{{3}}` |
 |---|---|---|---|---|
-| `registration_confirmed_student` | a student finishes registering | name | days | ticket |
-| `registration_confirmed_parent` | a parent finishes registering | name | days | ticket |
+| `rsvp_confirmed_{en\|ku\|ar}_2026` | conference RSVP confirmed | name | ticket (ku) | — |
+| `registration_confirmed_student_{en\|ku\|ar}_2026` | a student finishes registering | name | days | ticket |
+| `registration_confirmed_parent_{en\|ku\|ar}_2026` | a parent finishes registering | name | days | ticket |
 | `registration_confirmed_visitor` | a visitor pass is issued | name | days | ticket |
-| `rsvp_confirmed` | the protocol team approves a delegate | name | ticket | — |
 | `event_reminder_3days` | three days before | name | ticket | — |
 | `event_reminder_1day` | the day before | name | ticket | — |
 | `day_of_directions` | 08:00 on each event day | name | ticket | — |
 | `session_reminder_15min` | 15 minutes before a booked session | session title | hall | — |
 | `post_event_thankyou_survey` | after the fair | name | survey link | — |
 | `next_step_otp` | only if phone verification is switched back on | code | — | — |
+
+OTPIQ creates **one template name per language** (e.g. `rsvp_confirmed_en_2026`),
+not one name with three language codes. Names, ids, body slots and header-image
+flags live in **`config/whatsapp.php` → `otpiq_templates`**. Paste each dashboard
+id into the matching `OTPIQ_TEMPLATE_*_ID` env var. Only RSVP needs ids filled
+today; student and parent names are already wired — add their ids when approved.
 
 ### The numbers are positions, not names
 
@@ -187,7 +193,7 @@ desk reads as "they have it, stop helping them".
 |---|---|
 | Row stays **queued** | The queue worker is not running on the server. |
 | **failed**, "OTPIQ is not configured" | A key or an id is empty, or config was not cleared. |
-| **failed**, "template not found" | The template name or the language variant is not approved in OTPIQ. Names must match `config/whatsapp.templates` exactly. |
+| **failed**, "template not found" | The template name or the language variant is not approved in OTPIQ. Names must match `config/whatsapp.otpiq_templates` exactly. |
 | Accepted, never arrives | Usually a Meta phone number id in `OTPIQ_WHATSAPP_PHONE_ID` instead of OTPIQ's. |
 | Message arrives, **picture missing** | The account or template has no image header. Leave `OTPIQ_SEND_HEADER_IMAGE=false`; the button link still carries the badge. |
 | Message arrives, **button goes nowhere** | The approved button address must end in `/{{1}}`, and the site must be reachable at that domain over HTTPS. |

@@ -31,9 +31,9 @@ return [
         'webhook_secret' => env('OTPIQ_WEBHOOK_SECRET'),
         'timeout' => 20,
         /*
-         * Master switches. Header image is also gated per template in
-         * otpiq_header_image — only locales whose Meta template has an IMAGE
-         * header may receive imageUrl, or OTPIQ rejects the whole send.
+         * Master switches. Header image is also gated per locale in
+         * otpiq_templates.*.header_image — only templates approved with an
+         * IMAGE header may receive imageUrl, or OTPIQ rejects the whole send.
          *
          * public_url: HTTPS origin OTPIQ/Meta use to fetch ticket/{id}/badge.png.
          * Must be publicly reachable (production domain or ngrok when local).
@@ -57,20 +57,14 @@ return [
     'max_attempts' => 4,
 
     /*
-    | Template names must match what Meta approved, exactly. Each one needs an
-    | approved variant per language (en / ku / ar) before it can be sent — see
-    | docs/whatsapp-templates.md for the submission process and lead times.
-    |
-    | These are the logical keys the app uses. OTPIQ holds a separate template
-    | *name* per language (see otpiq_names below); Cloud API keeps one name and
-    | picks the language code instead.
+    | Logical template keys used by the app / Cloud API. OTPIQ uses a separate
+    | name (+ id) per language — see otpiq_templates below.
     */
     'templates' => [
         'otp' => 'next_step_otp',
         'registration_confirmed_student' => 'registration_confirmed_student',
         'registration_confirmed_parent' => 'registration_confirmed_parent',
         'registration_confirmed_visitor' => 'registration_confirmed_visitor',
-        // The conference track: a delegate is approved by the protocol team first.
         'rsvp_confirmed' => 'rsvp_confirmed',
         'event_reminder_3days' => 'event_reminder_3days',
         'event_reminder_1day' => 'event_reminder_1day',
@@ -80,42 +74,80 @@ return [
     ],
 
     /*
-    | OTPIQ template names as they appear in the dashboard. Conference RSVP sends
-    | rsvp_confirmed_{locale} on submit.
+    | OTPIQ templates — one entry per logical key × locale.
+    |
+    |   name          Exact name in the OTPIQ dashboard (sent as templateName).
+    |   id            OTPIQ template id (paste from the dashboard into .env).
+    |   body          Named slots to send, in {{1}}, {{2}}, … order.
+    |   header_image  True only if that locale's Meta template has an IMAGE header.
+    |
+    | RSVP is live. Student / parent names are ready; fill their ids when approved.
     */
-    'otpiq_names' => [
-        'rsvp_confirmed' => [
-            'en' => 'rsvp_confirmed_en',
-            'ku' => 'rsvp_confirmed_ku',
-            'ar' => 'rsvp_confirmed_ar',
-        ],
-    ],
+    'otpiq_templates' => [
 
-    /*
-    | Body placeholders actually approved in OTPIQ, in order. Extra values the
-    | app still knows must not be sent — Meta rejects a mismatched parameter
-    | count. Ticket still travels on the URL button when OTPIQ_SEND_BUTTON_LINK
-    | is on (and in the Kurdish body as {{2}}).
-    */
-    'otpiq_body' => [
         'rsvp_confirmed' => [
-            'en' => ['name'],
-            'ku' => ['name', 'ticket'],
-            'ar' => ['name'],
+            'en' => [
+                'name' => 'rsvp_confirmed_en_2026',
+                'id' => env('OTPIQ_TEMPLATE_RSVP_CONFIRMED_EN_ID'),
+                'body' => ['name'],
+                'header_image' => true,
+            ],
+            'ku' => [
+                'name' => 'rsvp_confirmed_ku_2026',
+                'id' => env('OTPIQ_TEMPLATE_RSVP_CONFIRMED_KU_ID'),
+                'body' => ['name', 'ticket'],
+                'header_image' => false,
+            ],
+            'ar' => [
+                'name' => 'rsvp_confirmed_ar_2026',
+                'id' => env('OTPIQ_TEMPLATE_RSVP_CONFIRMED_AR_ID'),
+                'body' => ['name'],
+                'header_image' => false,
+            ],
         ],
-    ],
 
-    /*
-    | Locales whose OTPIQ template was approved with an IMAGE header. Only the
-    | English rsvp_confirmed variant has an IMAGE header today; ku/ar still get
-    | the badge via the URL button.
-    */
-    'otpiq_header_image' => [
-        'rsvp_confirmed' => [
-            'en' => true,
-            'ku' => false,
-            'ar' => false,
+        'registration_confirmed_student' => [
+            'en' => [
+                'name' => 'registration_confirmed_student_en_2026',
+                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_STUDENT_EN_ID'),
+                'body' => ['name', 'days', 'ticket'],
+                'header_image' => false,
+            ],
+            'ku' => [
+                'name' => 'registration_confirmed_student_ku_2026',
+                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_STUDENT_KU_ID'),
+                'body' => ['name', 'days', 'ticket'],
+                'header_image' => false,
+            ],
+            'ar' => [
+                'name' => 'registration_confirmed_student_ar_2026',
+                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_STUDENT_AR_ID'),
+                'body' => ['name', 'days', 'ticket'],
+                'header_image' => false,
+            ],
         ],
+
+        'registration_confirmed_parent' => [
+            'en' => [
+                'name' => 'registration_confirmed_parent_en_2026',
+                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_PARENT_EN_ID'),
+                'body' => ['name', 'days', 'ticket'],
+                'header_image' => false,
+            ],
+            'ku' => [
+                'name' => 'registration_confirmed_parent_ku_2026',
+                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_PARENT_KU_ID'),
+                'body' => ['name', 'days', 'ticket'],
+                'header_image' => false,
+            ],
+            'ar' => [
+                'name' => 'registration_confirmed_parent_ar_2026',
+                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_PARENT_AR_ID'),
+                'body' => ['name', 'days', 'ticket'],
+                'header_image' => false,
+            ],
+        ],
+
     ],
 
     // Meta language codes for template selection (Cloud API).

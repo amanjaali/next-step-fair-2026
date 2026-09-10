@@ -16,14 +16,9 @@ use RuntimeException;
  * Meta's. What crosses this class is the same as for Meta: a template name, a
  * language, and the values that fill its numbered slots.
  *
- * Two OTPIQ-specific quirks live here:
- *
- * 1. Templates were created as separate names per language
- *    (`rsvp_confirmed_en` / `_ku` / `_ar`), not one name with three language
- *    codes. `config/whatsapp.otpiq_names` maps the app's logical key to those.
- * 2. Body slot counts differ by language for the same logical message. Extra
- *    values are stripped using `config/whatsapp.otpiq_body` so Meta does not
- *    reject the send for a mismatched parameter count.
+ * OTPIQ holds one template per language (`rsvp_confirmed_en_2026`, …), not one
+ * name with three language codes. Everything for a send — name, id, body slots,
+ * header image — lives under `config/whatsapp.otpiq_templates.{key}.{locale}`.
  *
  * Body parameters are a map keyed "1", "2", "3". The order of the filtered
  * array is therefore the order of the placeholders in the approved template.
@@ -98,8 +93,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
     /** Logical key + locale → the exact name approved in the OTPIQ dashboard. */
     private function resolveName(string $logicalKey, string $locale, string $fallback): string
     {
-        return config("whatsapp.otpiq_names.$logicalKey.$locale")
-            ?? config("whatsapp.otpiq_names.$logicalKey")
+        return config("whatsapp.otpiq_templates.$logicalKey.$locale.name")
             ?? $fallback;
     }
 
@@ -112,7 +106,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
      */
     private function bodyVariables(string $logicalKey, string $locale, array $variables): array
     {
-        $keys = config("whatsapp.otpiq_body.$logicalKey.$locale");
+        $keys = config("whatsapp.otpiq_templates.$logicalKey.$locale.body");
 
         if (! is_array($keys)) {
             return $variables;
@@ -165,6 +159,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         Log::info('OTPIQ WhatsApp send starting', [
             'message_id' => $message->id,
             'template' => $payload['templateName'] ?? null,
+            'template_id' => config("whatsapp.otpiq_templates.{$message->template_key}.{$message->locale}.id"),
             'phone' => $payload['phoneNumber'] ?? null,
             'payload' => $payload,
         ]);
