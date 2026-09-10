@@ -117,7 +117,15 @@ done
 #    real ones.
 
 # 5. Files and permissions
+#    storage:link is not optional and it is not cosmetic. Uploads are written
+#    outside the web root, and this link is the only thing that lets them be
+#    served. Skip it and every logo or photograph uploaded in the dashboard is
+#    a blank box on every page — while the logos that ship with the site keep
+#    working, so it reads as a broken upload rather than a missing link.
+#    Confirm it afterwards: `ls -l public/storage` must show an arrow pointing
+#    at this deployment's storage/app/public, not a previous release's.
 php artisan storage:link
+ls -l public/storage
 sudo chown -R www-data:www-data storage bootstrap/cache
 sudo chmod -R 775 storage bootstrap/cache
 

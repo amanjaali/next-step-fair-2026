@@ -187,7 +187,16 @@ else
     printf '        (to start clean: php artisan migrate:fresh --seed)\n'
 fi
 
+# Uploads live outside the web root and are served through this link. Without
+# it every logo anybody uploads is a blank box on every page, while the marks
+# that ship with the site carry on working — so it looks like a bad image file
+# rather than a missing link. Worth a line of output either way.
 php artisan storage:link >/dev/null 2>&1
+if [ -e public/storage ]; then
+    ok "Uploaded images can be served"
+else
+    warn "public/storage could not be created — uploaded logos and photos will not appear."
+fi
 
 # ---------------------------------------------------------------------- assets
 step "Building the styles and scripts"

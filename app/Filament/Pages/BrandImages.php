@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Forms\Components\ImageUpload;
 use App\Models\Setting;
+use App\Support\StorageLink;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
@@ -65,6 +66,32 @@ class BrandImages extends Page
     public function mount(): void
     {
         $this->form->fill(['brand' => Setting::get('brand_images', [])]);
+
+        $this->checkUploadsCanBeSeen();
+    }
+
+    /**
+     * Uploads are served through public/storage, and that link is per-install.
+     *
+     * Without it every upload on this screen saves correctly and shows as a
+     * blank box — here, in the header, on the badge, everywhere — while the
+     * marks that ship with the site carry on working, which makes it look like
+     * the uploaded file is at fault. So: repair it silently if this machine
+     * lets us, and if it does not, say so on the screen where the symptom
+     * appears rather than leaving somebody to re-upload the same logo.
+     */
+    private function checkUploadsCanBeSeen(): void
+    {
+        if (StorageLink::repair()) {
+            return;
+        }
+
+        Notification::make()
+            ->title(__('admin.images.link_broken'))
+            ->body(__('admin.images.link_broken_body', ['problem' => StorageLink::problem()]))
+            ->danger()
+            ->persistent()
+            ->send();
     }
 
     public function form(Schema $schema): Schema
@@ -133,6 +160,9 @@ class BrandImages extends Page
         Setting::put('brand_images', $after, 'images');
 
         Notification::make()->title(__('admin.notify.saved'))->success()->send();
+
+        // Saving is the moment somebody looks at the box and expects a picture.
+        $this->checkUploadsCanBeSeen();
 
         /*
          * Nothing has to be rebuilt for this to take effect any more. Every
