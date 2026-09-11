@@ -5,7 +5,6 @@ namespace App\Jobs;
 use App\Models\Message;
 use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Services\Messaging\MessageDispatcher;
-use App\Services\Messaging\OtpiqConfigRegistry;
 use App\Services\Messaging\OtpiqTemplateRegistry;
 use App\Support\WhatsAppLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -43,7 +42,6 @@ class SendWhatsAppMessage implements ShouldQueue
         WhatsAppGateway $gateway,
         MessageDispatcher $dispatcher,
         OtpiqTemplateRegistry $templates,
-        OtpiqConfigRegistry $otpiq,
     ): void
     {
         $message = Message::with('registration')->find($this->messageId);
@@ -75,11 +73,11 @@ class SendWhatsAppMessage implements ShouldQueue
             // without one of them simply ignores what it was not given, so both
             // are offered whenever there is a badge to offer.
             if ($this->withBadge && $message->registration) {
-                if ($this->shouldSendHeaderImage($message, $templates, $otpiq)) {
+                if ($this->shouldSendHeaderImage()) {
                     $mediaUrl = $dispatcher->badgeUrl($message->registration);
                 }
 
-                if ($otpiq->get('send_button_link')) {
+                if (config('whatsapp.otpiq.send_button_link')) {
                     $linkParam = $dispatcher->badgeLinkParam($message->registration);
                 }
             }
@@ -170,17 +168,8 @@ class SendWhatsAppMessage implements ShouldQueue
         ]);
     }
 
-    private function shouldSendHeaderImage(
-        Message $message,
-        OtpiqTemplateRegistry $templates,
-        OtpiqConfigRegistry $otpiq,
-    ): bool {
-        if (! $otpiq->get('send_header_image')) {
-            return false;
-        }
-
-        $logicalKey = $message->template_key;
-
-        return (bool) ($templates->get($logicalKey, $message->locale)['header_image'] ?? false);
+    private function shouldSendHeaderImage(): bool
+    {
+        return (bool) config('whatsapp.otpiq.send_header_image');
     }
 }

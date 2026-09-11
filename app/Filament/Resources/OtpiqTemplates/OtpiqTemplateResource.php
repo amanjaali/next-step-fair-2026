@@ -7,27 +7,25 @@ use App\Filament\Resources\OtpiqTemplates\Pages\ListOtpiqTemplates;
 use App\Models\OtpiqTemplate;
 use BackedEnum;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
-/** OTPIQ / Meta WhatsApp template names, ids and send metadata per locale. */
+/** OTPIQ dashboard template id per logical key × locale — id only is editable. */
 class OtpiqTemplateResource extends Resource
 {
     protected static ?string $model = OtpiqTemplate::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
     public static function getNavigationGroup(): ?string
     {
@@ -47,33 +45,20 @@ class OtpiqTemplateResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()->columns(2)->schema([
-                TextInput::make('logical_key')
+            Section::make()->schema([
+                Placeholder::make('logical_key')
                     ->label(__('admin.otpiq.logical_key'))
-                    ->required()
-                    ->disabled(fn (?OtpiqTemplate $record) => $record !== null),
-                Select::make('locale')
-                    ->options(['en' => 'English', 'ku' => 'Kurdish', 'ar' => 'Arabic'])
-                    ->required()
-                    ->disabled(fn (?OtpiqTemplate $record) => $record !== null),
-                TextInput::make('name')
+                    ->content(fn (?OtpiqTemplate $record): string => $record?->logical_key ?? ''),
+                Placeholder::make('locale')
+                    ->label(__('admin.otpiq.locale'))
+                    ->content(fn (?OtpiqTemplate $record): string => strtoupper($record?->locale ?? '')),
+                Placeholder::make('template_name')
                     ->label(__('admin.otpiq.template_name'))
-                    ->required()
-                    ->columnSpanFull()
-                    ->helperText(__('admin.otpiq.template_name_help')),
+                    ->content(fn (?OtpiqTemplate $record): string => $record?->dashboardName() ?? ''),
                 TextInput::make('provider_id')
                     ->label(__('admin.otpiq.provider_id'))
                     ->required()
-                    ->columnSpanFull(),
-                TagsInput::make('body_variables')
-                    ->label(__('admin.otpiq.body_variables'))
-                    ->helperText(__('admin.otpiq.body_variables_help'))
-                    ->columnSpanFull(),
-                Toggle::make('header_image')
-                    ->label(__('admin.otpiq.header_image')),
-                Toggle::make('active')
-                    ->label(__('admin.otpiq.active'))
-                    ->default(true),
+                    ->helperText(__('admin.otpiq.provider_id_help')),
             ]),
         ]);
     }
@@ -85,11 +70,14 @@ class OtpiqTemplateResource extends Resource
             ->groups(['logical_key'])
             ->columns([
                 TextColumn::make('logical_key')->searchable()->sortable(),
-                TextColumn::make('locale')->badge(),
-                TextColumn::make('name')->searchable()->wrap(),
-                TextColumn::make('provider_id')->label(__('admin.otpiq.provider_id'))->toggleable(),
-                IconColumn::make('header_image')->boolean()->label(__('admin.otpiq.header_image')),
-                IconColumn::make('active')->boolean()->label(__('admin.otpiq.active')),
+                TextColumn::make('locale')->badge()->label(__('admin.otpiq.locale')),
+                TextColumn::make('name')
+                    ->label(__('admin.otpiq.template_name'))
+                    ->state(fn (OtpiqTemplate $record): string => $record->dashboardName()),
+                TextInputColumn::make('provider_id')
+                    ->label(__('admin.otpiq.provider_id'))
+                    ->searchable()
+                    ->rules(['required', 'string', 'max:255']),
             ])
             ->filters([
                 SelectFilter::make('logical_key')->options(

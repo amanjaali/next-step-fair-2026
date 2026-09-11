@@ -27,7 +27,6 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
 {
     public function __construct(
         private readonly OtpiqTemplateRegistry $templates,
-        private readonly OtpiqConfigRegistry $config,
     ) {}
 
     public function sendTemplate(
@@ -38,7 +37,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         ?string $mediaUrl = null,
         ?string $linkParam = null,
     ): ?string {
-        $config = $this->config->all();
+        $config = config('whatsapp.otpiq', []);
         $logicalKey = $message->template_key ?: $template;
         $templateName = $this->resolveName($logicalKey, $locale, $template);
         $bodyVariables = $this->bodyVariables($logicalKey, $locale, $variables);
@@ -86,8 +85,8 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             'smsType' => 'custom',
             'provider' => 'whatsapp',
             'customMessage' => $body,
-            'whatsappAccountId' => $this->config->get('account_id'),
-            'whatsappPhoneId' => $this->config->get('phone_id'),
+            'whatsappAccountId' => config('whatsapp.otpiq.account_id'),
+            'whatsappPhoneId' => config('whatsapp.otpiq.phone_id'),
         ], $message);
     }
 
@@ -142,10 +141,12 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
 
     private function post(array $payload, Message $message): ?string
     {
-        $config = $this->config->all();
+        $config = config('whatsapp.otpiq', []);
 
         if (! $config['api_key']) {
-            throw new RuntimeException('OTPIQ is not configured: OTPIQ_API_KEY is empty.');
+            throw new RuntimeException(
+                'OTPIQ is not configured: OTPIQ_API_KEY is empty. Set it in .env and run php artisan config:clear.'
+            );
         }
 
         if (! $config['account_id'] || ! $config['phone_id']) {

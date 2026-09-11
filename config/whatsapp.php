@@ -22,21 +22,21 @@ return [
     'driver' => env('WHATSAPP_DRIVER', 'log'),
 
     /*
-     * OTPIQ credentials and badge flags live in otpiq_settings (OtpiqSettingsSeeder).
-     * These defaults apply only when the table is missing or not yet seeded.
+     * OTPIQ connection — all values from .env. Secrets never go in the database.
+     * After changing .env: php artisan config:clear && php artisan queue:restart
      */
     'otpiq' => [
-        'base_url' => 'https://api.otpiq.com/api',
-        'api_key' => null,
-        'account_id' => null,
-        'phone_id' => null,
-        'webhook_secret' => null,
+        'base_url' => env('OTPIQ_BASE_URL', 'https://api.otpiq.com/api'),
+        'api_key' => env('OTPIQ_API_KEY'),
+        'account_id' => env('OTPIQ_WHATSAPP_ACCOUNT_ID'),
+        'phone_id' => env('OTPIQ_WHATSAPP_PHONE_ID'),
+        'webhook_secret' => env('OTPIQ_WEBHOOK_SECRET'),
         'timeout' => 20,
-        'send_header_image' => false,
-        'send_button_link' => false,
-        'public_url' => 'https://www.nextstepfair.com',
-        'local_header_image' => null,
-        'verify_ssl' => true,
+        'send_header_image' => (bool) env('OTPIQ_SEND_HEADER_IMAGE', false),
+        'send_button_link' => (bool) env('OTPIQ_SEND_BUTTON_LINK', false),
+        'public_url' => env('OTPIQ_PUBLIC_URL', 'https://www.nextstepfair.com'),
+        'local_header_image' => env('OTPIQ_LOCAL_HEADER_IMAGE'),
+        'verify_ssl' => filter_var(env('OTPIQ_VERIFY_SSL', true), FILTER_VALIDATE_BOOL),
     ],
 
     'cloud_api' => [
@@ -70,73 +70,32 @@ return [
     ],
 
     /*
-    | OTPIQ templates — one entry per logical key × locale.
+    | OTPIQ send shape — one entry per logical key × locale.
     |
-    |   name          Exact name in the OTPIQ dashboard (sent as templateName).
-    |   id            OTPIQ template id (paste from the dashboard into .env).
-    |   body          Named slots to send, in {{1}}, {{2}}, … order.
-    |   header_image  True only if that locale's Meta template has an IMAGE header.
+    |   body  Named slots to send, in {{1}}, {{2}}, … order.
     |
-    | RSVP is live. Student / parent names are ready; fill their ids when approved.
+    | Template name is derived as {logical_key}_{locale}_2026. Dashboard id is in
+    | otpiq_templates (Filament). All templates support a header image when
+    | OTPIQ_SEND_HEADER_IMAGE is enabled.
     */
     'otpiq_templates' => [
-
-        // Dashboard ids live in otpiq_templates (OtpiqTemplateSeeder). These
-        // entries are the fallback when the table is empty or not migrated yet.
         'rsvp_confirmed' => [
-            'en' => [
-                'name' => 'rsvp_confirmed_en_2026',
-                'body' => ['name'],
-                'header_image' => true,
-            ],
-            'ku' => [
-                'name' => 'rsvp_confirmed_ku_2026',
-                'body' => ['name', 'ticket'],
-                'header_image' => false,
-            ],
-            'ar' => [
-                'name' => 'rsvp_confirmed_ar_2026',
-                'body' => ['name'],
-                'header_image' => false,
-            ],
+            'en' => ['body' => ['name']],
+            'ku' => ['body' => ['name', 'ticket']],
+            'ar' => ['body' => ['name']],
         ],
 
         'registration_confirmed_student' => [
-            'en' => [
-                'name' => 'registration_confirmed_student_en_2026',
-                'body' => ['name', 'days', 'ticket'],
-                'header_image' => true,
-            ],
-            'ku' => [
-                'name' => 'registration_confirmed_student_ku_2026',
-                'body' => ['name', 'days', 'ticket'],
-                'header_image' => true,
-            ],
-            'ar' => [
-                'name' => 'registration_confirmed_student_ar_2026',
-                'body' => ['name', 'days', 'ticket'],
-                'header_image' => true,
-            ],
+            'en' => ['body' => ['name', 'days', 'ticket']],
+            'ku' => ['body' => ['name', 'days', 'ticket']],
+            'ar' => ['body' => ['name', 'days', 'ticket']],
         ],
 
         'registration_confirmed_parent' => [
-            'en' => [
-                'name' => 'registration_confirmed_parent_en_2026',
-                'body' => ['name', 'days', 'ticket'],
-                'header_image' => true,
-            ],
-            'ku' => [
-                'name' => 'registration_confirmed_parent_ku_2026',
-                'body' => ['name', 'days', 'ticket'],
-                'header_image' => true,
-            ],
-            'ar' => [
-                'name' => 'registration_confirmed_parent_ar_2026',
-                'body' => ['name', 'days', 'ticket'],
-                'header_image' => true,
-            ],
+            'en' => ['body' => ['name', 'days', 'ticket']],
+            'ku' => ['body' => ['name', 'days', 'ticket']],
+            'ar' => ['body' => ['name', 'days', 'ticket']],
         ],
-
     ],
 
     // Meta language codes for template selection (Cloud API).

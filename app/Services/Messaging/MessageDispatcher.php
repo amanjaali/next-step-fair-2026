@@ -16,8 +16,6 @@ use App\Support\WhatsAppLog;
  */
 class MessageDispatcher
 {
-    public function __construct(private readonly OtpiqConfigRegistry $otpiq) {}
-
     /** Queues a WhatsApp template message for a registration with a phone number. */
     public function whatsapp(
         Registration $registration,
@@ -95,17 +93,17 @@ class MessageDispatcher
      *
      * Always a public HTTPS PNG — Meta fetches this; localhost / 127.0.0.1 never
      * works, and OTPIQ does not accept PDF headers. Domain comes from
-     * otpiq_settings.public_url (default https://www.nextstepfair.com).
+     * OTPIQ_PUBLIC_URL in .env (default https://www.nextstepfair.com).
      *
      * When the public origin is localhost, tickets only live in the local DB — a
      * production badge URL 404s and Meta drops the message. Use the sample PNG so
      * delivery still works from a laptop. Staging hosts (e.g. demi.nextstepfair.com)
-     * always use the real badge URL from otpiq_settings.public_url.
+     * always use the real badge URL from OTPIQ_PUBLIC_URL.
      */
     public function badgeUrl(Registration $registration): string
     {
         if ($this->shouldUseLocalHeaderSample()) {
-            $sample = $this->otpiq->get('local_header_image');
+            $sample = config('whatsapp.otpiq.local_header_image');
 
             if (is_string($sample) && $sample !== '') {
                 return $sample;
@@ -125,10 +123,10 @@ class MessageDispatcher
         return $registration->ticket_id.'/badge.png';
     }
 
-    /** HTTPS origin Meta/OTPIQ use for badge.png — from otpiq_settings. */
+    /** HTTPS origin Meta/OTPIQ use for badge.png — from OTPIQ_PUBLIC_URL. */
     public function publicOrigin(): string
     {
-        $public = $this->otpiq->get('public_url');
+        $public = config('whatsapp.otpiq.public_url');
 
         if (is_string($public) && $public !== '') {
             return rtrim($public, '/');

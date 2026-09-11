@@ -5,22 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One OTPIQ / Meta WhatsApp template per logical key and language.
+ * OTPIQ / Meta WhatsApp template identity — one row per logical key and language.
  *
- * The provider id and the exact name approved in the OTPIQ dashboard (`name`)
- * are what the gateway needs at send time; body variable order and the header
- * image flag mirror `config/whatsapp.php` so the admin can edit them in one place.
+ * Stores only the dashboard name and provider id. Body variable order and the
+ * header-image flag live in config/whatsapp.php.
  */
 class OtpiqTemplate extends Model
 {
     protected $guarded = ['id'];
 
-    protected function casts(): array
+    protected static function booted(): void
     {
-        return [
-            'body_variables' => 'array',
-            'header_image' => 'boolean',
-            'active' => 'boolean',
-        ];
+        static::saving(function (OtpiqTemplate $template) {
+            $template->name = $template->dashboardName();
+        });
+    }
+
+    public function dashboardName(): string
+    {
+        return "{$this->logical_key}_{$this->locale}_2026";
     }
 }

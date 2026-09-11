@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Message;
-use App\Services\Messaging\OtpiqConfigRegistry;
 use App\Support\WhatsAppLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -22,9 +21,9 @@ use Illuminate\Http\Response;
  */
 class OtpiqWebhookController extends Controller
 {
-    public function __invoke(Request $request, OtpiqConfigRegistry $otpiq): Response
+    public function __invoke(Request $request): Response
     {
-        $secret = $otpiq->get('webhook_secret');
+        $secret = config('whatsapp.otpiq.webhook_secret');
 
         /*
          * The address is public, so anything arriving at it is a claim, not a

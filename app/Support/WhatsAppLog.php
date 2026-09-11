@@ -5,7 +5,13 @@ namespace App\Support;
 use Illuminate\Support\Facades\Log;
 use Psr\Log\LoggerInterface;
 
-/** Writes to storage/logs/whatsapp.log — one place to debug delivery. */
+/**
+ * WhatsApp delivery tracing.
+ *
+ * Writes to storage/logs/whatsapp-*.log and mirrors the same line to the default
+ * log stack (laravel-*.log) so a missing dedicated file on the server still
+ * leaves a trace after deploy.
+ */
 final class WhatsAppLog
 {
     public static function logger(): LoggerInterface
@@ -16,18 +22,32 @@ final class WhatsAppLog
     /** @param  array<string, mixed>  $context */
     public static function info(string $event, array $context = []): void
     {
-        self::logger()->info($event, $context);
+        self::write('info', $event, $context);
     }
 
     /** @param  array<string, mixed>  $context */
     public static function warning(string $event, array $context = []): void
     {
-        self::logger()->warning($event, $context);
+        self::write('warning', $event, $context);
     }
 
     /** @param  array<string, mixed>  $context */
     public static function error(string $event, array $context = []): void
     {
-        self::logger()->error($event, $context);
+        self::write('error', $event, $context);
+    }
+
+    /** @param  array<string, mixed>  $context */
+    private static function write(string $level, string $event, array $context): void
+    {
+        $payload = array_merge(['event' => $event], $context);
+
+        try {
+            self::logger()->{$level}($event, $payload);
+        } catch (\Throwable $e) {
+            Log::{$level}('[whatsapp] '.$event, $payload + ['log_channel_error' => $e->getMessage()]);
+        }
+
+        Log::{$level}('[whatsapp] '.$event, $payload);
     }
 }

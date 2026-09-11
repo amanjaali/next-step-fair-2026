@@ -5,10 +5,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * OTPIQ WhatsApp template registry — one row per logical key × locale.
+ * OTPIQ template identity — one row per logical key × locale.
  *
- * Dashboard ids and the exact approved template names live here instead of .env
- * so staging and production can diverge without redeploying config.
+ * Only the dashboard name and provider id are stored here so they can be updated
+ * in Filament when OTPIQ re-issues a template. Body slots and header-image
+ * flags live in config/whatsapp.php.
  */
 return new class extends Migration
 {
@@ -20,9 +21,6 @@ return new class extends Migration
             $table->string('locale', 5);
             $table->string('name');
             $table->string('provider_id');
-            $table->json('body_variables');
-            $table->boolean('header_image')->default(false);
-            $table->boolean('active')->default(true);
             $table->timestamps();
 
             $table->unique(['logical_key', 'locale']);

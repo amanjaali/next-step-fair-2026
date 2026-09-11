@@ -8,8 +8,8 @@ use App\Models\Registration;
 use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Services\Messaging\LogWhatsAppGateway;
 use App\Services\Messaging\MessageDispatcher;
-use App\Services\Messaging\OtpiqConfigRegistry;
 use App\Services\Messaging\OtpiqTemplateRegistry;
+use Database\Seeders\OtpiqTemplateSeeder;
 use App\Services\Messaging\OtpiqWhatsAppGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
@@ -40,6 +40,8 @@ class OtpiqWhatsAppTest extends TestCase
             'whatsapp.otpiq.phone_id' => 'phone_456',
             'whatsapp.otpiq.webhook_secret' => 'a-shared-secret',
         ]);
+
+        $this->seed(OtpiqTemplateSeeder::class);
     }
 
     private function registrant(array $attributes = []): Registration
@@ -174,7 +176,6 @@ class OtpiqWhatsAppTest extends TestCase
                 app(WhatsAppGateway::class),
                 app(MessageDispatcher::class),
                 app(OtpiqTemplateRegistry::class),
-                app(OtpiqConfigRegistry::class),
             );
 
         $message->refresh();
@@ -315,7 +316,6 @@ class OtpiqWhatsAppTest extends TestCase
                 app(WhatsAppGateway::class),
                 app(MessageDispatcher::class),
                 app(OtpiqTemplateRegistry::class),
-                app(OtpiqConfigRegistry::class),
             );
         } catch (\Throwable) {
             // The job rethrows so the queue retries it; the record is what matters here.
