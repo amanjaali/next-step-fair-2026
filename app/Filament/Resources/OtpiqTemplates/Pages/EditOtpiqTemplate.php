@@ -14,6 +14,9 @@ class EditOtpiqTemplate extends EditRecord
         return [
             'name' => $data['name'],
             'provider_id' => $data['provider_id'],
+            'body_variables' => $data['body_variables'] ?? [],
+            'send_header' => $data['send_header'] ?? false,
+            'send_button' => $data['send_button'] ?? false,
         ];
     }
 }

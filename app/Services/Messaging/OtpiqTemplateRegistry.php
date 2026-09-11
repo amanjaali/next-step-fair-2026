@@ -8,19 +8,25 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Resolves OTPIQ template metadata for a logical key and locale.
  *
- * Dashboard name and id come from `otpiq_templates` (editable in Filament).
- * Body slots live in config.
+ * Name, id, body slots, and header/button flags come from `otpiq_templates`
+ * (editable in Filament), with config/whatsapp.php as fallback.
  */
 class OtpiqTemplateRegistry
 {
     /**
-     * @return array{name: string, id: string|null, body: array<int, string>}|null
+     * @return array{
+     *     name: string,
+     *     id: string|null,
+     *     body: array<int, string>,
+     *     header: bool,
+     *     button: bool
+     * }|null
      */
     public function get(string $logicalKey, string $locale): ?array
     {
-        $shape = config("whatsapp.otpiq_templates.$logicalKey.$locale");
+        $configShape = config("whatsapp.otpiq_templates.$logicalKey.$locale");
 
-        if (! is_array($shape)) {
+        if (! is_array($configShape) && ! $this->row($logicalKey, $locale)) {
             return null;
         }
 
@@ -30,10 +36,14 @@ class OtpiqTemplateRegistry
             return null;
         }
 
+        $row = $this->row($logicalKey, $locale);
+
         return [
             'name' => $identity['name'],
             'id' => $identity['id'],
-            'body' => $shape['body'] ?? [],
+            'body' => $row?->bodySlotNames() ?? (is_array($configShape['body'] ?? null) ? $configShape['body'] : []),
+            'header' => $row?->wantsHeaderImage() ?? (bool) ($configShape['header'] ?? true),
+            'button' => $row?->wantsButtonLink() ?? (bool) ($configShape['button'] ?? false),
         ];
     }
 
@@ -45,10 +55,7 @@ class OtpiqTemplateRegistry
         $name = "{$logicalKey}_{$locale}_2026";
 
         if ($this->tableExists()) {
-            $row = OtpiqTemplate::query()
-                ->where('logical_key', $logicalKey)
-                ->where('locale', $locale)
-                ->first();
+            $row = $this->row($logicalKey, $locale);
 
             if ($row) {
                 return [
@@ -62,6 +69,18 @@ class OtpiqTemplateRegistry
             'name' => $name,
             'id' => null,
         ];
+    }
+
+    private function row(string $logicalKey, string $locale): ?OtpiqTemplate
+    {
+        if (! $this->tableExists()) {
+            return null;
+        }
+
+        return OtpiqTemplate::query()
+            ->where('logical_key', $logicalKey)
+            ->where('locale', $locale)
+            ->first();
     }
 
     private function tableExists(): bool

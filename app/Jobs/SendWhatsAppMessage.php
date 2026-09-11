@@ -68,15 +68,17 @@ class SendWhatsAppMessage implements ShouldQueue
             $mediaUrl = null;
             $linkParam = null;
 
-            // The badge travels two ways in the same message: the picture in the
-            // template's header, and the link on its button. Fair and conference
-            // confirmations are approved with an IMAGE header — Meta drops the whole
-            // template when imageUrl is missing or its fetch times out.
-            if ($this->withBadge && $message->registration) {
-                $mediaUrl = $dispatcher->badgeUrl($message->registration);
-                $dispatcher->assertBadgeImageReachable($mediaUrl, $message->registration);
+            $shape = $templates->get($message->template_key, $message->locale);
 
-                if (config('whatsapp.otpiq.send_button_link')) {
+            // Only send header / button pieces that this template row says OTPIQ approved.
+            // Extra parameters surface as Meta (#132000).
+            if ($this->withBadge && $message->registration && is_array($shape)) {
+                if (($shape['header'] ?? false) && config('whatsapp.otpiq.send_header_image', true)) {
+                    $mediaUrl = $dispatcher->badgeUrl($message->registration);
+                    $dispatcher->assertBadgeImageReachable($mediaUrl, $message->registration);
+                }
+
+                if (($shape['button'] ?? false) && config('whatsapp.otpiq.send_button_link')) {
                     $linkParam = $dispatcher->badgeLinkParam($message->registration);
                 }
             }

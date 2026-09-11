@@ -72,29 +72,29 @@ return [
     /*
     | OTPIQ send shape — one entry per logical key × locale.
     |
-    |   body  Named slots to send, in {{1}}, {{2}}, … order.
+    |   body    Named slots to send, in {{1}}, {{2}}, … order — must match OTPIQ.
+    |   header  Include templateParameters.header.imageUrl when sending a badge.
+    |   button  Include the URL-button tail (templateParameters.buttons).
     |
-    | Template name is derived as {logical_key}_{locale}_2026. Dashboard id is in
-    | otpiq_templates (Filament). All templates support a header image when
-    | OTPIQ_SEND_HEADER_IMAGE is enabled.
+    | Defaults here apply when a row has no override in otpiq_templates (Filament).
     */
     'otpiq_templates' => [
         'rsvp_confirmed' => [
-            'en' => ['body' => ['name']],
-            'ku' => ['body' => ['name', 'ticket']],
-            'ar' => ['body' => ['name']],
+            'en' => ['body' => ['name'], 'header' => true, 'button' => true],
+            'ku' => ['body' => ['name', 'ticket'], 'header' => true, 'button' => true],
+            'ar' => ['body' => ['name'], 'header' => true, 'button' => true],
         ],
 
         'registration_confirmed_student' => [
-            'en' => ['body' => ['name', 'days', 'ticket']],
-            'ku' => ['body' => ['name', 'days', 'ticket']],
-            'ar' => ['body' => ['name', 'days', 'ticket']],
+            'en' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
+            'ku' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
+            'ar' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
         ],
 
         'registration_confirmed_parent' => [
-            'en' => ['body' => ['name', 'days', 'ticket']],
-            'ku' => ['body' => ['name', 'days', 'ticket']],
-            'ar' => ['body' => ['name', 'days', 'ticket']],
+            'en' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
+            'ku' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
+            'ar' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
         ],
     ],
 

@@ -360,7 +360,7 @@ class OtpiqWhatsAppTest extends TestCase
             $body = $this->jsonBody($request);
             $parameters = $body['templateParameters'];
 
-            return $body['templateName'] === 'registration_confirmed_student_en_2026'
+            return $body['templateName'] === 'registration_confirmed_new_student_en_2026'
                 && $body['phoneNumber'] === '9647501594292'
                 && $parameters['body'] === [
                     '1' => 'Mohammed',
