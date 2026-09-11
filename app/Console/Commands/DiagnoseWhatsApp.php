@@ -19,24 +19,40 @@ class DiagnoseWhatsApp extends Command
     public function handle(): int
     {
         $otpiq = config('whatsapp.otpiq', []);
+        $configCached = is_file(base_path('bootstrap/cache/config.php'));
 
         $this->line('WhatsApp diagnose');
         $this->line(str_repeat('-', 40));
 
         $this->line('WHATSAPP_DRIVER: '.config('whatsapp.driver'));
         $this->line('QUEUE_CONNECTION: '.config('queue.default'));
-        $this->line('LOG_CHANNEL: '.config('logging.default'));
-        $this->line('LOG_STACK: '.implode(',', config('logging.channels.stack.channels', [])));
+        $this->line('APP_ENV: '.config('app.env'));
+        $this->line('config cached: '.($configCached ? 'yes' : 'no'));
 
         $this->line('');
-        $this->line('OTPIQ (.env via config/whatsapp.php):');
+        $this->line('OTPIQ (config/whatsapp.php → .env):');
         $this->line('  public_url: '.($otpiq['public_url'] ?? 'EMPTY'));
-        $this->line('  api_key: '.(! empty($otpiq['api_key']) ? 'set' : 'EMPTY — set OTPIQ_API_KEY'));
+        $this->line('  api_key: '.(! empty($otpiq['api_key']) ? 'set' : 'EMPTY'));
         $this->line('  webhook_secret: '.(! empty($otpiq['webhook_secret']) ? 'set' : 'EMPTY'));
         $this->line('  account_id: '.($otpiq['account_id'] ?: 'EMPTY'));
         $this->line('  phone_id: '.($otpiq['phone_id'] ?: 'EMPTY'));
         $this->line('  send_header_image: '.(! empty($otpiq['send_header_image']) ? 'yes' : 'no'));
         $this->line('  send_button_link: '.(! empty($otpiq['send_button_link']) ? 'yes' : 'no'));
+
+        if (empty($otpiq['api_key'])) {
+            $this->line('');
+            $this->warn('OTPIQ_API_KEY is empty in config — the queue worker cannot send.');
+            $this->line('  1. Put OTPIQ_API_KEY=sk_live_… in .env (same folder as artisan)');
+            $this->line('  2. php artisan config:clear');
+            if ($configCached) {
+                $this->line('     (config was cached — clear is required after .env changes)');
+            }
+            $this->line('  3. php artisan queue:restart   ← workers keep old config until restarted');
+            $this->line('  4. Retry failed messages in admin or register again');
+        } elseif ($configCached) {
+            $this->line('');
+            $this->line('After any .env change: php artisan config:cache && php artisan queue:restart');
+        }
 
         if (Schema::hasTable('otpiq_templates')) {
             $count = (int) \DB::table('otpiq_templates')->count();

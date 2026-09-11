@@ -144,8 +144,18 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         $config = config('whatsapp.otpiq', []);
 
         if (! $config['api_key']) {
+            $cached = is_file(base_path('bootstrap/cache/config.php'));
+
+            WhatsAppLog::error('otpiq.not_configured', [
+                'message_id' => $message->id,
+                'config_cached' => $cached,
+                'driver' => config('whatsapp.driver'),
+            ]);
+
             throw new RuntimeException(
-                'OTPIQ is not configured: OTPIQ_API_KEY is empty. Set it in .env and run php artisan config:clear.'
+                'OTPIQ is not configured: OTPIQ_API_KEY is empty in config. '
+                .'Set OTPIQ_API_KEY in .env, then run: php artisan config:clear && php artisan queue:restart'
+                .($cached ? ' (config cache was built before the key was added)' : '')
             );
         }
 
