@@ -30,16 +30,17 @@ class OtpiqTemplateSeeder extends Seeder
         ];
 
         foreach ($templates as $template) {
-            OtpiqTemplate::updateOrCreate(
-                [
-                    'logical_key' => $template['logical_key'],
-                    'locale' => $template['locale'],
-                ],
-                [
-                    'name' => $template['name'],
-                    'provider_id' => $template['provider_id'],
-                ],
-            );
+            $row = OtpiqTemplate::firstOrNew([
+                'logical_key' => $template['logical_key'],
+                'locale' => $template['locale'],
+            ]);
+
+            if (! $row->exists) {
+                $row->name = $template['name'];
+            }
+
+            $row->provider_id = $template['provider_id'];
+            $row->save();
         }
     }
 }

@@ -304,6 +304,77 @@ class OtpiqWhatsAppTest extends TestCase
         $this->assertStringNotContainsString('.pdf', $url);
     }
 
+    /** Same JSON shape as the OTPIQ dashboard / axios example for student EN. */
+    public function test_student_registration_payload_matches_the_otpiq_example(): void
+    {
+        config([
+            'whatsapp.otpiq.public_url' => 'https://demi.nextstepfair.com',
+            'whatsapp.otpiq.send_button_link' => true,
+        ]);
+
+        Http::fake([
+            'https://demi.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+            'https://api.otpiq.com/api/sms' => Http::response(['smsId' => 'otpiq-student-en'], 200),
+        ]);
+
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_STUDENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Mohammed Ali',
+            'phone' => '7501594292',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+            'badge_generated_at' => now(),
+        ]);
+
+        $message = Message::create([
+            'registration_id' => $registration->id,
+            'channel' => 'whatsapp',
+            'template_key' => 'registration_confirmed_student',
+            'locale' => 'en',
+            'recipient' => $registration->msisdn(),
+            'preview' => 'preview',
+            'status' => Message::STATUS_QUEUED,
+            'queued_at' => now(),
+        ]);
+
+        (new SendWhatsAppMessage($message->id, [
+            'name' => 'Mohammed',
+            'days' => 'Day 1, Day 2, Day 3',
+            'ticket' => '48F8-F944-D33D',
+        ], true))->handle(
+            app(WhatsAppGateway::class),
+            app(MessageDispatcher::class),
+            app(OtpiqTemplateRegistry::class),
+        );
+
+        Http::assertSent(function (ClientRequest $request) use ($registration) {
+            if ($request->url() !== 'https://api.otpiq.com/api/sms') {
+                return false;
+            }
+
+            $body = $this->jsonBody($request);
+            $parameters = $body['templateParameters'];
+
+            return $body['templateName'] === 'registration_confirmed_student_en_2026'
+                && $body['phoneNumber'] === '9647501594292'
+                && $parameters['body'] === [
+                    '1' => 'Mohammed',
+                    '2' => 'Day 1, Day 2, Day 3',
+                    '3' => '48F8-F944-D33D',
+                ]
+                && $parameters['header']['imageUrl']
+                === 'https://demi.nextstepfair.com/ticket/'.$registration->ticket_id.'/badge.png'
+                && $parameters['buttons'] === [
+                    '0' => ['1' => $registration->ticket_id.'/badge.png'],
+                ];
+        });
+    }
+
     public function test_whatsapp_is_not_sent_when_the_badge_image_returns_404(): void
     {
         config([

@@ -18,7 +18,7 @@ use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
-/** OTPIQ dashboard template id per logical key × locale — id only is editable. */
+/** OTPIQ dashboard template name and id per logical key × locale — both editable. */
 class OtpiqTemplateResource extends Resource
 {
     protected static ?string $model = OtpiqTemplate::class;
@@ -52,9 +52,10 @@ class OtpiqTemplateResource extends Resource
                 Placeholder::make('locale')
                     ->label(__('admin.otpiq.locale'))
                     ->content(fn (?OtpiqTemplate $record): string => strtoupper($record?->locale ?? '')),
-                Placeholder::make('template_name')
+                TextInput::make('name')
                     ->label(__('admin.otpiq.template_name'))
-                    ->content(fn (?OtpiqTemplate $record): string => $record?->dashboardName() ?? ''),
+                    ->required()
+                    ->helperText(__('admin.otpiq.template_name_help')),
                 TextInput::make('provider_id')
                     ->label(__('admin.otpiq.provider_id'))
                     ->required()
@@ -71,9 +72,10 @@ class OtpiqTemplateResource extends Resource
             ->columns([
                 TextColumn::make('logical_key')->searchable()->sortable(),
                 TextColumn::make('locale')->badge()->label(__('admin.otpiq.locale')),
-                TextColumn::make('name')
+                TextInputColumn::make('name')
                     ->label(__('admin.otpiq.template_name'))
-                    ->state(fn (OtpiqTemplate $record): string => $record->dashboardName()),
+                    ->searchable()
+                    ->rules(['required', 'string', 'max:255']),
                 TextInputColumn::make('provider_id')
                     ->label(__('admin.otpiq.provider_id'))
                     ->searchable()

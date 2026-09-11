@@ -76,7 +76,7 @@ class SendWhatsAppMessage implements ShouldQueue
             // send when imageUrl is missing, regardless of OTPIQ_SEND_HEADER_IMAGE.
             if ($this->withBadge && $message->registration) {
                 $mediaUrl = $dispatcher->badgeUrl($message->registration);
-                $dispatcher->assertBadgeImageReachable($mediaUrl);
+                $dispatcher->assertBadgeImageReachable($mediaUrl, $message->registration);
 
                 if (config('whatsapp.otpiq.send_button_link')) {
                     $linkParam = $dispatcher->badgeLinkParam($message->registration);

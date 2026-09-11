@@ -395,6 +395,7 @@ return [
         'locale' => 'Language',
         'template_name' => 'OTPIQ template name',
         'provider_id' => 'OTPIQ template id',
-        'provider_id_help' => 'Paste the new id from the OTPIQ dashboard. Name and body slots are fixed in code.',
+        'template_name_help' => 'Must match the template name approved in the OTPIQ dashboard exactly.',
+        'provider_id_help' => 'Paste the template id from the OTPIQ dashboard. Body slots are fixed in code.',
     ],
 ];

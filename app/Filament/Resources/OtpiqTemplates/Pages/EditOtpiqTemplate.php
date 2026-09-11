@@ -9,10 +9,10 @@ class EditOtpiqTemplate extends EditRecord
 {
     protected static string $resource = OtpiqTemplateResource::class;
 
-    /** Only the OTPIQ dashboard id is editable — name and shape are fixed in code. */
     protected function mutateFormDataBeforeSave(array $data): array
     {
         return [
+            'name' => $data['name'],
             'provider_id' => $data['provider_id'],
         ];
     }

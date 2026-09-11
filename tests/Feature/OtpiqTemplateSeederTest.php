@@ -33,18 +33,38 @@ class OtpiqTemplateSeederTest extends TestCase
         ]);
     }
 
-    public function test_the_registry_uses_db_id_and_derived_template_name(): void
+    public function test_the_registry_uses_db_name_and_id(): void
     {
         $this->seed(OtpiqTemplateSeeder::class);
 
         OtpiqTemplate::where('logical_key', 'rsvp_confirmed')
             ->where('locale', 'en')
-            ->update(['provider_id' => 'new-id-123']);
+            ->update([
+                'name' => 'custom_rsvp_en',
+                'provider_id' => 'new-id-123',
+            ]);
 
         $row = app(OtpiqTemplateRegistry::class)->get('rsvp_confirmed', 'en');
 
-        $this->assertSame('rsvp_confirmed_en_2026', $row['name']);
+        $this->assertSame('custom_rsvp_en', $row['name']);
         $this->assertSame('new-id-123', $row['id']);
         $this->assertSame(['name'], $row['body']);
+    }
+
+    public function test_reseeding_does_not_overwrite_custom_template_names(): void
+    {
+        $this->seed(OtpiqTemplateSeeder::class);
+
+        OtpiqTemplate::where('logical_key', 'rsvp_confirmed')
+            ->where('locale', 'en')
+            ->update(['name' => 'custom_rsvp_en']);
+
+        $this->seed(OtpiqTemplateSeeder::class);
+
+        $this->assertDatabaseHas('otpiq_templates', [
+            'logical_key' => 'rsvp_confirmed',
+            'locale' => 'en',
+            'name' => 'custom_rsvp_en',
+        ]);
     }
 }

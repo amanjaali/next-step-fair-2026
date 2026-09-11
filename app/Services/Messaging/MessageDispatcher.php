@@ -6,9 +6,11 @@ use App\Jobs\SendWhatsAppMessage;
 use App\Models\Message;
 use App\Models\MessageTemplate;
 use App\Models\Registration;
+use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Support\WhatsAppLog;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
+use Throwable;
 
 /**
  * Queues outbound messages and records them in the delivery log.
@@ -56,7 +58,7 @@ class MessageDispatcher
             'queued_at' => now(),
         ]);
 
-        SendWhatsAppMessage::dispatch($message->id, $variables, $withBadge);
+        $this->dispatchWhatsApp($message->id, $variables, $withBadge);
 
         WhatsAppLog::info('whatsapp.queued', [
             'message_id' => $message->id,
@@ -153,26 +155,34 @@ class MessageDispatcher
     /**
      * Meta/OTPIQ fetch the header image before delivery. A 404 means the message
      * is accepted by OTPIQ but never arrives on the phone — so we refuse to send.
+     *
+     * Badge PNGs are rendered on demand and can take several seconds on first
+     * request, so we use GET (not HEAD) with a generous timeout.
      */
-    public function assertBadgeImageReachable(string $url): void
+    public function assertBadgeImageReachable(string $url, ?Registration $registration = null): void
     {
-        $response = Http::timeout(15)
-            ->withOptions(['allow_redirects' => true])
-            ->head($url);
-
-        if (in_array($response->status(), [405, 501], true)) {
-            $response = Http::timeout(15)
-                ->withOptions(['allow_redirects' => true])
-                ->get($url);
+        if ($registration && ! $registration->badgeIssued()) {
+            throw new RuntimeException(
+                'WhatsApp not sent: badge has not been generated for ticket '.$registration->ticket_id
+            );
         }
 
-        if ($response->ok()) {
+        $response = Http::timeout(45)
+            ->withOptions(['allow_redirects' => true])
+            ->get($url);
+
+        $contentType = strtolower((string) $response->header('Content-Type'));
+
+        if ($response->ok() && (str_starts_with($contentType, 'image/') || $contentType === '')) {
             return;
         }
 
         WhatsAppLog::error('whatsapp.badge_image_unreachable', [
             'url' => $url,
             'http_status' => $response->status(),
+            'content_type' => $contentType !== '' ? $contentType : null,
+            'registration_id' => $registration?->id,
+            'ticket_id' => $registration?->ticket_id,
         ]);
 
         throw new RuntimeException(
@@ -180,6 +190,35 @@ class MessageDispatcher
             .'Set OTPIQ_PUBLIC_URL to the host that serves this ticket, ensure the badge is generated, '
             .'then run: php artisan config:clear && php artisan queue:restart'
         );
+    }
+
+    /**
+     * Fair/RSVP confirmations are triggered from the web. On demi we use
+     * QUEUE_CONNECTION=database but often no long-running worker — so for HTTP
+     * requests we send after the response returns instead of leaving jobs stuck
+     * in the jobs table. Console commands and sync/tests keep normal dispatch.
+     */
+    private function dispatchWhatsApp(int $messageId, array $variables, bool $withBadge): void
+    {
+        if (app()->runningUnitTests() || app()->runningInConsole() || config('queue.default') === 'sync') {
+            SendWhatsAppMessage::dispatch($messageId, $variables, $withBadge);
+
+            return;
+        }
+
+        $job = new SendWhatsAppMessage($messageId, $variables, $withBadge);
+
+        app()->terminating(function () use ($job) {
+            try {
+                $job->handle(
+                    app(WhatsAppGateway::class),
+                    app(self::class),
+                    app(OtpiqTemplateRegistry::class),
+                );
+            } catch (Throwable $e) {
+                report($e);
+            }
+        });
     }
 
     private function shouldUseLocalHeaderSample(): bool

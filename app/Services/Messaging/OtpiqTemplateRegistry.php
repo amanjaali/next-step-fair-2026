@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Resolves OTPIQ template metadata for a logical key and locale.
  *
- * Dashboard id comes from `otpiq_templates` (editable in Filament).
- * Template name follows `{logical_key}_{locale}_2026`. Body slots live in config.
+ * Dashboard name and id come from `otpiq_templates` (editable in Filament).
+ * Body slots live in config.
  */
 class OtpiqTemplateRegistry
 {
@@ -52,7 +52,7 @@ class OtpiqTemplateRegistry
 
             if ($row) {
                 return [
-                    'name' => $row->dashboardName(),
+                    'name' => $row->name,
                     'id' => $row->provider_id,
                 ];
             }
