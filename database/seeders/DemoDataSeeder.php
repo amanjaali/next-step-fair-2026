@@ -25,16 +25,26 @@ class DemoDataSeeder extends Seeder
     {
         $this->qrCampaigns();
 
-        if (Registration::count() > 0) {
-            return;
-        }
-
-        $sessions = EventSession::where('bookable', true)->pluck('id')->all();
-        $staff = User::where('email', 'gate@nextstepfair.com')->first();
-
-        $this->fairRegistrations($sessions, $staff);
-        $this->conferenceRsvps();
-        $this->registrationHistory();
+        /*
+         * Fair Registrations, Conference RSVPs and Messages — demo desk data.
+         * Uncomment for a local dashboard preview; leave off on staging/production
+         * so real registrations are not mixed with seeded names and phones.
+         */
+        // if (Registration::count() > 0) {
+        //     return;
+        // }
+        //
+        // $sessions = EventSession::where('bookable', true)->pluck('id')->all();
+        // $staff = User::where('email', 'gate@nextstepfair.com')->first();
+        //
+        // // Fair Registrations — students, parents, check-ins, WhatsApp rows.
+        // $this->fairRegistrations($sessions, $staff);
+        //
+        // // Conference RSVPs — delegates, pending/confirmed, email + WhatsApp rows.
+        // $this->conferenceRsvps();
+        //
+        // // Fair registration volume for the dashboard chart (no message rows).
+        // $this->registrationHistory();
     }
 
     private function qrCampaigns(): void

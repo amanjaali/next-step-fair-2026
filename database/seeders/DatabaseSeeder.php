@@ -21,7 +21,8 @@ class DatabaseSeeder extends Seeder
             OtpiqTemplateSeeder::class,
             OpportunitySeeder::class,
             OfferPopupSeeder::class,
-            // Fair Registrations, Conference RSVPs and Messages (demo desk data).
+            // QR campaigns only by default; Fair Registrations / Conference RSVPs
+            // demo rows are commented out inside DemoDataSeeder until you need them.
             DemoDataSeeder::class,
         ]);
 
