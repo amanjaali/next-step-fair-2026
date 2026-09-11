@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreConferenceRsvpRequest;
 use App\Models\Registration;
 use App\Services\BadgeService;
-use App\Services\Messaging\MessageDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,14 +18,13 @@ use Illuminate\View\View;
  * is spared the question about which organisation they represent.
  *
  * Institutional addresses are confirmed straight away; free-mail addresses stay
- * pending for the protocol team, but the badge and WhatsApp still go to the
- * phone on the form at submit time.
+ * pending for the protocol team. The badge PNG is generated at submit time, but
+ * WhatsApp delivery waits for a backend approval in the admin panel.
  */
 class ConferenceRsvpController extends Controller
 {
     public function __construct(
         private readonly BadgeService $badges,
-        private readonly MessageDispatcher $dispatcher,
     ) {}
 
     public function create(Request $request): View
@@ -80,8 +78,6 @@ class ConferenceRsvpController extends Controller
 
         $this->badges->generate($registration);
 
-        $this->sendConfirmation($registration);
-
         return redirect()->route('register.conference.done', $registration->ticket_id);
     }
 
@@ -105,16 +101,4 @@ class ConferenceRsvpController extends Controller
         ]);
     }
 
-    private function sendConfirmation(Registration $registration): void
-    {
-        $this->dispatcher->whatsapp(
-            $registration,
-            'rsvp_confirmed',
-            [
-                'name' => $registration->firstName(),
-                'ticket' => $registration->ticket_ref,
-            ],
-            withBadge: true,
-        );
-    }
 }

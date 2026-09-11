@@ -52,16 +52,15 @@ class ConferenceRsvpTest extends TestCase
         $this->assertNotNull($registration->badge_generated_at);
         $this->assertSame([1], $registration->dayList());
 
-        $this->assertTrue(
+        $this->assertFalse(
             Message::where('registration_id', $registration->id)
                 ->where('channel', 'whatsapp')
-                ->where('template_key', 'rsvp_confirmed')
                 ->exists()
         );
     }
 
-    /** A delegate gets the QR on WhatsApp at submit. */
-    public function test_a_confirmed_delegate_is_sent_the_badge_on_whatsapp(): void
+    /** Badge WhatsApp waits for backend approval — not sent at submit. */
+    public function test_a_confirmed_delegate_is_not_sent_whatsapp_at_submit(): void
     {
         Queue::fake();
 
@@ -69,18 +68,17 @@ class ConferenceRsvpTest extends TestCase
 
         $registration = Registration::conference()->firstOrFail();
 
-        $this->assertTrue(
+        $this->assertFalse(
             Message::where('registration_id', $registration->id)
                 ->where('channel', 'whatsapp')
-                ->where('template_key', 'rsvp_confirmed')
                 ->exists()
         );
 
-        Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === true);
+        Queue::assertNotPushed(SendWhatsAppMessage::class);
     }
 
-    /** Pending free-mail delegates still receive the badge on WhatsApp at submit. */
-    public function test_a_pending_delegate_is_sent_the_badge_on_whatsapp(): void
+    /** Pending free-mail delegates also wait for backend approval. */
+    public function test_a_pending_delegate_is_not_sent_whatsapp_at_submit(): void
     {
         Queue::fake();
 
@@ -91,14 +89,13 @@ class ConferenceRsvpTest extends TestCase
         $this->assertSame(Registration::STATUS_PENDING, $registration->status);
         $this->assertNotNull($registration->badge_generated_at);
 
-        $this->assertTrue(
+        $this->assertFalse(
             Message::where('registration_id', $registration->id)
                 ->where('channel', 'whatsapp')
-                ->where('template_key', 'rsvp_confirmed')
                 ->exists()
         );
 
-        Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === true);
+        Queue::assertNotPushed(SendWhatsAppMessage::class);
     }
 
     public function test_a_free_mail_address_goes_to_the_protocol_team_with_a_badge(): void
@@ -112,7 +109,7 @@ class ConferenceRsvpTest extends TestCase
         $this->assertSame(Registration::STATUS_PENDING, $registration->status);
         $this->assertNotNull($registration->badge_generated_at);
 
-        $this->assertTrue(
+        $this->assertFalse(
             Message::where('registration_id', $registration->id)
                 ->where('channel', 'whatsapp')
                 ->exists()

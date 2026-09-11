@@ -91,7 +91,7 @@ class FairRegistrationTest extends TestCase
                 ->exists()
         );
 
-        Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === true);
+        Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === false);
     }
 
     /** Registering signs them in — they have just proved who they are by doing it. */
