@@ -346,7 +346,8 @@ class OtpiqWhatsAppTest extends TestCase
     {
         config([
             'whatsapp.otpiq.public_url' => 'https://demi.nextstepfair.com',
-            'whatsapp.otpiq.send_header_image' => true,
+            // Badge templates require header.imageUrl — must send even when this is false.
+            'whatsapp.otpiq.send_header_image' => false,
             'whatsapp.otpiq.send_button_link' => false,
         ]);
 
@@ -373,6 +374,17 @@ class OtpiqWhatsAppTest extends TestCase
 
         $this->assertSame('otpiq-badge-ok', $message->provider_message_id);
         $this->assertSame(Message::STATUS_SENT, $message->status);
+
+        Http::assertSent(function (ClientRequest $request) {
+            if ($request->url() !== 'https://api.otpiq.com/api/sms') {
+                return false;
+            }
+
+            $body = $this->jsonBody($request);
+
+            return ($body['templateParameters']['header']['imageUrl'] ?? null)
+                === 'https://demi.nextstepfair.com/ticket/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/badge.png';
+        });
     }
 
     public function test_a_rejected_send_is_recorded_with_the_provider_reason(): void

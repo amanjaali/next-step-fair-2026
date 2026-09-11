@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             OtpiqTemplateSeeder::class,
             OpportunitySeeder::class,
             OfferPopupSeeder::class,
+            // Fair Registrations, Conference RSVPs and Messages (demo desk data).
             DemoDataSeeder::class,
         ]);
 

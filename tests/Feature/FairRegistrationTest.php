@@ -10,6 +10,7 @@ use Database\Seeders\MessageTemplateSeeder;
 use Database\Seeders\ProgrammeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -22,6 +23,13 @@ class FairRegistrationTest extends TestCase
         parent::setUp();
         $this->seed(ProgrammeSeeder::class);
         $this->seed(MessageTemplateSeeder::class);
+
+        // Sync queue runs SendWhatsAppMessage inline; badge reachability is checked
+        // against OTPIQ_PUBLIC_URL, which is not this test server.
+        Http::fake([
+            'https://demi.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+            'https://www.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+        ]);
     }
 
     /** A student: the short form, plus the account it creates. */
@@ -91,7 +99,7 @@ class FairRegistrationTest extends TestCase
                 ->exists()
         );
 
-        Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === false);
+        Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === true);
     }
 
     /** Registering signs them in — they have just proved who they are by doing it. */
@@ -251,6 +259,8 @@ class FairRegistrationTest extends TestCase
     /** A parent is not opening an account, so none of that is asked for. */
     public function test_a_parent_gets_a_badge_and_no_account(): void
     {
+        Queue::fake();
+
         $this->post('/en/register/fair', $this->parentPayload())->assertRedirect();
 
         $registration = Registration::firstOrFail();
@@ -260,6 +270,15 @@ class FairRegistrationTest extends TestCase
         $this->assertNull($registration->password);
         $this->assertNull($registration->email);
         $this->assertSame([1, 2, 3], $registration->dayList());
+
+        $this->assertTrue(
+            Message::where('registration_id', $registration->id)
+                ->where('channel', 'whatsapp')
+                ->where('template_key', 'registration_confirmed_parent')
+                ->exists()
+        );
+
+        Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === true);
     }
 
     public function test_the_honeypot_field_rejects_bots(): void

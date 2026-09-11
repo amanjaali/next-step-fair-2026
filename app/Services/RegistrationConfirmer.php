@@ -9,9 +9,9 @@ use App\Support\WhatsAppLog;
 /**
  * Turning a filled-in form into a badge in somebody's hand.
  *
- * Fair and visitor registrations are confirmed and badged here, then queued for
- * a text-only WhatsApp confirmation. Conference RSVP badge delivery is handled
- * from the admin panel after backend approval.
+ * Fair student and parent registrations are confirmed, badged, and queued for
+ * WhatsApp immediately. Conference RSVP (rsvp_confirmed) waits for backend
+ * approval in the admin panel.
  */
 class RegistrationConfirmer
 {
@@ -78,7 +78,7 @@ class RegistrationConfirmer
                 'days' => $registration->daysLabel(),
                 'ticket' => $registration->ticket_ref,
             ],
-            withBadge: false,
+            withBadge: true,
         );
     }
 }

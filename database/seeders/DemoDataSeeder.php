@@ -24,7 +24,17 @@ class DemoDataSeeder extends Seeder
     public function run(): void
     {
         $this->qrCampaigns();
-        $this->registrations();
+
+        if (Registration::count() > 0) {
+            return;
+        }
+
+        $sessions = EventSession::where('bookable', true)->pluck('id')->all();
+        $staff = User::where('email', 'gate@nextstepfair.com')->first();
+
+        $this->fairRegistrations($sessions, $staff);
+        $this->conferenceRsvps();
+        $this->registrationHistory();
     }
 
     private function qrCampaigns(): void
@@ -73,15 +83,12 @@ class DemoDataSeeder extends Seeder
         }
     }
 
-    private function registrations(): void
+    /* --------------------------------------------------------------------- */
+    /* Fair Registrations                                                    */
+    /* --------------------------------------------------------------------- */
+
+    private function fairRegistrations(array $sessions, ?User $staff): void
     {
-        if (Registration::count() > 0) {
-            return;
-        }
-
-        $sessions = EventSession::where('bookable', true)->pluck('id')->all();
-        $staff = User::where('email', 'gate@nextstepfair.com')->first();
-
         $fair = [
             ['Hemin Karim Salih', '7704112288', 'Sulaimani', [1, 2, 3], 'student', 'ku', 'confirmed', [1, 2]],
             ['Lana Aziz Hama', '7508820091', 'Ranya', [2], 'student', 'ku', 'confirmed', [2]],
@@ -157,27 +164,17 @@ class DemoDataSeeder extends Seeder
             }
 
             if ($status !== 'awaiting_otp') {
-                Message::create([
-                    'registration_id' => $registration->id,
-                    'channel' => 'whatsapp',
-                    'template_key' => $type === 'student' ? 'registration_confirmed_student' : 'registration_confirmed_parent',
-                    'locale' => $locale,
-                    'recipient' => '+964'.$phone,
-                    'preview' => __("notifications.whatsapp.registration_confirmed_$type", [
-                        'name' => $name,
-                        'days' => $registration->daysLabel(),
-                        'ticket' => $registration->ticket_ref,
-                    ], $locale),
-                    'status' => $i === 7 ? Message::STATUS_FAILED : Message::STATUS_DELIVERED,
-                    'error' => $i === 7 ? 'Recipient not on WhatsApp (131026)' : null,
-                    'queued_at' => now()->subDays(20 - $i),
-                    'sent_at' => now()->subDays(20 - $i),
-                    'delivered_at' => $i === 7 ? null : now()->subDays(20 - $i)->addSeconds(4),
-                    'failed_at' => $i === 7 ? now()->subDays(20 - $i)->addSeconds(9) : null,
-                ]);
+                $this->seedFairWhatsAppMessage($registration, $name, $type, $locale, $phone, $i === 7);
             }
         }
+    }
 
+    /* --------------------------------------------------------------------- */
+    /* Conference RSVPs                                                      */
+    /* --------------------------------------------------------------------- */
+
+    private function conferenceRsvps(): void
+    {
         $conference = [
             ['Dr. Rezan Ahmed Kareem', 'r.kareem@mhe.krd', 'Director General, Scholarships', 'Ministry of Higher Education and Scientific Research', 'Erbil', 'government', 'confirmed'],
             ['Prof. Sara Hiwa Mustafa', 's.hiwa@univsul.edu.iq', 'Vice President for Academic Affairs', 'University of Sulaimani', 'Sulaimani', 'official', 'pending'],
@@ -211,26 +208,102 @@ class DemoDataSeeder extends Seeder
                 'consented_at' => now()->subDays(14 - $i),
                 'confirmed_at' => $status === 'confirmed' ? now()->subDays(14 - $i) : null,
                 'approved_at' => $status === 'confirmed' ? now()->subDays(14 - $i) : null,
-                'badge_generated_at' => $status === 'confirmed' ? now()->subDays(14 - $i) : null,
+                'badge_generated_at' => now()->subDays(14 - $i),
                 'created_at' => now()->subDays(14 - $i),
             ]);
 
-            Message::create([
-                'registration_id' => $registration->id,
-                'channel' => 'email',
-                'template_key' => $status === 'confirmed' ? 'rsvp_confirmed' : 'rsvp_pending',
-                'locale' => $registration->locale,
-                'recipient' => $email,
-                'subject' => __('notifications.email.rsvp_subject', [], $registration->locale),
-                'preview' => __('notifications.email.rsvp_confirmed', [], $registration->locale),
-                'status' => Message::STATUS_DELIVERED,
-                'queued_at' => now()->subDays(14 - $i),
-                'sent_at' => now()->subDays(14 - $i),
-                'delivered_at' => now()->subDays(14 - $i)->addSeconds(6),
-            ]);
+            $this->seedConferenceMessages($registration, $email, $status, $i);
+        }
+    }
+
+    /* --------------------------------------------------------------------- */
+    /* Messages                                                              */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Fair student/parent confirmations go out on WhatsApp at register time.
+     */
+    private function seedFairWhatsAppMessage(
+        Registration $registration,
+        string $name,
+        string $type,
+        string $locale,
+        string $phone,
+        bool $failed,
+    ): void {
+        $sentAt = $registration->confirmed_at ?? now();
+
+        Message::create([
+            'registration_id' => $registration->id,
+            'channel' => 'whatsapp',
+            'template_key' => $type === 'student'
+                ? 'registration_confirmed_student'
+                : 'registration_confirmed_parent',
+            'locale' => $locale,
+            'recipient' => '+964'.$phone,
+            'preview' => __("notifications.whatsapp.registration_confirmed_$type", [
+                'name' => $registration->firstName(),
+                'days' => $registration->daysLabel(),
+                'ticket' => $registration->ticket_ref,
+            ], $locale),
+            'status' => $failed ? Message::STATUS_FAILED : Message::STATUS_DELIVERED,
+            'error' => $failed ? 'Recipient not on WhatsApp (131026)' : null,
+            'queued_at' => $sentAt,
+            'sent_at' => $sentAt,
+            'delivered_at' => $failed ? null : $sentAt->copy()->addSeconds(4),
+            'failed_at' => $failed ? $sentAt->copy()->addSeconds(9) : null,
+        ]);
+    }
+
+    /**
+     * Conference RSVP: email on submit; WhatsApp badge only after backend approval.
+     * Pending delegates have no rsvp_confirmed WhatsApp row yet.
+     */
+    private function seedConferenceMessages(Registration $registration, string $email, string $status, int $i): void
+    {
+        $sentAt = $registration->created_at ?? now();
+
+        Message::create([
+            'registration_id' => $registration->id,
+            'channel' => 'email',
+            'template_key' => $status === 'confirmed' ? 'rsvp_confirmed' : 'rsvp_pending',
+            'locale' => $registration->locale,
+            'recipient' => $email,
+            'subject' => __('notifications.email.rsvp_subject', [], $registration->locale),
+            'preview' => __('notifications.email.rsvp_confirmed', [], $registration->locale),
+            'status' => Message::STATUS_DELIVERED,
+            'queued_at' => $sentAt,
+            'sent_at' => $sentAt,
+            'delivered_at' => $sentAt->copy()->addSeconds(6),
+        ]);
+
+        if ($status !== 'confirmed') {
+            return;
         }
 
-        // A fortnight of registration history, so the dashboard chart has a curve.
+        Message::create([
+            'registration_id' => $registration->id,
+            'channel' => 'whatsapp',
+            'template_key' => 'rsvp_confirmed',
+            'locale' => $registration->locale,
+            'recipient' => $registration->msisdn(),
+            'preview' => __('notifications.whatsapp.rsvp_confirmed', [
+                'name' => $registration->firstName(),
+                'ticket' => $registration->ticket_ref,
+            ], $registration->locale),
+            'status' => Message::STATUS_DELIVERED,
+            'queued_at' => $registration->approved_at ?? $sentAt,
+            'sent_at' => $registration->approved_at ?? $sentAt,
+            'delivered_at' => ($registration->approved_at ?? $sentAt)->copy()->addSeconds(8),
+        ]);
+    }
+
+    /**
+     * A fortnight of fair registration history so the dashboard chart has a curve.
+     * No message rows — these are volume-only background data.
+     */
+    private function registrationHistory(): void
+    {
         $names = ['Ahmed', 'Rojin', 'Kamaran', 'Shilan', 'Yad', 'Peshraw', 'Awaz', 'Hersh', 'Chnar', 'Dashne'];
         $families = ['Salih', 'Karim', 'Hama', 'Mustafa', 'Abdullah', 'Rashid', 'Faraj', 'Tahir'];
         $cities = config('nextstep.cities');

@@ -72,11 +72,11 @@ class SendWhatsAppMessage implements ShouldQueue
             // template's header, and the link on its button. A template approved
             // without one of them simply ignores what it was not given, so both
             // are offered whenever there is a badge to offer.
+            // Badge templates are approved with an IMAGE header — OTPIQ rejects the
+            // send when imageUrl is missing, regardless of OTPIQ_SEND_HEADER_IMAGE.
             if ($this->withBadge && $message->registration) {
-                if ($this->shouldSendHeaderImage()) {
-                    $mediaUrl = $dispatcher->badgeUrl($message->registration);
-                    $dispatcher->assertBadgeImageReachable($mediaUrl);
-                }
+                $mediaUrl = $dispatcher->badgeUrl($message->registration);
+                $dispatcher->assertBadgeImageReachable($mediaUrl);
 
                 if (config('whatsapp.otpiq.send_button_link')) {
                     $linkParam = $dispatcher->badgeLinkParam($message->registration);
@@ -169,8 +169,4 @@ class SendWhatsAppMessage implements ShouldQueue
         ]);
     }
 
-    private function shouldSendHeaderImage(): bool
-    {
-        return (bool) config('whatsapp.otpiq.send_header_image');
-    }
 }
