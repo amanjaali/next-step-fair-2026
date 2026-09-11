@@ -7,6 +7,8 @@ use App\Models\Message;
 use App\Models\MessageTemplate;
 use App\Models\Registration;
 use App\Support\WhatsAppLog;
+use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 /**
  * Queues outbound messages and records them in the delivery log.
@@ -123,22 +125,61 @@ class MessageDispatcher
         return $registration->ticket_id.'/badge.png';
     }
 
-    /** HTTPS origin Meta/OTPIQ use for badge.png — from OTPIQ_PUBLIC_URL. */
+    /**
+     * HTTPS origin Meta/OTPIQ use for badge.png — from OTPIQ_PUBLIC_URL only.
+     *
+     * This must match the host that actually serves /ticket/{id}/badge.png. A
+     * mismatch (e.g. www while the app runs on demi) makes Meta fetch a 404 and
+     * silently drop the whole template.
+     */
     public function publicOrigin(): string
     {
         $public = config('whatsapp.otpiq.public_url');
 
-        if (is_string($public) && $public !== '') {
-            return rtrim($public, '/');
+        if (! is_string($public) || $public === '') {
+            throw new RuntimeException(
+                'OTPIQ_PUBLIC_URL is not set. Set it to the HTTPS origin that serves badge images '
+                .'(e.g. https://demi.nextstepfair.com), then run: php artisan config:clear && php artisan queue:restart'
+            );
         }
 
-        $appUrl = config('app.url');
-
-        if (is_string($appUrl) && str_starts_with($appUrl, 'https://') && ! $this->isLocalhostUrl($appUrl)) {
-            return rtrim($appUrl, '/');
+        if (! $this->isLocalhostUrl($public) && ! str_starts_with($public, 'https://')) {
+            throw new RuntimeException('OTPIQ_PUBLIC_URL must be an https:// origin.');
         }
 
-        return 'https://www.nextstepfair.com';
+        return rtrim($public, '/');
+    }
+
+    /**
+     * Meta/OTPIQ fetch the header image before delivery. A 404 means the message
+     * is accepted by OTPIQ but never arrives on the phone — so we refuse to send.
+     */
+    public function assertBadgeImageReachable(string $url): void
+    {
+        $response = Http::timeout(15)
+            ->withOptions(['allow_redirects' => true])
+            ->head($url);
+
+        if (in_array($response->status(), [405, 501], true)) {
+            $response = Http::timeout(15)
+                ->withOptions(['allow_redirects' => true])
+                ->get($url);
+        }
+
+        if ($response->ok()) {
+            return;
+        }
+
+        WhatsAppLog::error('whatsapp.badge_image_unreachable', [
+            'url' => $url,
+            'http_status' => $response->status(),
+        ]);
+
+        throw new RuntimeException(
+            'WhatsApp not sent: badge image is not reachable at '.$url.' (HTTP '.$response->status().'). '
+            .'Set OTPIQ_PUBLIC_URL to the host that serves this ticket, ensure the badge is generated, '
+            .'then run: php artisan config:clear && php artisan queue:restart'
+        );
     }
 
     private function shouldUseLocalHeaderSample(): bool

@@ -304,6 +304,77 @@ class OtpiqWhatsAppTest extends TestCase
         $this->assertStringNotContainsString('.pdf', $url);
     }
 
+    public function test_whatsapp_is_not_sent_when_the_badge_image_returns_404(): void
+    {
+        config([
+            'whatsapp.otpiq.public_url' => 'https://demi.nextstepfair.com',
+            'whatsapp.otpiq.send_header_image' => true,
+            'whatsapp.otpiq.send_button_link' => false,
+        ]);
+
+        Http::fake([
+            'https://demi.nextstepfair.com/*' => Http::response('', 404),
+            '*' => Http::response(['smsId' => 'should-not-send'], 200),
+        ]);
+
+        $registration = $this->registrant();
+        $registration->forceFill([
+            'ticket_id' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+            'badge_generated_at' => now(),
+        ])->save();
+
+        $message = $this->message($registration);
+
+        try {
+            (new SendWhatsAppMessage($message->id, ['name' => 'Zardasht'], withBadge: true))->handle(
+                app(WhatsAppGateway::class),
+                app(MessageDispatcher::class),
+                app(OtpiqTemplateRegistry::class),
+            );
+        } catch (\Throwable) {
+            // The job rethrows so the queue retries it.
+        }
+
+        $message->refresh();
+
+        $this->assertSame(Message::STATUS_FAILED, $message->status);
+        $this->assertStringContainsString('badge image is not reachable', (string) $message->error);
+        Http::assertNotSent(fn (ClientRequest $request) => $request->url() === 'https://api.otpiq.com/api/sms');
+    }
+
+    public function test_whatsapp_sends_when_the_badge_image_is_reachable(): void
+    {
+        config([
+            'whatsapp.otpiq.public_url' => 'https://demi.nextstepfair.com',
+            'whatsapp.otpiq.send_header_image' => true,
+            'whatsapp.otpiq.send_button_link' => false,
+        ]);
+
+        Http::fake([
+            'https://demi.nextstepfair.com/*' => Http::response('', 200),
+            'https://api.otpiq.com/api/sms' => Http::response(['smsId' => 'otpiq-badge-ok'], 200),
+        ]);
+
+        $registration = $this->registrant();
+        $registration->forceFill([
+            'ticket_id' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+            'badge_generated_at' => now(),
+        ])->save();
+
+        $message = $this->message($registration);
+
+        (new SendWhatsAppMessage($message->id, ['name' => 'Zardasht'], withBadge: true))->handle(
+            app(WhatsAppGateway::class),
+            app(MessageDispatcher::class),
+            app(OtpiqTemplateRegistry::class),
+        );
+
+        $message->refresh();
+
+        $this->assertSame('otpiq-badge-ok', $message->provider_message_id);
+        $this->assertSame(Message::STATUS_SENT, $message->status);
+    }
+
     public function test_a_rejected_send_is_recorded_with_the_provider_reason(): void
     {
         Http::fake(['*' => Http::response(['error' => 'template not found'], 422)]);

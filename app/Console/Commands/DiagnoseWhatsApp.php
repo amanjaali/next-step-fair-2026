@@ -27,6 +27,9 @@ class DiagnoseWhatsApp extends Command
         $this->line('WHATSAPP_DRIVER: '.config('whatsapp.driver'));
         $this->line('QUEUE_CONNECTION: '.config('queue.default'));
         $this->line('APP_ENV: '.config('app.env'));
+        $this->line('LOG_LEVEL: '.env('LOG_LEVEL', 'debug').' (laravel-*.log)');
+        $this->line('WHATSAPP_LOG_LEVEL: '.env('WHATSAPP_LOG_LEVEL', 'debug').' (whatsapp-*.log)');
+        $this->line('whatsapp log file: '.storage_path('logs'));
         $this->line('config cached: '.($configCached ? 'yes' : 'no'));
 
         $this->line('');

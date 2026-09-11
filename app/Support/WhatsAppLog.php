@@ -8,9 +8,9 @@ use Psr\Log\LoggerInterface;
 /**
  * WhatsApp delivery tracing.
  *
- * Writes to storage/logs/whatsapp-*.log and mirrors the same line to the default
- * log stack (laravel-*.log) so a missing dedicated file on the server still
- * leaves a trace after deploy.
+ * Always writes to storage/logs/whatsapp-*.log (level from WHATSAPP_LOG_LEVEL,
+ * default debug). Errors and warnings are also mirrored to the default stack
+ * so they appear in laravel-*.log when LOG_LEVEL=warning.
  */
 final class WhatsAppLog
 {
@@ -48,6 +48,9 @@ final class WhatsAppLog
             Log::{$level}('[whatsapp] '.$event, $payload + ['log_channel_error' => $e->getMessage()]);
         }
 
-        Log::{$level}('[whatsapp] '.$event, $payload);
+        // INFO lines stay in whatsapp-*.log only; errors/warnings also hit laravel-*.log.
+        if (in_array($level, ['error', 'warning'], true)) {
+            Log::{$level}('[whatsapp] '.$event, $payload);
+        }
     }
 }

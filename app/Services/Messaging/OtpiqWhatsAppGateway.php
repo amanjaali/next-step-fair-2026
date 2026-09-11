@@ -143,6 +143,17 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
     {
         $config = config('whatsapp.otpiq', []);
 
+        // Exact JSON body — Laravel's array encoder can turn button key "0" into
+        // a list and Meta then accepts the SMS but never delivers the WhatsApp.
+        $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+
+        // Stored for the admin as a plain array (objects → arrays for JSON column).
+        $message->forceFill(['payload' => json_decode($json, true)])->save();
+
+        $url = rtrim((string) ($config['base_url'] ?? 'https://api.otpiq.com/api'), '/').'/sms';
+
+        $this->logOutboundRequest($message, $url, $payload, $json);
+
         if (! $config['api_key']) {
             $cached = is_file(base_path('bootstrap/cache/config.php'));
 
@@ -150,6 +161,10 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
                 'message_id' => $message->id,
                 'config_cached' => $cached,
                 'driver' => config('whatsapp.driver'),
+                'url' => $url,
+                'template' => $payload['templateName'] ?? null,
+                'phone' => $payload['phoneNumber'] ?? null,
+                'json' => $json,
             ]);
 
             throw new RuntimeException(
@@ -160,34 +175,22 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         }
 
         if (! $config['account_id'] || ! $config['phone_id']) {
+            WhatsAppLog::error('otpiq.not_configured', [
+                'message_id' => $message->id,
+                'missing' => array_values(array_filter([
+                    empty($config['account_id']) ? 'account_id' : null,
+                    empty($config['phone_id']) ? 'phone_id' : null,
+                ])),
+                'url' => $url,
+                'template' => $payload['templateName'] ?? null,
+                'json' => $json,
+            ]);
+
             throw new RuntimeException(
                 'OTPIQ is not configured: OTPIQ_WHATSAPP_ACCOUNT_ID and OTPIQ_WHATSAPP_PHONE_ID '
                 .'come from the WhatsApp account in the OTPIQ dashboard.'
             );
         }
-
-        // Exact JSON body — Laravel's array encoder can turn button key "0" into
-        // a list and Meta then accepts the SMS but never delivers the WhatsApp.
-        $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-
-        // Stored for the admin as a plain array (objects → arrays for JSON column).
-        $message->forceFill(['payload' => json_decode($json, true)])->save();
-
-        $url = rtrim($config['base_url'], '/').'/sms';
-
-        WhatsAppLog::info('otpiq.request', [
-            'message_id' => $message->id,
-            'url' => $url,
-            'template' => $payload['templateName'] ?? null,
-            'template_id' => $this->templates->get($message->template_key, $message->locale)['id'] ?? null,
-            'phone' => $payload['phoneNumber'] ?? null,
-            'account_id' => $payload['whatsappAccountId'] ?? null,
-            'phone_id' => $payload['whatsappPhoneId'] ?? null,
-            'has_header' => isset($payload['templateParameters']['header']),
-            'has_buttons' => isset($payload['templateParameters']['buttons']),
-            'body' => $payload['templateParameters']['body'] ?? null,
-            'json' => $json,
-        ]);
 
         $request = Http::withToken($config['api_key'])
             ->timeout($config['timeout'])
@@ -199,7 +202,9 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             $request = $request->withoutVerifying();
         }
 
+        $started = microtime(true);
         $response = $request->post($url);
+        $elapsedMs = (int) round((microtime(true) - $started) * 1000);
 
         if ($response->failed()) {
             $reason = $response->json('error')
@@ -209,6 +214,11 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             WhatsAppLog::error('otpiq.rejected', [
                 'message_id' => $message->id,
                 'http_status' => $response->status(),
+                'elapsed_ms' => $elapsedMs,
+                'url' => $url,
+                'template' => $payload['templateName'] ?? null,
+                'phone' => $payload['phoneNumber'] ?? null,
+                'request_json' => $json,
                 'response' => $response->json() ?? $response->body(),
             ]);
 
@@ -220,12 +230,42 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         WhatsAppLog::info('otpiq.accepted', [
             'message_id' => $message->id,
             'sms_id' => $smsId,
+            'elapsed_ms' => $elapsedMs,
+            'http_status' => $response->status(),
             'remaining_credit' => $response->json('remainingCredit'),
             'cost' => $response->json('cost'),
             'response' => $response->json(),
         ]);
 
         return $smsId;
+    }
+
+    /** @param  array<string, mixed>  $payload */
+    private function logOutboundRequest(Message $message, string $url, array $payload, string $json): void
+    {
+        $templateKey = $message->template_key;
+        $locale = $message->locale;
+
+        WhatsAppLog::info('otpiq.request', [
+            'message_id' => $message->id,
+            'registration_id' => $message->registration_id,
+            'url' => $url,
+            'template_key' => $templateKey,
+            'template' => $payload['templateName'] ?? null,
+            'template_id' => $templateKey ? ($this->templates->get($templateKey, $locale)['id'] ?? null) : null,
+            'locale' => $locale,
+            'phone' => $payload['phoneNumber'] ?? null,
+            'account_id' => $payload['whatsappAccountId'] ?? null,
+            'phone_id' => $payload['whatsappPhoneId'] ?? null,
+            'has_header' => isset($payload['templateParameters']['header']),
+            'has_buttons' => isset($payload['templateParameters']['buttons']),
+            'header' => $payload['templateParameters']['header'] ?? null,
+            'buttons' => isset($payload['templateParameters']['buttons'])
+                ? json_decode(json_encode($payload['templateParameters']['buttons']), true)
+                : null,
+            'body' => $payload['templateParameters']['body'] ?? null,
+            'json' => $json,
+        ]);
     }
 
     /** OTPIQ want country code and number, digits only: 964770xxxxxxx. */

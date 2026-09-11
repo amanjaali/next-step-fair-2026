@@ -73,11 +73,12 @@ return [
             'replace_placeholders' => true,
         ],
 
-        // Every WhatsApp queue/send — grep storage/logs/whatsapp.log on the server.
+        // WhatsApp / OTPIQ tracing — independent of LOG_LEVEL so otpiq.request
+        // still lands when the app stack is set to warning in production.
         'whatsapp' => [
             'driver' => 'daily',
             'path' => storage_path('logs/whatsapp.log'),
-            'level' => env('LOG_LEVEL', 'debug'),
+            'level' => env('WHATSAPP_LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
         ],

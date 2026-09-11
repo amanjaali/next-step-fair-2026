@@ -75,6 +75,7 @@ class SendWhatsAppMessage implements ShouldQueue
             if ($this->withBadge && $message->registration) {
                 if ($this->shouldSendHeaderImage()) {
                     $mediaUrl = $dispatcher->badgeUrl($message->registration);
+                    $dispatcher->assertBadgeImageReachable($mediaUrl);
                 }
 
                 if (config('whatsapp.otpiq.send_button_link')) {
