@@ -69,11 +69,9 @@ class SendWhatsAppMessage implements ShouldQueue
             $linkParam = null;
 
             // The badge travels two ways in the same message: the picture in the
-            // template's header, and the link on its button. A template approved
-            // without one of them simply ignores what it was not given, so both
-            // are offered whenever there is a badge to offer.
-            // Badge templates are approved with an IMAGE header — OTPIQ rejects the
-            // send when imageUrl is missing, regardless of OTPIQ_SEND_HEADER_IMAGE.
+            // template's header, and the link on its button. Fair and conference
+            // confirmations are approved with an IMAGE header — Meta drops the whole
+            // template when imageUrl is missing or its fetch times out.
             if ($this->withBadge && $message->registration) {
                 $mediaUrl = $dispatcher->badgeUrl($message->registration);
                 $dispatcher->assertBadgeImageReachable($mediaUrl, $message->registration);

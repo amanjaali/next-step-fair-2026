@@ -8,6 +8,7 @@ use App\Models\Registration;
 use App\Models\User;
 use App\Services\TicketService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class TicketAndCheckinTest extends TestCase
@@ -76,6 +77,22 @@ class TicketAndCheckinTest extends TestCase
         $this->get("/ticket/{$registration->ticket_id}/calendar.ics")
             ->assertOk()
             ->assertSee('BEGIN:VCALENDAR');
+    }
+
+    public function test_the_badge_png_is_served_from_storage_for_meta_to_fetch_quickly(): void
+    {
+        $registration = $this->confirmed();
+        $path = 'badges/'.$registration->ticket_id.'.png';
+        $bytes = "\x89PNG\r\n\x1a\nstored-badge";
+
+        Storage::disk(config('filesystems.default'))->put($path, $bytes);
+        $registration->forceFill(['badge_png_path' => $path])->save();
+
+        $this->get("/ticket/{$registration->ticket_id}/badge.png")
+            ->assertOk()
+            ->assertHeader('content-type', 'image/png')
+            ->assertHeader('content-disposition', 'inline; filename="next-step-badge-'.$registration->ticket_ref.'.png"')
+            ->assertContent($bytes);
     }
 
     public function test_the_scanner_is_staff_only(): void

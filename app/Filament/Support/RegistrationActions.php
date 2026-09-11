@@ -5,6 +5,7 @@ namespace App\Filament\Support;
 use App\Models\Registration;
 use App\Services\BadgeService;
 use App\Services\Messaging\MessageDispatcher;
+use App\Services\RegistrationConfirmer;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Forms\Components\TextInput;
@@ -177,24 +178,32 @@ class RegistrationActions
     private static function applyResend(Collection|\Illuminate\Support\Collection $records): void
     {
         $dispatcher = app(MessageDispatcher::class);
+        $confirmer = app(RegistrationConfirmer::class);
         $sent = 0;
 
         foreach ($records as $record) {
-            if (! $record->isConference() || ! $record->badgeIssued()) {
+            if (! $record->badgeIssued()) {
                 continue;
             }
 
-            $dispatcher->whatsapp(
-                $record,
-                'rsvp_confirmed',
-                [
-                    'name' => $record->firstName(),
-                    'ticket' => $record->ticket_ref,
-                ],
-                withBadge: true,
-            );
+            if ($record->isConference()) {
+                $dispatcher->whatsapp(
+                    $record,
+                    'rsvp_confirmed',
+                    [
+                        'name' => $record->firstName(),
+                        'ticket' => $record->ticket_ref,
+                    ],
+                    withBadge: true,
+                );
+                $sent++;
 
-            $sent++;
+                continue;
+            }
+
+            if ($record->isFair() && $confirmer->sendFairConfirmationWhatsApp($record)) {
+                $sent++;
+            }
         }
 
         Notification::make()->title(__('admin.notify.resent', ['count' => $sent]))->success()->send();
@@ -203,13 +212,20 @@ class RegistrationActions
     private static function applyRegenerate(Collection|\Illuminate\Support\Collection $records): void
     {
         $badges = app(BadgeService::class);
+        $confirmer = app(RegistrationConfirmer::class);
         $count = 0;
 
         foreach ($records as $record) {
             if (! $record->badgeIssued()) {
                 continue;
             }
+
             $badges->generate($record);
+
+            if ($record->isFair()) {
+                $confirmer->sendFairConfirmationWhatsApp($record);
+            }
+
             $count++;
         }
 

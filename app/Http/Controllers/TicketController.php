@@ -9,6 +9,7 @@ use App\Services\QrCodeService;
 use App\Services\TicketService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 /**
@@ -52,9 +53,23 @@ class TicketController extends Controller
     {
         $registration = $this->findIssued($ticket);
 
-        return response($this->badges->png($registration))
-            ->header('Content-Type', 'image/png')
-            ->header('Content-Disposition', 'attachment; filename="next-step-badge-'.$registration->ticket_ref.'.png"');
+        $filename = 'next-step-badge-'.$registration->ticket_ref.'.png';
+        $headers = [
+            'Content-Type' => 'image/png',
+            // Meta fetches the header image before delivery — attachment makes some
+            // crawlers treat it as a download and the whole template is dropped.
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ];
+
+        $path = $registration->badge_png_path;
+        $disk = Storage::disk(config('filesystems.default'));
+
+        if (is_string($path) && $path !== '' && $disk->exists($path)) {
+            return response($disk->get($path), 200, $headers);
+        }
+
+        return response($this->badges->png($registration), 200, $headers);
     }
 
     public function pdf(string $ticket): Response

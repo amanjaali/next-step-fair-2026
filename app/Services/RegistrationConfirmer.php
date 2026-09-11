@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Message;
 use App\Models\Registration;
 use App\Services\Messaging\MessageDispatcher;
 use App\Support\WhatsAppLog;
@@ -41,10 +42,11 @@ class RegistrationConfirmer
             'phone' => $registration->maskedPhone(),
         ]);
 
-        $this->queueWhatsAppConfirmation($registration);
+        $this->sendFairConfirmationWhatsApp($registration);
     }
 
-    private function queueWhatsAppConfirmation(Registration $registration): void
+    /** Queues the fair student/parent confirmation with the badge attached. */
+    public function sendFairConfirmationWhatsApp(Registration $registration): ?Message
     {
         if (! $registration->isFair()) {
             WhatsAppLog::info('whatsapp.skipped_not_fair', [
@@ -52,14 +54,10 @@ class RegistrationConfirmer
                 'track' => $registration->track,
             ]);
 
-            return;
+            return null;
         }
 
-        $templateKey = match ($registration->type) {
-            Registration::TYPE_STUDENT => 'registration_confirmed_student',
-            Registration::TYPE_PARENT => 'registration_confirmed_parent',
-            default => null,
-        };
+        $templateKey = $this->fairConfirmationTemplateKey($registration);
 
         if (! $templateKey) {
             WhatsAppLog::info('whatsapp.skipped_no_template', [
@@ -67,10 +65,10 @@ class RegistrationConfirmer
                 'type' => $registration->type,
             ]);
 
-            return;
+            return null;
         }
 
-        $this->dispatcher->whatsapp(
+        return $this->dispatcher->whatsapp(
             $registration,
             $templateKey,
             [
@@ -80,5 +78,14 @@ class RegistrationConfirmer
             ],
             withBadge: true,
         );
+    }
+
+    private function fairConfirmationTemplateKey(Registration $registration): ?string
+    {
+        return match ($registration->type) {
+            Registration::TYPE_STUDENT => 'registration_confirmed_student',
+            Registration::TYPE_PARENT => 'registration_confirmed_parent',
+            default => null,
+        };
     }
 }
