@@ -121,10 +121,15 @@ class MessageDispatcher
      * URL-button tail for the template approved as …/ticket/{{1}}.
      *
      * OTPIQ's example uses "{ticket}/badge.png" (PNG only — not PDF, not /b/).
+     * 
+     * Conference (RSVP) templates require a leading slash: "/6bdf0806.../badge.png"
+     * Fair (student/parent) templates do NOT: "6bdf0806.../badge.png"
      */
     public function badgeLinkParam(Registration $registration): string
     {
-        return $registration->ticket_id.'/badge.png';
+        $param = $registration->ticket_id.'/badge.png';
+        
+        return $registration->isConference() ? '/'.$param : $param;
     }
 
     /**

@@ -297,7 +297,6 @@ class DemoDataSeeder extends Seeder
             'recipient' => $registration->msisdn(),
             'preview' => __('notifications.whatsapp.rsvp_confirmed', [
                 'name' => $registration->firstName(),
-                'ticket' => $registration->ticket_ref,
             ], $registration->locale),
             'status' => Message::STATUS_DELIVERED,
             'queued_at' => $registration->approved_at ?? $sentAt,

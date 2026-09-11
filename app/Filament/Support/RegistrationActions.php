@@ -164,7 +164,7 @@ class RegistrationActions
                 app(MessageDispatcher::class)->whatsapp(
                     $record,
                     'rsvp_confirmed',
-                    ['name' => $record->firstName(), 'ticket' => $record->ticket_ref],
+                    ['name' => $record->firstName()],
                     withBadge: true,
                 );
             }
@@ -192,7 +192,6 @@ class RegistrationActions
                     'rsvp_confirmed',
                     [
                         'name' => $record->firstName(),
-                        'ticket' => $record->ticket_ref,
                     ],
                     withBadge: true,
                 );

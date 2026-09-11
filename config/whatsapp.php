@@ -81,7 +81,7 @@ return [
     'otpiq_templates' => [
         'rsvp_confirmed' => [
             'en' => ['body' => ['name'], 'header' => true, 'button' => true],
-            'ku' => ['body' => ['name', 'ticket'], 'header' => true, 'button' => true],
+            'ku' => ['body' => ['name'], 'header' => true, 'button' => true],
             'ar' => ['body' => ['name'], 'header' => true, 'button' => true],
         ],
 

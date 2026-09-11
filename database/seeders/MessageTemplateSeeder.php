@@ -20,6 +20,7 @@ class MessageTemplateSeeder extends Seeder
 
         $whatsapp = [
             'otp' => ['code'],
+            'rsvp_confirmed' => ['name'],
             'registration_confirmed_student' => ['name'],
             'registration_confirmed_parent' => ['name'],
             // The visitor pass confirms through the same path, so it needs its own

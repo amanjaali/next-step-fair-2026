@@ -88,8 +88,8 @@ class OtpiqWhatsAppTest extends TestCase
     }
 
     /**
-     * Conference RSVP uses rsvp_confirmed_*. Kurdish keeps name + ticket;
-     * English drops ticket from the body (badge travels on the URL button).
+     * Conference RSVP uses rsvp_confirmed_*. All three languages (en, ku, ar)
+     * now send only the name parameter (badge link travels on the URL button).
      */
     /** Decode the raw JSON body we send with withBody(). */
     private function jsonBody(ClientRequest $request): array
@@ -110,7 +110,7 @@ class OtpiqWhatsAppTest extends TestCase
             $message,
             'rsvp_confirmed',
             'ku',
-            ['name' => 'Zardasht', 'ticket' => '90FD-2F0A-905B'],
+            ['name' => 'Zardasht'],
         );
 
         Http::assertSent(function (ClientRequest $request) {
@@ -124,7 +124,6 @@ class OtpiqWhatsAppTest extends TestCase
                 && $body['whatsappPhoneId'] === 'phone_456'
                 && $body['templateParameters']['body'] === [
                     '1' => 'Zardasht',
-                    '2' => '90FD-2F0A-905B',
                 ];
         });
     }
