@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Registration;
-use App\Rules\Captcha;
+use App\Services\CaptchaService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -32,8 +32,8 @@ class StoreConferenceRsvpRequest extends FormRequest
             'locale' => ['required', Rule::in(array_keys(config('nextstep.locales')))],
 
             'consent_terms' => ['accepted'],
-            'captcha' => ['required', 'string', new Captcha],
 
+            ...app(CaptchaService::class)->validationRules(),
         ];
     }
 

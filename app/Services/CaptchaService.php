@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Rules\Captcha;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 
@@ -32,6 +33,23 @@ class CaptchaService
     private const KEY = 'captcha';
 
     private const TTL_MINUTES = 20;
+
+    public function enabled(): bool
+    {
+        return (bool) config('nextstep.captcha.enabled', true);
+    }
+
+    /** @return array<string, list<mixed>> */
+    public function validationRules(): array
+    {
+        if (! $this->enabled()) {
+            return [];
+        }
+
+        return [
+            'captcha' => ['required', 'string', new Captcha],
+        ];
+    }
 
     /** A new code, remembered as a hash so the session never carries the answer. */
     public function issue(): string

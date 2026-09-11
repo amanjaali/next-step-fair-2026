@@ -223,6 +223,10 @@ return [
         'tiktok_pixel' => env('TIKTOK_PIXEL_ID'),
     ],
 
+    'captcha' => [
+        'enabled' => (bool) env('CAPTCHA_ENABLED', true),
+    ],
+
     'turnstile' => [
         'enabled' => env('TURNSTILE_ENABLED', false),
         'site_key' => env('TURNSTILE_SITE_KEY'),

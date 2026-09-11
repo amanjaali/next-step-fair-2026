@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Registration;
-use App\Rules\Captcha;
+use App\Services\CaptchaService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -53,9 +53,7 @@ class StoreFairRegistrationRequest extends FormRequest
 
             'consent_terms' => ['accepted'],
 
-            // The badge is issued on submission now, so this is the only thing
-            // standing between the form and a script filling it in all night.
-            'captcha' => ['required', 'string', new Captcha],
+            ...app(CaptchaService::class)->validationRules(),
         ];
     }
 

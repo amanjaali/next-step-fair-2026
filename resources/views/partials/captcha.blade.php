@@ -5,7 +5,10 @@
     looks last. The picture is reloaded by appending a changing query string
     rather than by anything clever: the server draws a new challenge on every
     request, so a new URL is a new code.
+
+    Toggle with CAPTCHA_ENABLED in .env (see config/nextstep.php).
 --}}
+@if (config('nextstep.captcha.enabled'))
 <div class="mb-6">
     <label for="ns-captcha" class="ns-label">{{ __('register.captcha.label') }}</label>
 
@@ -48,3 +51,4 @@
         </div>
     </div>
 </div>
+@endif

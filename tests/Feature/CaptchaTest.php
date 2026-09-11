@@ -35,12 +35,40 @@ class CaptchaTest extends TestCase
     }
 
     #[DataProvider('forms')]
-    public function test_every_registration_form_shows_the_code(string $url): void
+    public function test_every_registration_form_shows_the_code_when_enabled(string $url): void
     {
+        config(['nextstep.captcha.enabled' => true]);
+
         $this->get($url)->assertOk()
             ->assertSee(__('register.captcha.label'))
             ->assertSee('name="captcha"', false)
             ->assertSee(route('captcha'), false);
+    }
+
+    #[DataProvider('forms')]
+    public function test_the_code_field_is_hidden_when_captcha_is_disabled(string $url): void
+    {
+        config(['nextstep.captcha.enabled' => false]);
+
+        $this->get($url)->assertOk()
+            ->assertDontSee(__('register.captcha.label'))
+            ->assertDontSee('name="captcha"', false);
+    }
+
+    public function test_the_fair_form_registers_without_captcha_when_disabled(): void
+    {
+        config(['nextstep.captcha.enabled' => false]);
+
+        $before = Registration::count();
+
+        $this->post('/en/register/fair', [
+            'type' => 'student', 'full_name' => 'Nma Salar', 'date_of_birth' => '2008-02-02',
+            'phone_country' => '+964', 'phone' => '07704118800', 'city' => 'Sulaimani',
+            'locale' => 'en', 'education_stage' => 'grade12',
+            'email' => 'nma-disabled-captcha@example.com', 'password' => 'a-good-password', 'consent_terms' => '1',
+        ])->assertRedirect();
+
+        $this->assertSame($before + 1, Registration::count());
     }
 
     public function test_the_picture_is_a_png_and_is_never_cached(): void

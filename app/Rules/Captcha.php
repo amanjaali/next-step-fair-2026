@@ -11,7 +11,13 @@ class Captcha implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! app(CaptchaService::class)->check(is_string($value) ? $value : null)) {
+        $service = app(CaptchaService::class);
+
+        if (! $service->enabled()) {
+            return;
+        }
+
+        if (! $service->check(is_string($value) ? $value : null)) {
             $fail(__('register.errors.captcha'));
         }
     }

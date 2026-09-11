@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Attendee;
 
 use App\Http\Controllers\Controller;
 use App\Models\Registration;
-use App\Rules\Captcha;
+use App\Services\CaptchaService;
 use App\Services\RegistrationConfirmer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,7 +47,7 @@ class QuickPassController extends Controller
             'phone_country' => ['required', 'string', 'max:8'],
             'phone' => ['required', 'string', 'regex:/^0?[0-9]{9,12}$/'],
             'consent_terms' => ['accepted'],
-            'captcha' => ['required', 'string', new Captcha],
+            ...app(CaptchaService::class)->validationRules(),
         ], [
             'full_name.required' => __('register.errors.name'),
             'phone.required' => __('register.errors.phone'),
