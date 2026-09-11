@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use App\Services\Messaging\OtpiqConfigRegistry;
+use App\Support\WhatsAppLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -43,7 +44,16 @@ class OtpiqWebhookController extends Controller
             return response('OK');
         }
 
-        $this->apply($message, strtolower((string) $request->input('status')));
+        $status = strtolower((string) $request->input('status'));
+
+        $this->apply($message, $status);
+
+        WhatsAppLog::info('otpiq.webhook', [
+            'message_id' => $message->id,
+            'sms_id' => $request->input('smsId'),
+            'status' => $status,
+            'new_message_status' => $message->fresh()?->status,
+        ]);
 
         return response('OK');
     }

@@ -7,9 +7,9 @@ use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Services\Messaging\MessageDispatcher;
 use App\Services\Messaging\OtpiqConfigRegistry;
 use App\Services\Messaging\OtpiqTemplateRegistry;
+use App\Support\WhatsAppLog;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -48,7 +48,19 @@ class SendWhatsAppMessage implements ShouldQueue
     {
         $message = Message::with('registration')->find($this->messageId);
 
-        if (! $message || $message->status === Message::STATUS_DELIVERED) {
+        if (! $message) {
+            WhatsAppLog::warning('whatsapp.job_missing_message', [
+                'message_id' => $this->messageId,
+            ]);
+
+            return;
+        }
+
+        if ($message->status === Message::STATUS_DELIVERED) {
+            WhatsAppLog::info('whatsapp.job_already_delivered', [
+                'message_id' => $message->id,
+            ]);
+
             return;
         }
 
@@ -72,15 +84,21 @@ class SendWhatsAppMessage implements ShouldQueue
                 }
             }
 
-            Log::info('SendWhatsAppMessage job running', [
+            WhatsAppLog::info('whatsapp.sending', [
                 'message_id' => $message->id,
+                'registration_id' => $message->registration_id,
+                'ticket_id' => $message->registration?->ticket_id,
+                'attempt' => $message->attempts,
                 'driver' => $gateway->name(),
                 'template_key' => $message->template_key,
                 'locale' => $message->locale,
                 'recipient' => $message->recipient,
                 'with_badge' => $this->withBadge,
+                'send_header_image' => $mediaUrl !== null,
+                'send_button_link' => $linkParam !== null,
                 'media_url' => $mediaUrl,
                 'link_param' => $linkParam,
+                'variables' => $this->variables,
             ]);
 
             $providerId = $gateway->sendTemplate(
@@ -106,10 +124,26 @@ class SendWhatsAppMessage implements ShouldQueue
                     'delivered_at' => now(),
                 ])->save();
             }
+
+            $message->refresh();
+
+            WhatsAppLog::info('whatsapp.sent', [
+                'message_id' => $message->id,
+                'registration_id' => $message->registration_id,
+                'ticket_id' => $message->registration?->ticket_id,
+                'status' => $message->status,
+                'provider_message_id' => $message->provider_message_id,
+                'driver' => $gateway->name(),
+                'template_key' => $message->template_key,
+                'recipient' => $message->recipient,
+            ]);
         } catch (Throwable $e) {
-            Log::error('SendWhatsAppMessage job failed', [
+            WhatsAppLog::error('whatsapp.send_failed', [
                 'message_id' => $this->messageId,
+                'registration_id' => $message->registration_id ?? null,
+                'attempt' => $message->attempts ?? null,
                 'error' => $e->getMessage(),
+                'exception' => $e::class,
             ]);
 
             $message->forceFill([
@@ -128,6 +162,11 @@ class SendWhatsAppMessage implements ShouldQueue
             'status' => Message::STATUS_FAILED,
             'error' => $e->getMessage(),
             'failed_at' => now(),
+        ]);
+
+        WhatsAppLog::error('whatsapp.job_failed_permanently', [
+            'message_id' => $this->messageId,
+            'error' => $e->getMessage(),
         ]);
     }
 

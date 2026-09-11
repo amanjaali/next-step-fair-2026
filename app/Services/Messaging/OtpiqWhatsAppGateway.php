@@ -4,8 +4,8 @@ namespace App\Services\Messaging;
 
 use App\Models\Message;
 use App\Services\Messaging\Contracts\WhatsAppGateway;
+use App\Support\WhatsAppLog;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
@@ -164,11 +164,17 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
 
         $url = rtrim($config['base_url'], '/').'/sms';
 
-        Log::info('OTPIQ WhatsApp send starting', [
+        WhatsAppLog::info('otpiq.request', [
             'message_id' => $message->id,
+            'url' => $url,
             'template' => $payload['templateName'] ?? null,
             'template_id' => $this->templates->get($message->template_key, $message->locale)['id'] ?? null,
             'phone' => $payload['phoneNumber'] ?? null,
+            'account_id' => $payload['whatsappAccountId'] ?? null,
+            'phone_id' => $payload['whatsappPhoneId'] ?? null,
+            'has_header' => isset($payload['templateParameters']['header']),
+            'has_buttons' => isset($payload['templateParameters']['buttons']),
+            'body' => $payload['templateParameters']['body'] ?? null,
             'json' => $json,
         ]);
 
@@ -189,11 +195,10 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
                 ?? $response->json('message')
                 ?? $response->body();
 
-            Log::error('OTPIQ WhatsApp send failed', [
+            WhatsAppLog::error('otpiq.rejected', [
                 'message_id' => $message->id,
-                'status' => $response->status(),
-                'body' => $response->json() ?? $response->body(),
-                'payload' => $payload,
+                'http_status' => $response->status(),
+                'response' => $response->json() ?? $response->body(),
             ]);
 
             throw new RuntimeException('OTPIQ send failed: '.(is_string($reason) ? $reason : json_encode($reason)));
@@ -201,11 +206,12 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
 
         $smsId = $response->json('smsId');
 
-        Log::info('OTPIQ WhatsApp send accepted', [
+        WhatsAppLog::info('otpiq.accepted', [
             'message_id' => $message->id,
             'sms_id' => $smsId,
             'remaining_credit' => $response->json('remainingCredit'),
             'cost' => $response->json('cost'),
+            'response' => $response->json(),
         ]);
 
         return $smsId;

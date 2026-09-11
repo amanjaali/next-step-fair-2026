@@ -4,7 +4,7 @@ namespace App\Services\Messaging;
 
 use App\Models\Message;
 use App\Services\Messaging\Contracts\WhatsAppGateway;
-use Illuminate\Support\Facades\Log;
+use App\Support\WhatsAppLog;
 use Illuminate\Support\Str;
 
 /**
@@ -24,7 +24,7 @@ class LogWhatsAppGateway implements WhatsAppGateway
         ?string $mediaUrl = null,
         ?string $linkParam = null,
     ): ?string {
-        Log::channel(config('logging.default'))->info('[whatsapp:log] template', [
+        WhatsAppLog::info('log_driver.template', [
             'template' => $template,
             'locale' => $locale,
             'to' => $message->recipient,
@@ -39,7 +39,7 @@ class LogWhatsAppGateway implements WhatsAppGateway
 
     public function sendText(Message $message, string $body): ?string
     {
-        Log::channel(config('logging.default'))->info('[whatsapp:log] text', [
+        WhatsAppLog::info('log_driver.text', [
             'to' => $message->recipient,
             'body' => $body,
         ]);

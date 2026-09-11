@@ -4,6 +4,7 @@ namespace App\Services\Messaging;
 
 use App\Models\OtpVerification;
 use App\Models\Registration;
+use App\Support\WhatsAppLog;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -31,6 +32,15 @@ class OtpService
         if ($this->inTestMode()) {
             cache()->put($this->previewKey($verification), $code, now()->addMinutes(15));
         }
+
+        WhatsAppLog::info('otp.issued_not_sent_via_whatsapp', [
+            'registration_id' => $registration->id,
+            'ticket_id' => $registration->ticket_id,
+            'phone' => $registration->maskedPhone(),
+            'verification_id' => $verification->id,
+            'debug_preview_available' => $this->inTestMode(),
+            'note' => 'Fair OTP is not sent over WhatsApp. The badge confirmation is queued after verify.',
+        ]);
 
         return $verification;
     }
@@ -106,6 +116,13 @@ class OtpService
         }
 
         $verification->forceFill(['verified_at' => now()])->save();
+
+        WhatsAppLog::info('otp.verified', [
+            'registration_id' => $registration->id,
+            'ticket_id' => $registration->ticket_id,
+            'verification_id' => $verification->id,
+            'note' => 'Registration confirm() should queue the WhatsApp badge message next.',
+        ]);
 
         return 'verified';
     }

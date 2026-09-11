@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Registration;
 use App\Services\Messaging\MessageDispatcher;
+use App\Support\WhatsAppLog;
 
 /**
  * Turning a filled-in form into a badge in somebody's hand.
@@ -29,12 +30,27 @@ class RegistrationConfirmer
         ])->save();
 
         $this->badges->generate($registration);
+
+        WhatsAppLog::info('registration.confirmed', [
+            'registration_id' => $registration->id,
+            'ticket_id' => $registration->ticket_id,
+            'track' => $registration->track,
+            'type' => $registration->type,
+            'locale' => $registration->locale,
+            'phone' => $registration->maskedPhone(),
+        ]);
+
         $this->queueWhatsAppConfirmation($registration);
     }
 
     private function queueWhatsAppConfirmation(Registration $registration): void
     {
         if (! $registration->isFair()) {
+            WhatsAppLog::info('whatsapp.skipped_not_fair', [
+                'registration_id' => $registration->id,
+                'track' => $registration->track,
+            ]);
+
             return;
         }
 
@@ -45,6 +61,11 @@ class RegistrationConfirmer
         };
 
         if (! $templateKey) {
+            WhatsAppLog::info('whatsapp.skipped_no_template', [
+                'registration_id' => $registration->id,
+                'type' => $registration->type,
+            ]);
+
             return;
         }
 

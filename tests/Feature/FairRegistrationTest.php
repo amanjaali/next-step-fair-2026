@@ -150,8 +150,9 @@ class FairRegistrationTest extends TestCase
         $this->assertTrue(Registration::wherePhone('7704112288')->exists());
     }
 
-    public function test_verifying_the_otp_issues_a_badge_without_whatsapp(): void
+    public function test_verifying_the_otp_issues_a_badge_and_queues_whatsapp(): void
     {
+        Queue::fake();
         config(['nextstep.registration.verify_phone' => true]);
 
         $this->post('/en/register/fair', $this->payload());
@@ -170,11 +171,14 @@ class FairRegistrationTest extends TestCase
         $this->assertNotNull($registration->verified_at);
         $this->assertNotNull($registration->badge_generated_at);
 
-        $this->assertFalse(
+        $this->assertTrue(
             Message::where('registration_id', $registration->id)
                 ->where('channel', 'whatsapp')
+                ->where('template_key', 'registration_confirmed_student')
                 ->exists()
         );
+
+        Queue::assertPushed(SendWhatsAppMessage::class);
     }
 
     public function test_a_wrong_code_does_not_issue_a_badge(): void

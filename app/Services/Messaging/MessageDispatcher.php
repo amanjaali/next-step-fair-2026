@@ -6,6 +6,7 @@ use App\Jobs\SendWhatsAppMessage;
 use App\Models\Message;
 use App\Models\MessageTemplate;
 use App\Models\Registration;
+use App\Support\WhatsAppLog;
 
 /**
  * Queues outbound messages and records them in the delivery log.
@@ -25,6 +26,12 @@ class MessageDispatcher
         bool $withBadge = false,
     ): ?Message {
         if (! $registration->msisdn()) {
+            WhatsAppLog::warning('whatsapp.skipped_no_phone', [
+                'registration_id' => $registration->id,
+                'ticket_id' => $registration->ticket_id,
+                'template_key' => $templateKey,
+            ]);
+
             return null;
         }
 
@@ -50,6 +57,19 @@ class MessageDispatcher
         ]);
 
         SendWhatsAppMessage::dispatch($message->id, $variables, $withBadge);
+
+        WhatsAppLog::info('whatsapp.queued', [
+            'message_id' => $message->id,
+            'registration_id' => $registration->id,
+            'ticket_id' => $registration->ticket_id,
+            'template_key' => $templateKey,
+            'locale' => $locale,
+            'recipient' => $message->recipient,
+            'with_badge' => $withBadge,
+            'driver' => config('whatsapp.driver'),
+            'queue_connection' => config('queue.default'),
+            'variables' => $variables,
+        ]);
 
         return $message;
     }
