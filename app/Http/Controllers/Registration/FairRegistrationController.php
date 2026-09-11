@@ -16,8 +16,8 @@ use Illuminate\View\View;
 /**
  * Expo registration: one short form for students, a shorter one for parents.
  *
- * Submit and it is done — the badge is issued on the spot. WhatsApp via OTPIQ
- * is sent only from the conference RSVP form, not here.
+ * Submit and it is done — the badge is issued on the spot and the confirmation
+ * is queued on WhatsApp through RegistrationConfirmer.
  *
  * Phone verification still exists and is one setting away
  * (`nextstep.registration.verify_phone`); with it on, the flow returns to submit →

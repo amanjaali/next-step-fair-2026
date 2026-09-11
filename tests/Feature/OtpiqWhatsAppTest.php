@@ -234,12 +234,12 @@ class OtpiqWhatsAppTest extends TestCase
         });
     }
 
-    /** Local uses OTPIQ_LOCAL_HEADER_IMAGE so Meta can fetch a real PNG. */
-    public function test_local_env_uses_the_generated_badge_url(): void
+    /** Local laptop uses OTPIQ_LOCAL_HEADER_IMAGE when the public origin is localhost. */
+    public function test_local_env_uses_the_sample_header_when_the_public_origin_is_localhost(): void
     {
         $this->app['env'] = 'local';
         config([
-            'whatsapp.otpiq.public_url' => 'https://www.nextstepfair.com',
+            'whatsapp.otpiq.public_url' => 'http://127.0.0.1:8000',
             'whatsapp.otpiq.local_header_image' => 'https://www.nextstepfair.com/images/logo.png',
             'app.url' => 'http://127.0.0.1:8000',
         ]);
@@ -251,6 +251,27 @@ class OtpiqWhatsAppTest extends TestCase
 
         $this->assertSame('https://www.nextstepfair.com/images/logo.png', $url);
         $this->assertStringNotContainsString('127.0.0.1', $url);
+    }
+
+    /** Staging keeps the real badge URL even when APP_ENV is local. */
+    public function test_staging_public_url_is_used_even_in_local_env(): void
+    {
+        $this->app['env'] = 'local';
+        config([
+            'whatsapp.otpiq.public_url' => 'https://demi.nextstepfair.com',
+            'whatsapp.otpiq.local_header_image' => 'https://www.nextstepfair.com/images/logo.png',
+            'app.url' => 'http://127.0.0.1:8000',
+        ]);
+
+        $registration = $this->registrant();
+        $registration->forceFill(['ticket_id' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'])->save();
+
+        $url = app(MessageDispatcher::class)->badgeUrl($registration);
+
+        $this->assertSame(
+            'https://demi.nextstepfair.com/ticket/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/badge.png',
+            $url,
+        );
     }
 
     /** Production sends the real ticket badge PNG on the public domain. */

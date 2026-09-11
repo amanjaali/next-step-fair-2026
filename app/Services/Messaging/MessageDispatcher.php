@@ -15,14 +15,14 @@ use App\Models\Registration;
  */
 class MessageDispatcher
 {
-    /** Queues a WhatsApp template message for a conference RSVP registration. */
+    /** Queues a WhatsApp template message for a registration with a phone number. */
     public function whatsapp(
         Registration $registration,
         string $templateKey,
         array $variables = [],
         bool $withBadge = false,
     ): ?Message {
-        if (! $registration->isConference()) {
+        if (! $registration->msisdn()) {
             return null;
         }
 
@@ -75,13 +75,14 @@ class MessageDispatcher
      * works, and OTPIQ does not accept PDF headers. Domain comes from
      * OTPIQ_PUBLIC_URL (default https://www.nextstepfair.com).
      *
-     * On local, tickets only live in the local DB — a production badge URL 404s,
-     * Meta drops the message after OTPIQ already said "accepted". Use the sample
-     * PNG so delivery still works while testing from a laptop.
+     * When the public origin is localhost, tickets only live in the local DB — a
+     * production badge URL 404s and Meta drops the message. Use the sample PNG so
+     * delivery still works from a laptop. Staging hosts (e.g. demi.nextstepfair.com)
+     * always use the real badge URL from OTPIQ_PUBLIC_URL.
      */
     public function badgeUrl(Registration $registration): string
     {
-        if (app()->isLocal()) {
+        if ($this->shouldUseLocalHeaderSample()) {
             $sample = config('whatsapp.otpiq.local_header_image');
 
             if (is_string($sample) && $sample !== '') {
@@ -89,9 +90,7 @@ class MessageDispatcher
             }
         }
 
-        $public = rtrim((string) (config('whatsapp.otpiq.public_url') ?: 'https://www.nextstepfair.com'), '/');
-
-        return $public.'/ticket/'.$registration->ticket_id.'/badge.png';
+        return $this->publicOrigin().'/ticket/'.$registration->ticket_id.'/badge.png';
     }
 
     /**
@@ -102,5 +101,35 @@ class MessageDispatcher
     public function badgeLinkParam(Registration $registration): string
     {
         return $registration->ticket_id.'/badge.png';
+    }
+
+    /** HTTPS origin Meta/OTPIQ use for badge.png — from OTPIQ_PUBLIC_URL. */
+    public function publicOrigin(): string
+    {
+        $public = config('whatsapp.otpiq.public_url');
+
+        if (is_string($public) && $public !== '') {
+            return rtrim($public, '/');
+        }
+
+        $appUrl = config('app.url');
+
+        if (is_string($appUrl) && str_starts_with($appUrl, 'https://') && ! $this->isLocalhostUrl($appUrl)) {
+            return rtrim($appUrl, '/');
+        }
+
+        return 'https://www.nextstepfair.com';
+    }
+
+    private function shouldUseLocalHeaderSample(): bool
+    {
+        return $this->isLocalhostUrl($this->publicOrigin());
+    }
+
+    private function isLocalhostUrl(string $url): bool
+    {
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return in_array($host, ['localhost', '127.0.0.1', '[::1]'], true);
     }
 }

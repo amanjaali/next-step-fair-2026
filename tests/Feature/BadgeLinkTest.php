@@ -92,4 +92,17 @@ class BadgeLinkTest extends TestCase
         $this->assertStringNotContainsString('localhost', $url);
         $this->assertStringNotContainsString('.pdf', $url);
     }
+
+    public function test_the_header_image_url_uses_otpiq_public_url_on_staging(): void
+    {
+        config(['whatsapp.otpiq.public_url' => 'https://demi.nextstepfair.com']);
+
+        $registration = $this->registrant(['phone' => '7701114499']);
+        $url = app(MessageDispatcher::class)->badgeUrl($registration);
+
+        $this->assertSame(
+            "https://demi.nextstepfair.com/ticket/{$registration->ticket_id}/badge.png",
+            $url,
+        );
+    }
 }

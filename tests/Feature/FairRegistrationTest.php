@@ -58,10 +58,10 @@ class FairRegistrationTest extends TestCase
     }
 
     /**
-     * The form is the whole thing: a badge and a signed-in account, in one
-     * submission. No code screen stands between them. WhatsApp is conference-only.
+     * The form is the whole thing: a badge, a signed-in account, and the
+     * confirmation on WhatsApp, in one submission. No code screen stands between them.
      */
-    public function test_registering_issues_the_badge_without_whatsapp(): void
+    public function test_registering_issues_the_badge_and_queues_whatsapp(): void
     {
         Queue::fake();
 
@@ -84,13 +84,14 @@ class FairRegistrationTest extends TestCase
 
         $response->assertRedirect(route('register.fair.done', ['locale' => 'en', 'registration' => $registration->ticket_id]));
 
-        $this->assertFalse(
+        $this->assertTrue(
             Message::where('registration_id', $registration->id)
                 ->where('channel', 'whatsapp')
+                ->where('template_key', 'registration_confirmed_student')
                 ->exists()
         );
 
-        Queue::assertNotPushed(SendWhatsAppMessage::class);
+        Queue::assertPushed(SendWhatsAppMessage::class, fn (SendWhatsAppMessage $job) => $job->withBadge === true);
     }
 
     /** Registering signs them in — they have just proved who they are by doing it. */
