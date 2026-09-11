@@ -21,31 +21,22 @@ return [
 
     'driver' => env('WHATSAPP_DRIVER', 'log'),
 
+    /*
+     * OTPIQ credentials and badge flags live in otpiq_settings (OtpiqSettingsSeeder).
+     * These defaults apply only when the table is missing or not yet seeded.
+     */
     'otpiq' => [
-        'base_url' => env('OTPIQ_BASE_URL', 'https://api.otpiq.com/api'),
-        'api_key' => env('OTPIQ_API_KEY'),
-        // Both come from the WhatsApp account in the OTPIQ dashboard, not from Meta.
-        'account_id' => env('OTPIQ_WHATSAPP_ACCOUNT_ID'),
-        'phone_id' => env('OTPIQ_WHATSAPP_PHONE_ID'),
-        // Shared with OTPIQ so a delivery report can be told from a stranger's post.
-        'webhook_secret' => env('OTPIQ_WEBHOOK_SECRET'),
+        'base_url' => 'https://api.otpiq.com/api',
+        'api_key' => null,
+        'account_id' => null,
+        'phone_id' => null,
+        'webhook_secret' => null,
         'timeout' => 20,
-        /*
-         * Master switches. Header image is also gated per locale in
-         * otpiq_templates.*.header_image — only templates approved with an
-         * IMAGE header may receive imageUrl, or OTPIQ rejects the whole send.
-         *
-         * public_url: HTTPS origin Meta fetches for badge.png. Must never be
-         * localhost — OTPIQ/Meta cannot reach 127.0.0.1. Default is production.
-         */
-        'send_header_image' => (bool) env('OTPIQ_SEND_HEADER_IMAGE', false),
-        'send_button_link' => (bool) env('OTPIQ_SEND_BUTTON_LINK', false),
-        'public_url' => env('OTPIQ_PUBLIC_URL', 'https://www.nextstepfair.com'),
-        // Public sample PNG used in local — local ticket UUIDs do not exist on
-        // the production host, so Meta would 404 a real badge URL and drop the message.
-        'local_header_image' => env('OTPIQ_LOCAL_HEADER_IMAGE'),
-        // Local Windows often lacks a CA bundle; leave true in production.
-        'verify_ssl' => filter_var(env('OTPIQ_VERIFY_SSL', true), FILTER_VALIDATE_BOOL),
+        'send_header_image' => false,
+        'send_button_link' => false,
+        'public_url' => 'https://www.nextstepfair.com',
+        'local_header_image' => null,
+        'verify_ssl' => true,
     ],
 
     'cloud_api' => [
@@ -90,22 +81,21 @@ return [
     */
     'otpiq_templates' => [
 
+        // Dashboard ids live in otpiq_templates (OtpiqTemplateSeeder). These
+        // entries are the fallback when the table is empty or not migrated yet.
         'rsvp_confirmed' => [
             'en' => [
                 'name' => 'rsvp_confirmed_en_2026',
-                'id' => env('OTPIQ_TEMPLATE_RSVP_CONFIRMED_EN_ID'),
                 'body' => ['name'],
                 'header_image' => true,
             ],
             'ku' => [
                 'name' => 'rsvp_confirmed_ku_2026',
-                'id' => env('OTPIQ_TEMPLATE_RSVP_CONFIRMED_KU_ID'),
                 'body' => ['name', 'ticket'],
                 'header_image' => false,
             ],
             'ar' => [
                 'name' => 'rsvp_confirmed_ar_2026',
-                'id' => env('OTPIQ_TEMPLATE_RSVP_CONFIRMED_AR_ID'),
                 'body' => ['name'],
                 'header_image' => false,
             ],
@@ -114,19 +104,16 @@ return [
         'registration_confirmed_student' => [
             'en' => [
                 'name' => 'registration_confirmed_student_en_2026',
-                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_STUDENT_EN_ID'),
                 'body' => ['name', 'days', 'ticket'],
                 'header_image' => true,
             ],
             'ku' => [
                 'name' => 'registration_confirmed_student_ku_2026',
-                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_STUDENT_KU_ID'),
                 'body' => ['name', 'days', 'ticket'],
                 'header_image' => true,
             ],
             'ar' => [
                 'name' => 'registration_confirmed_student_ar_2026',
-                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_STUDENT_AR_ID'),
                 'body' => ['name', 'days', 'ticket'],
                 'header_image' => true,
             ],
@@ -135,19 +122,16 @@ return [
         'registration_confirmed_parent' => [
             'en' => [
                 'name' => 'registration_confirmed_parent_en_2026',
-                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_PARENT_EN_ID'),
                 'body' => ['name', 'days', 'ticket'],
                 'header_image' => true,
             ],
             'ku' => [
                 'name' => 'registration_confirmed_parent_ku_2026',
-                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_PARENT_KU_ID'),
                 'body' => ['name', 'days', 'ticket'],
                 'header_image' => true,
             ],
             'ar' => [
                 'name' => 'registration_confirmed_parent_ar_2026',
-                'id' => env('OTPIQ_TEMPLATE_REGISTRATION_CONFIRMED_PARENT_AR_ID'),
                 'body' => ['name', 'days', 'ticket'],
                 'header_image' => true,
             ],

@@ -8,6 +8,8 @@ use App\Models\Registration;
 use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Services\Messaging\LogWhatsAppGateway;
 use App\Services\Messaging\MessageDispatcher;
+use App\Services\Messaging\OtpiqConfigRegistry;
+use App\Services\Messaging\OtpiqTemplateRegistry;
 use App\Services\Messaging\OtpiqWhatsAppGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
@@ -168,7 +170,12 @@ class OtpiqWhatsAppTest extends TestCase
         $message = $this->message($registration);
 
         (new SendWhatsAppMessage($message->id, ['name' => 'Zardasht']))
-            ->handle(app(WhatsAppGateway::class), app(MessageDispatcher::class));
+            ->handle(
+                app(WhatsAppGateway::class),
+                app(MessageDispatcher::class),
+                app(OtpiqTemplateRegistry::class),
+                app(OtpiqConfigRegistry::class),
+            );
 
         $message->refresh();
 
@@ -304,7 +311,12 @@ class OtpiqWhatsAppTest extends TestCase
         $message = $this->message($registration);
 
         try {
-            (new SendWhatsAppMessage($message->id))->handle(app(WhatsAppGateway::class), app(MessageDispatcher::class));
+            (new SendWhatsAppMessage($message->id))->handle(
+                app(WhatsAppGateway::class),
+                app(MessageDispatcher::class),
+                app(OtpiqTemplateRegistry::class),
+                app(OtpiqConfigRegistry::class),
+            );
         } catch (\Throwable) {
             // The job rethrows so the queue retries it; the record is what matters here.
         }

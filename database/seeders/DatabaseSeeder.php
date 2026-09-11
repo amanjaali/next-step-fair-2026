@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             EditionSeeder::class,
             MediaSeeder::class,
             MessageTemplateSeeder::class,
+            OtpiqSettingsSeeder::class,
+            OtpiqTemplateSeeder::class,
             OpportunitySeeder::class,
             OfferPopupSeeder::class,
             DemoDataSeeder::class,

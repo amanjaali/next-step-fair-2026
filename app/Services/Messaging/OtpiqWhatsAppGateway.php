@@ -18,13 +18,18 @@ use RuntimeException;
  *
  * OTPIQ holds one template per language (`rsvp_confirmed_en_2026`, …), not one
  * name with three language codes. Everything for a send — name, id, body slots,
- * header image — lives under `config/whatsapp.otpiq_templates.{key}.{locale}`.
+ * header image — lives in `otpiq_templates` (seeded), with config as fallback.
  *
  * Body parameters are a map keyed "1", "2", "3". The order of the filtered
  * array is therefore the order of the placeholders in the approved template.
  */
 class OtpiqWhatsAppGateway implements WhatsAppGateway
 {
+    public function __construct(
+        private readonly OtpiqTemplateRegistry $templates,
+        private readonly OtpiqConfigRegistry $config,
+    ) {}
+
     public function sendTemplate(
         Message $message,
         string $template,
@@ -33,7 +38,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         ?string $mediaUrl = null,
         ?string $linkParam = null,
     ): ?string {
-        $config = config('whatsapp.otpiq');
+        $config = $this->config->all();
         $logicalKey = $message->template_key ?: $template;
         $templateName = $this->resolveName($logicalKey, $locale, $template);
         $bodyVariables = $this->bodyVariables($logicalKey, $locale, $variables);
@@ -81,8 +86,8 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             'smsType' => 'custom',
             'provider' => 'whatsapp',
             'customMessage' => $body,
-            'whatsappAccountId' => config('whatsapp.otpiq.account_id'),
-            'whatsappPhoneId' => config('whatsapp.otpiq.phone_id'),
+            'whatsappAccountId' => $this->config->get('account_id'),
+            'whatsappPhoneId' => $this->config->get('phone_id'),
         ], $message);
     }
 
@@ -94,8 +99,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
     /** Logical key + locale → the exact name approved in the OTPIQ dashboard. */
     private function resolveName(string $logicalKey, string $locale, string $fallback): string
     {
-        return config("whatsapp.otpiq_templates.$logicalKey.$locale.name")
-            ?? $fallback;
+        return $this->templates->get($logicalKey, $locale)['name'] ?? $fallback;
     }
 
     /**
@@ -107,7 +111,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
      */
     private function bodyVariables(string $logicalKey, string $locale, array $variables): array
     {
-        $keys = config("whatsapp.otpiq_templates.$logicalKey.$locale.body");
+        $keys = $this->templates->get($logicalKey, $locale)['body'] ?? null;
 
         if (! is_array($keys)) {
             return $variables;
@@ -138,7 +142,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
 
     private function post(array $payload, Message $message): ?string
     {
-        $config = config('whatsapp.otpiq');
+        $config = $this->config->all();
 
         if (! $config['api_key']) {
             throw new RuntimeException('OTPIQ is not configured: OTPIQ_API_KEY is empty.');
@@ -163,7 +167,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         Log::info('OTPIQ WhatsApp send starting', [
             'message_id' => $message->id,
             'template' => $payload['templateName'] ?? null,
-            'template_id' => config("whatsapp.otpiq_templates.{$message->template_key}.{$message->locale}.id"),
+            'template_id' => $this->templates->get($message->template_key, $message->locale)['id'] ?? null,
             'phone' => $payload['phoneNumber'] ?? null,
             'json' => $json,
         ]);

@@ -5,6 +5,8 @@ namespace App\Jobs;
 use App\Models\Message;
 use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Services\Messaging\MessageDispatcher;
+use App\Services\Messaging\OtpiqConfigRegistry;
+use App\Services\Messaging\OtpiqTemplateRegistry;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -37,7 +39,12 @@ class SendWhatsAppMessage implements ShouldQueue
         return config('whatsapp.retry_backoff', [60, 300, 1800]);
     }
 
-    public function handle(WhatsAppGateway $gateway, MessageDispatcher $dispatcher): void
+    public function handle(
+        WhatsAppGateway $gateway,
+        MessageDispatcher $dispatcher,
+        OtpiqTemplateRegistry $templates,
+        OtpiqConfigRegistry $otpiq,
+    ): void
     {
         $message = Message::with('registration')->find($this->messageId);
 
@@ -56,11 +63,11 @@ class SendWhatsAppMessage implements ShouldQueue
             // without one of them simply ignores what it was not given, so both
             // are offered whenever there is a badge to offer.
             if ($this->withBadge && $message->registration) {
-                if ($this->shouldSendHeaderImage($message)) {
+                if ($this->shouldSendHeaderImage($message, $templates, $otpiq)) {
                     $mediaUrl = $dispatcher->badgeUrl($message->registration);
                 }
 
-                if (config('whatsapp.otpiq.send_button_link')) {
+                if ($otpiq->get('send_button_link')) {
                     $linkParam = $dispatcher->badgeLinkParam($message->registration);
                 }
             }
@@ -124,17 +131,17 @@ class SendWhatsAppMessage implements ShouldQueue
         ]);
     }
 
-    private function shouldSendHeaderImage(Message $message): bool
-    {
-        if (! config('whatsapp.otpiq.send_header_image')) {
+    private function shouldSendHeaderImage(
+        Message $message,
+        OtpiqTemplateRegistry $templates,
+        OtpiqConfigRegistry $otpiq,
+    ): bool {
+        if (! $otpiq->get('send_header_image')) {
             return false;
         }
 
         $logicalKey = $message->template_key;
 
-        return (bool) config(
-            "whatsapp.otpiq_templates.$logicalKey.{$message->locale}.header_image",
-            false,
-        );
+        return (bool) ($templates->get($logicalKey, $message->locale)['header_image'] ?? false);
     }
 }
