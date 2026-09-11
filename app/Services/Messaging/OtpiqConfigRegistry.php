@@ -14,7 +14,12 @@ use Illuminate\Support\Facades\Schema;
 class OtpiqConfigRegistry
 {
     /** @var array<string, mixed>|null */
-    private ?array $cache = null;
+    private static ?array $cache = null;
+
+    public static function flush(): void
+    {
+        self::$cache = null;
+    }
 
     public function get(string $key, mixed $default = null): mixed
     {
@@ -24,23 +29,23 @@ class OtpiqConfigRegistry
     /** @return array<string, mixed> */
     public function all(): array
     {
-        if ($this->cache !== null) {
-            return $this->cache;
+        if (self::$cache !== null) {
+            return self::$cache;
         }
 
         $defaults = config('whatsapp.otpiq', []);
 
         if (! $this->tableExists()) {
-            return $this->cache = $defaults;
+            return self::$cache = $defaults;
         }
 
         $row = OtpiqSetting::current();
 
         if (! $row) {
-            return $this->cache = $defaults;
+            return self::$cache = $defaults;
         }
 
-        return $this->cache = array_merge($defaults, [
+        return self::$cache = array_merge($defaults, [
             'base_url' => $row->base_url ?: ($defaults['base_url'] ?? null),
             'api_key' => $row->api_key ?: ($defaults['api_key'] ?? null),
             'account_id' => $row->account_id ?: ($defaults['account_id'] ?? null),

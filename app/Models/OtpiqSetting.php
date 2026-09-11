@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Messaging\OtpiqConfigRegistry;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -23,8 +24,23 @@ class OtpiqSetting extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => OtpiqConfigRegistry::flush());
+        static::deleted(fn () => OtpiqConfigRegistry::flush());
+    }
+
     public static function current(): ?self
     {
         return static::query()->first();
+    }
+
+    public static function singleton(): self
+    {
+        return static::query()->firstOrCreate(['id' => 1], [
+            'base_url' => 'https://api.otpiq.com/api',
+            'public_url' => 'https://www.nextstepfair.com',
+            'verify_ssl' => true,
+        ]);
     }
 }
