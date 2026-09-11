@@ -225,49 +225,45 @@ class OtpiqWhatsAppTest extends TestCase
         });
     }
 
-    /** Local uses OTPIQ_PUBLIC_URL when set, otherwise APP_URL — always the badge PNG. */
+    /** Badge header always uses OTPIQ_PUBLIC_URL + PNG — never APP_URL / PDF. */
     public function test_local_env_uses_the_generated_badge_url(): void
     {
-        $previous = $this->app['env'];
-        $this->app['env'] = 'local';
         config([
             'whatsapp.otpiq.public_url' => 'https://www.nextstepfair.com',
             'app.url' => 'http://127.0.0.1:8000',
         ]);
 
-        try {
-            $registration = $this->registrant();
-            $registration->forceFill(['ticket_id' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'])->save();
+        $registration = $this->registrant();
+        $registration->forceFill(['ticket_id' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'])->save();
 
-            $url = app(MessageDispatcher::class)->badgeUrl($registration);
+        $url = app(MessageDispatcher::class)->badgeUrl($registration);
 
-            $this->assertStringContainsString('https://www.nextstepfair.com/ticket/', $url);
-            $this->assertStringContainsString('badge.png', $url);
-            $this->assertStringContainsString('signature=', $url);
-        } finally {
-            $this->app['env'] = $previous;
-        }
+        $this->assertSame(
+            'https://www.nextstepfair.com/ticket/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/badge.png',
+            $url,
+        );
+        $this->assertStringNotContainsString('127.0.0.1', $url);
+        $this->assertStringNotContainsString('signature=', $url);
     }
 
-    /** Production sends the generated badge PNG. */
+    /** Production sends the generated badge PNG on the public domain. */
     public function test_production_uses_the_generated_badge_url(): void
     {
-        $previous = $this->app['env'];
-        $this->app['env'] = 'production';
-        config(['app.url' => 'https://www.nextstepfair.com']);
+        config([
+            'whatsapp.otpiq.public_url' => 'https://www.nextstepfair.com',
+            'app.url' => 'https://www.nextstepfair.com',
+        ]);
 
-        try {
-            $registration = $this->registrant();
-            $registration->forceFill(['ticket_id' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'])->save();
+        $registration = $this->registrant();
+        $registration->forceFill(['ticket_id' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'])->save();
 
-            $url = app(MessageDispatcher::class)->badgeUrl($registration);
+        $url = app(MessageDispatcher::class)->badgeUrl($registration);
 
-            $this->assertStringContainsString('https://www.nextstepfair.com/ticket/', $url);
-            $this->assertStringContainsString('badge.png', $url);
-            $this->assertStringNotContainsString('storage.database.krd', $url);
-        } finally {
-            $this->app['env'] = $previous;
-        }
+        $this->assertSame(
+            'https://www.nextstepfair.com/ticket/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/badge.png',
+            $url,
+        );
+        $this->assertStringNotContainsString('.pdf', $url);
     }
 
     public function test_a_rejected_send_is_recorded_with_the_provider_reason(): void
@@ -297,7 +293,7 @@ class OtpiqWhatsAppTest extends TestCase
         $registration = $this->registrant();
         app(OtpiqWhatsAppGateway::class)->sendTemplate($this->message($registration), 'rsvp_confirmed', 'en', [
             'name' => 'Mohammed',
-        ], 'https://storage.database.krd/example.png', 'b/xyz');
+        ], 'https://storage.database.krd/example.png', 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/badge.png');
 
         Http::assertSent(fn(ClientRequest $request) => ! array_key_exists('deliveryReport', $request->data()));
     }

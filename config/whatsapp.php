@@ -35,12 +35,14 @@ return [
          * otpiq_templates.*.header_image — only templates approved with an
          * IMAGE header may receive imageUrl, or OTPIQ rejects the whole send.
          *
-         * public_url: HTTPS origin OTPIQ/Meta use to fetch ticket/{id}/badge.png.
-         * Must be publicly reachable (production domain or ngrok when local).
+         * public_url: HTTPS origin Meta fetches for badge.png. Must never be
+         * localhost — OTPIQ/Meta cannot reach 127.0.0.1. Default is production.
          */
         'send_header_image' => (bool) env('OTPIQ_SEND_HEADER_IMAGE', false),
         'send_button_link' => (bool) env('OTPIQ_SEND_BUTTON_LINK', false),
-        'public_url' => env('OTPIQ_PUBLIC_URL'),
+        'public_url' => env('OTPIQ_PUBLIC_URL', 'https://www.nextstepfair.com'),
+        // Local Windows often lacks a CA bundle; leave true in production.
+        'verify_ssl' => filter_var(env('OTPIQ_VERIFY_SSL', true), FILTER_VALIDATE_BOOL),
     ],
 
     'cloud_api' => [

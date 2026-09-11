@@ -98,11 +98,10 @@ The QR is the point of the message, and it can travel two ways:
 1. **As the picture at the top** (a media header). The app hands over a link to
    the badge PNG; WhatsApp fetches it once and keeps its own copy, so the picture
    survives after the link expires.
-2. **As a button under the message** — the one already in your template, `RSVP`,
-   pointing at `https://www.nextstepfair.com/{{1}}`. The app fills `{{1}}` with
-   `b/<ticket>`, which opens that person's badge page: the QR, the download
-   buttons, and the delivery status. It never expires, which matters — this is the
-   link somebody opens in October to find the badge they were sent in September.
+2. **As a button under the message** — approved as
+   `https://www.nextstepfair.com/ticket/{{1}}`. The app fills `{{1}}` with
+   `{ticket}/badge.png` (PNG only — OTPIQ does not accept PDF). That opens the
+   badge image on the public site.
 
 **Ask OTPIQ support two questions before relying on the first one:** does this
 account accept a **header image** on a template, and does it accept a **URL button
@@ -196,7 +195,7 @@ desk reads as "they have it, stop helping them".
 | **failed**, "template not found" | The template name or the language variant is not approved in OTPIQ. Names must match `config/whatsapp.otpiq_templates` exactly. |
 | Accepted, never arrives | Usually a Meta phone number id in `OTPIQ_WHATSAPP_PHONE_ID` instead of OTPIQ's. |
 | Message arrives, **picture missing** | The account or template has no image header. Leave `OTPIQ_SEND_HEADER_IMAGE=false`; the button link still carries the badge. |
-| Message arrives, **button goes nowhere** | The approved button address must end in `/{{1}}`, and the site must be reachable at that domain over HTTPS. |
+| Message arrives, **button goes nowhere** | The approved button address must end in `/ticket/{{1}}`, and `{{1}}` must be `{uuid}/badge.png` on https://www.nextstepfair.com. |
 | Stuck at **sent**, never delivered | The delivery webhook is not configured, or the secret does not match. |
 
 Nothing here needs a code change: the driver, the keys, the two badge flags and

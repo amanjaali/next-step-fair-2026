@@ -164,10 +164,16 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             'payload' => $payload,
         ]);
 
-        $response = Http::withToken($config['api_key'])
+        $request = Http::withToken($config['api_key'])
             ->timeout($config['timeout'])
-            ->acceptJson()
-            ->post($url, $payload);
+            ->acceptJson();
+
+        // Local Windows without a CA bundle hits cURL error 60; production stays verified.
+        if (! ($config['verify_ssl'] ?? true)) {
+            $request = $request->withoutVerifying();
+        }
+
+        $response = $request->post($url, $payload);
 
         if ($response->failed()) {
             $reason = $response->json('error')

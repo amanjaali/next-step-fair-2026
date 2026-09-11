@@ -6,7 +6,6 @@ use App\Jobs\SendWhatsAppMessage;
 use App\Models\Message;
 use App\Models\MessageTemplate;
 use App\Models\Registration;
-use Illuminate\Support\Facades\URL;
 
 /**
  * Queues outbound messages and records them in the delivery log.
@@ -72,41 +71,26 @@ class MessageDispatcher
     /**
      * Header image URL for WhatsApp templateParameters.header.imageUrl.
      *
-     * Always the generated badge PNG for this registration. OTPIQ/Meta must be
-     * able to fetch it over HTTPS — set OTPIQ_PUBLIC_URL to your public origin
-     * (production domain or an ngrok tunnel when developing locally).
+     * Always a public HTTPS PNG — Meta fetches this; localhost / 127.0.0.1 never
+     * works, and OTPIQ does not accept PDF headers. Domain comes from
+     * OTPIQ_PUBLIC_URL (default https://www.nextstepfair.com).
      */
     public function badgeUrl(Registration $registration): string
     {
-        $public = config('whatsapp.otpiq.public_url') ?: config('app.url');
-        $previous = config('app.url');
+        $public = rtrim((string) (config('whatsapp.otpiq.public_url') ?: 'https://www.nextstepfair.com'), '/');
 
-        URL::forceRootUrl(rtrim((string) $public, '/'));
-        URL::forceScheme(str_starts_with((string) $public, 'https') ? 'https' : 'http');
-
-        try {
-            return URL::temporarySignedRoute(
-                'ticket.png',
-                now()->addMinutes((int) config('nextstep.badge.download_link_ttl')),
-                ['ticket' => $registration->ticket_id]
-            );
-        } finally {
-            URL::forceRootUrl(rtrim((string) $previous, '/'));
-            URL::forceScheme(str_starts_with((string) $previous, 'https') ? 'https' : 'http');
-        }
+        // Plain PNG path — matches OTPIQ's approved shape; no signature (Meta
+        // cannot use a local APP_KEY), no PDF.
+        return $public.'/ticket/'.$registration->ticket_id.'/badge.png';
     }
 
     /**
-     * What a URL button appends to the address approved with the template.
+     * URL-button tail for the template approved as …/ticket/{{1}}.
      *
-     * The template is approved as https://…/{{1}}, so this is "b/<ticket>" and
-     * never a whole address. It does not expire, unlike the picture link above:
-     * this is the one somebody opens in October to find the badge they were sent
-     * in September, and a signature that has run out would be worse than useless
-     * to them.
+     * OTPIQ's example uses "{ticket}/badge.png" (PNG only — not PDF, not /b/).
      */
     public function badgeLinkParam(Registration $registration): string
     {
-        return ltrim(route('badge.link', $registration->ticket_id, absolute: false), '/');
+        return $registration->ticket_id.'/badge.png';
     }
 }

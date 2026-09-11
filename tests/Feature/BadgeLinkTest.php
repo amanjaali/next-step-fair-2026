@@ -62,9 +62,8 @@ class BadgeLinkTest extends TestCase
     }
 
     /**
-     * What the button carries is the tail, never the whole address — the prefix
-     * is fixed when the template is approved, and sending an absolute URL would
-     * produce https://nextstepfair.com/https://nextstepfair.com/b/…
+     * What the button carries is "{ticket}/badge.png" — the template is approved
+     * as https://www.nextstepfair.com/ticket/{{1}}. PNG only (OTPIQ rejects PDF).
      */
     public function test_the_button_parameter_is_a_tail_and_not_a_whole_address(): void
     {
@@ -72,7 +71,24 @@ class BadgeLinkTest extends TestCase
 
         $param = app(MessageDispatcher::class)->badgeLinkParam($registration);
 
-        $this->assertSame("b/{$registration->ticket_id}", $param);
+        $this->assertSame("{$registration->ticket_id}/badge.png", $param);
         $this->assertStringNotContainsString('http', $param);
+        $this->assertStringNotContainsString('.pdf', $param);
+    }
+
+    public function test_the_header_image_url_uses_the_public_domain_and_png(): void
+    {
+        config(['whatsapp.otpiq.public_url' => 'https://www.nextstepfair.com']);
+
+        $registration = $this->registrant(['phone' => '7701114488']);
+        $url = app(MessageDispatcher::class)->badgeUrl($registration);
+
+        $this->assertSame(
+            "https://www.nextstepfair.com/ticket/{$registration->ticket_id}/badge.png",
+            $url,
+        );
+        $this->assertStringNotContainsString('127.0.0.1', $url);
+        $this->assertStringNotContainsString('localhost', $url);
+        $this->assertStringNotContainsString('.pdf', $url);
     }
 }
