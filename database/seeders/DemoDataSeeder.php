@@ -253,8 +253,6 @@ class DemoDataSeeder extends Seeder
             'recipient' => '+964'.$phone,
             'preview' => __("notifications.whatsapp.registration_confirmed_$type", [
                 'name' => $registration->firstName(),
-                'days' => $registration->daysLabel(),
-                'ticket' => $registration->ticket_ref,
             ], $locale),
             'status' => $failed ? Message::STATUS_FAILED : Message::STATUS_DELIVERED,
             'error' => $failed ? 'Recipient not on WhatsApp (131026)' : null,

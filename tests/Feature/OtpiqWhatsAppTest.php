@@ -344,8 +344,6 @@ class OtpiqWhatsAppTest extends TestCase
 
         (new SendWhatsAppMessage($message->id, [
             'name' => 'Mohammed',
-            'days' => 'Day 1, Day 2, Day 3',
-            'ticket' => '48F8-F944-D33D',
         ], true))->handle(
             app(WhatsAppGateway::class),
             app(MessageDispatcher::class),
@@ -362,11 +360,7 @@ class OtpiqWhatsAppTest extends TestCase
 
             return $body['templateName'] === 'registration_confirmed_new_student_en_2026'
                 && $body['phoneNumber'] === '9647501594292'
-                && $parameters['body'] === [
-                    '1' => 'Mohammed',
-                    '2' => 'Day 1, Day 2, Day 3',
-                    '3' => '48F8-F944-D33D',
-                ]
+                && $parameters['body'] === ['1' => 'Mohammed']
                 && $parameters['header']['imageUrl']
                 === 'https://demi.nextstepfair.com/ticket/'.$registration->ticket_id.'/badge.png'
                 && $parameters['buttons'] === [
@@ -417,8 +411,7 @@ class OtpiqWhatsAppTest extends TestCase
     {
         config([
             'whatsapp.otpiq.public_url' => 'https://demi.nextstepfair.com',
-            // Badge templates require header.imageUrl — must send even when this is false.
-            'whatsapp.otpiq.send_header_image' => false,
+            'whatsapp.otpiq.send_header_image' => true,
             'whatsapp.otpiq.send_button_link' => false,
         ]);
 

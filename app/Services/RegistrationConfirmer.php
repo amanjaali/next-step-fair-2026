@@ -73,8 +73,6 @@ class RegistrationConfirmer
             $templateKey,
             [
                 'name' => $registration->firstName(),
-                'days' => $registration->daysLabel(),
-                'ticket' => $registration->ticket_ref,
             ],
             withBadge: true,
         );

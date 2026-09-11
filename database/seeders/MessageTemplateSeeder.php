@@ -20,8 +20,8 @@ class MessageTemplateSeeder extends Seeder
 
         $whatsapp = [
             'otp' => ['code'],
-            'registration_confirmed_student' => ['name', 'days', 'ticket'],
-            'registration_confirmed_parent' => ['name', 'days', 'ticket'],
+            'registration_confirmed_student' => ['name'],
+            'registration_confirmed_parent' => ['name'],
             // The visitor pass confirms through the same path, so it needs its own
             // template — without one the message body renders as the lookup key.
             'registration_confirmed_visitor' => ['name', 'ticket'],

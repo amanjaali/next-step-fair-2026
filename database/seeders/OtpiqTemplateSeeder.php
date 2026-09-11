@@ -38,9 +38,12 @@ class OtpiqTemplateSeeder extends Seeder
             ]);
 
             if (! $row->exists) {
-                $row->body_variables = is_array($shape['body'] ?? null) ? $shape['body'] : null;
                 $row->send_header = array_key_exists('header', $shape) ? (bool) $shape['header'] : null;
                 $row->send_button = array_key_exists('button', $shape) ? (bool) $shape['button'] : null;
+            }
+
+            if (is_array($shape['body'] ?? null)) {
+                $row->body_variables = $shape['body'];
             }
 
             $row->name = $template['name'];

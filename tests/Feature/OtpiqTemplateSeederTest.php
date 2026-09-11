@@ -95,13 +95,13 @@ class OtpiqTemplateSeederTest extends TestCase
         ]);
     }
 
-    public function test_reseeding_does_not_overwrite_custom_body_slots(): void
+    public function test_reseeding_refreshes_body_slots_from_config(): void
     {
         $this->seed(OtpiqTemplateSeeder::class);
 
         OtpiqTemplate::where('logical_key', 'registration_confirmed_student')
             ->where('locale', 'en')
-            ->update(['body_variables' => ['name']]);
+            ->update(['body_variables' => ['name', 'days', 'ticket']]);
 
         $this->seed(OtpiqTemplateSeeder::class);
 

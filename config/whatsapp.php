@@ -86,15 +86,15 @@ return [
         ],
 
         'registration_confirmed_student' => [
-            'en' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
-            'ku' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
-            'ar' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
+            'en' => ['body' => ['name'], 'header' => true, 'button' => true],
+            'ku' => ['body' => ['name'], 'header' => true, 'button' => true],
+            'ar' => ['body' => ['name'], 'header' => true, 'button' => true],
         ],
 
         'registration_confirmed_parent' => [
-            'en' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
-            'ku' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
-            'ar' => ['body' => ['name', 'days', 'ticket'], 'header' => true, 'button' => true],
+            'en' => ['body' => ['name'], 'header' => true, 'button' => true],
+            'ku' => ['body' => ['name'], 'header' => true, 'button' => true],
+            'ar' => ['body' => ['name'], 'header' => true, 'button' => true],
         ],
     ],
 
