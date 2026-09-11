@@ -51,7 +51,8 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         }
 
         if ($linkParam) {
-            // JSON object {"0":{"1":"b/…"}} — not a PHP array.
+            // Must encode as {"0":{"1":"…"}} — a PHP list [0 => …] becomes [{…}]
+            // and Meta/OTPIQ ignore the button (see broken stdClass log shape).
             $parameters['buttons'] = (object) [
                 '0' => (object) ['1' => $linkParam],
             ];
@@ -150,9 +151,12 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             );
         }
 
-        // Kept for the admin: the exact body sent, which is the first thing worth
-        // seeing when a provider rejects something.
-        $message->forceFill(['payload' => $payload])->save();
+        // Exact JSON body — Laravel's array encoder can turn button key "0" into
+        // a list and Meta then accepts the SMS but never delivers the WhatsApp.
+        $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+
+        // Stored for the admin as a plain array (objects → arrays for JSON column).
+        $message->forceFill(['payload' => json_decode($json, true)])->save();
 
         $url = rtrim($config['base_url'], '/').'/sms';
 
@@ -161,19 +165,20 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             'template' => $payload['templateName'] ?? null,
             'template_id' => config("whatsapp.otpiq_templates.{$message->template_key}.{$message->locale}.id"),
             'phone' => $payload['phoneNumber'] ?? null,
-            'payload' => $payload,
+            'json' => $json,
         ]);
 
         $request = Http::withToken($config['api_key'])
             ->timeout($config['timeout'])
-            ->acceptJson();
+            ->acceptJson()
+            ->withBody($json, 'application/json');
 
         // Local Windows without a CA bundle hits cURL error 60; production stays verified.
         if (! ($config['verify_ssl'] ?? true)) {
             $request = $request->withoutVerifying();
         }
 
-        $response = $request->post($url, $payload);
+        $response = $request->post($url);
 
         if ($response->failed()) {
             $reason = $response->json('error')

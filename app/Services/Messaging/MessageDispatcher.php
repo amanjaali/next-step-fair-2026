@@ -74,13 +74,23 @@ class MessageDispatcher
      * Always a public HTTPS PNG — Meta fetches this; localhost / 127.0.0.1 never
      * works, and OTPIQ does not accept PDF headers. Domain comes from
      * OTPIQ_PUBLIC_URL (default https://www.nextstepfair.com).
+     *
+     * On local, tickets only live in the local DB — a production badge URL 404s,
+     * Meta drops the message after OTPIQ already said "accepted". Use the sample
+     * PNG so delivery still works while testing from a laptop.
      */
     public function badgeUrl(Registration $registration): string
     {
+        if (app()->isLocal()) {
+            $sample = config('whatsapp.otpiq.local_header_image');
+
+            if (is_string($sample) && $sample !== '') {
+                return $sample;
+            }
+        }
+
         $public = rtrim((string) (config('whatsapp.otpiq.public_url') ?: 'https://www.nextstepfair.com'), '/');
 
-        // Plain PNG path — matches OTPIQ's approved shape; no signature (Meta
-        // cannot use a local APP_KEY), no PDF.
         return $public.'/ticket/'.$registration->ticket_id.'/badge.png';
     }
 

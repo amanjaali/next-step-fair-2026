@@ -87,6 +87,12 @@ class OtpiqWhatsAppTest extends TestCase
      * Conference RSVP uses rsvp_confirmed_*. Kurdish keeps name + ticket;
      * English drops ticket from the body (badge travels on the URL button).
      */
+    /** Decode the raw JSON body we send with withBody(). */
+    private function jsonBody(ClientRequest $request): array
+    {
+        return json_decode($request->body(), true, 512, JSON_THROW_ON_ERROR);
+    }
+
     public function test_variables_become_numbered_body_parameters_in_order(): void
     {
         Http::fake([
@@ -104,7 +110,7 @@ class OtpiqWhatsAppTest extends TestCase
         );
 
         Http::assertSent(function (ClientRequest $request) {
-            $body = $request->data();
+            $body = $this->jsonBody($request);
 
             return $request->url() === 'https://api.otpiq.com/api/sms'
                 && $request->hasHeader('Authorization', 'Bearer sk_test_key')
@@ -136,7 +142,7 @@ class OtpiqWhatsAppTest extends TestCase
         );
 
         Http::assertSent(function (ClientRequest $request) {
-            $body = $request->data();
+            $body = $this->jsonBody($request);
 
             return $body['templateName'] === 'rsvp_confirmed_en_2026'
                 && $body['templateParameters']['body'] === ['1' => 'Dr. Rezan'];
@@ -151,7 +157,7 @@ class OtpiqWhatsAppTest extends TestCase
         $registration = $this->registrant();
         app(OtpiqWhatsAppGateway::class)->sendTemplate($this->message($registration), 't', 'en');
 
-        Http::assertSent(fn(ClientRequest $request) => $request->data()['phoneNumber'] === '9647701113322');
+        Http::assertSent(fn (ClientRequest $request) => $this->jsonBody($request)['phoneNumber'] === '9647701113322');
     }
 
     public function test_the_provider_id_is_kept_so_a_delivery_report_can_find_the_message(): void
@@ -187,10 +193,11 @@ class OtpiqWhatsAppTest extends TestCase
         );
 
         Http::assertSent(function (ClientRequest $request) {
-            $parameters = $request->data()['templateParameters'];
+            $body = $this->jsonBody($request);
+            $parameters = $body['templateParameters'];
 
             return ! isset($parameters['header']) && ! isset($parameters['buttons'])
-                && ! array_key_exists('deliveryReport', $request->data());
+                && ! array_key_exists('deliveryReport', $body);
         });
     }
 
@@ -208,28 +215,32 @@ class OtpiqWhatsAppTest extends TestCase
             'en',
             ['name' => 'Z'],
             'https://example.test/badge.png',
-            'b/xyz'
+            'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/badge.png'
         );
 
         Http::assertSent(function (ClientRequest $request) {
-            $body = $request->data();
+            $body = $this->jsonBody($request);
             $parameters = $body['templateParameters'];
 
+            // Buttons must be an object keyed "0", never a JSON array.
             return $body['smsType'] === 'whatsapp-template'
                 && $body['provider'] === 'whatsapp'
                 && $body['templateName'] === 'rsvp_confirmed_en_2026'
                 && ! array_key_exists('deliveryReport', $body)
                 && $parameters['header']['imageUrl'] === 'https://example.test/badge.png'
-                && data_get($parameters, 'buttons.0.1') === 'b/xyz'
-                && $parameters['body'] === ['1' => 'Z'];
+                && $parameters['buttons'] === ['0' => ['1' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/badge.png']]
+                && $parameters['body'] === ['1' => 'Z']
+                && str_contains($request->body(), '"buttons":{"0":{"1":');
         });
     }
 
-    /** Badge header always uses OTPIQ_PUBLIC_URL + PNG — never APP_URL / PDF. */
+    /** Local uses OTPIQ_LOCAL_HEADER_IMAGE so Meta can fetch a real PNG. */
     public function test_local_env_uses_the_generated_badge_url(): void
     {
+        $this->app['env'] = 'local';
         config([
             'whatsapp.otpiq.public_url' => 'https://www.nextstepfair.com',
+            'whatsapp.otpiq.local_header_image' => 'https://www.nextstepfair.com/images/logo.png',
             'app.url' => 'http://127.0.0.1:8000',
         ]);
 
@@ -238,19 +249,17 @@ class OtpiqWhatsAppTest extends TestCase
 
         $url = app(MessageDispatcher::class)->badgeUrl($registration);
 
-        $this->assertSame(
-            'https://www.nextstepfair.com/ticket/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/badge.png',
-            $url,
-        );
+        $this->assertSame('https://www.nextstepfair.com/images/logo.png', $url);
         $this->assertStringNotContainsString('127.0.0.1', $url);
-        $this->assertStringNotContainsString('signature=', $url);
     }
 
-    /** Production sends the generated badge PNG on the public domain. */
+    /** Production sends the real ticket badge PNG on the public domain. */
     public function test_production_uses_the_generated_badge_url(): void
     {
+        $this->app['env'] = 'production';
         config([
             'whatsapp.otpiq.public_url' => 'https://www.nextstepfair.com',
+            'whatsapp.otpiq.local_header_image' => 'https://www.nextstepfair.com/images/logo.png',
             'app.url' => 'https://www.nextstepfair.com',
         ]);
 
@@ -295,7 +304,7 @@ class OtpiqWhatsAppTest extends TestCase
             'name' => 'Mohammed',
         ], 'https://storage.database.krd/example.png', 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/badge.png');
 
-        Http::assertSent(fn(ClientRequest $request) => ! array_key_exists('deliveryReport', $request->data()));
+        Http::assertSent(fn (ClientRequest $request) => ! array_key_exists('deliveryReport', $this->jsonBody($request)));
     }
 
     /* ------------------------------------------------------------- webhook -- */

@@ -78,6 +78,7 @@ class BadgeLinkTest extends TestCase
 
     public function test_the_header_image_url_uses_the_public_domain_and_png(): void
     {
+        $this->app['env'] = 'production';
         config(['whatsapp.otpiq.public_url' => 'https://www.nextstepfair.com']);
 
         $registration = $this->registrant(['phone' => '7701114488']);

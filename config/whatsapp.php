@@ -41,6 +41,9 @@ return [
         'send_header_image' => (bool) env('OTPIQ_SEND_HEADER_IMAGE', false),
         'send_button_link' => (bool) env('OTPIQ_SEND_BUTTON_LINK', false),
         'public_url' => env('OTPIQ_PUBLIC_URL', 'https://www.nextstepfair.com'),
+        // Public sample PNG used in local — local ticket UUIDs do not exist on
+        // the production host, so Meta would 404 a real badge URL and drop the message.
+        'local_header_image' => env('OTPIQ_LOCAL_HEADER_IMAGE'),
         // Local Windows often lacks a CA bundle; leave true in production.
         'verify_ssl' => filter_var(env('OTPIQ_VERIFY_SSL', true), FILTER_VALIDATE_BOOL),
     ],
