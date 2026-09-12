@@ -314,6 +314,8 @@ return [
         'approve' => 'Approve',
         'reject' => 'Reject',
         'cancel' => 'Cancel registration',
+        'delete' => 'Delete registration',
+        'delete_help' => 'This removes the registration from the desk. The person can register again with the same phone or email.',
         'resend_whatsapp' => 'Resend on WhatsApp',
         'resend_email' => 'Resend email',
         'regenerate_badge' => 'Regenerate badge',
@@ -328,6 +330,7 @@ return [
     'notify' => [
         'approved' => ':count RSVP(s) approved and badges issued.',
         'cancelled' => ':count registration(s) cancelled.',
+        'deleted' => 'Registration deleted.',
         'resent' => 'Queued for delivery to :count recipient(s).',
         'regenerated' => 'Badge regenerated for :count registration(s).',
         'retried' => ':count message(s) queued again.',

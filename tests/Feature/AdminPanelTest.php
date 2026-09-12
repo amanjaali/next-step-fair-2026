@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\ConferenceRsvps\Pages\ListConferenceRsvps;
+use App\Filament\Resources\ConferenceRsvps\Pages\ViewConferenceRsvp;
 use App\Filament\Resources\Registrations\Pages\ListRegistrations;
+use App\Filament\Resources\Registrations\Pages\ViewRegistration;
 use App\Models\Edition;
 use App\Models\EventSession;
 use App\Models\Page;
@@ -152,5 +154,106 @@ class AdminPanelTest extends TestCase
 
         $this->actingAs($editor)->get('/admin/registrations')->assertForbidden();
         $this->actingAs($editor)->get('/admin/posts')->assertOk();
+    }
+
+    /** The desk can remove a student, a parent, or a conference RSVP. */
+    public static function deletableRegistrations(): array
+    {
+        return [
+            'student' => [[
+                'track' => Registration::TRACK_FAIR,
+                'type' => Registration::TYPE_STUDENT,
+                'full_name' => 'Hemin Karim',
+                'phone' => '7701110001',
+                'email' => 'hemin.delete@example.com',
+            ]],
+            'parent' => [[
+                'track' => Registration::TRACK_FAIR,
+                'type' => Registration::TYPE_PARENT,
+                'full_name' => 'Shno Aziz',
+                'phone' => '7701110002',
+                'email' => 'shno.delete@example.com',
+            ]],
+            'conference RSVP' => [[
+                'track' => Registration::TRACK_CONFERENCE,
+                'type' => Registration::TYPE_GOVERNMENT,
+                'full_name' => 'Dr. Rezan Kareem',
+                'phone' => '7513004412',
+                'email' => 'r.kareem.delete@mhe.krd',
+                'position' => 'Director',
+                'organization' => 'Ministry of Higher Education',
+            ]],
+        ];
+    }
+
+    #[DataProvider('deletableRegistrations')]
+    public function test_admin_can_delete_a_registration(array $attributes): void
+    {
+        $registration = Registration::create(array_merge([
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1],
+            'confirmed_at' => now(),
+        ], $attributes));
+
+        $page = $registration->isConference()
+            ? ListConferenceRsvps::class
+            : ListRegistrations::class;
+
+        $test = Livewire::actingAs($this->admin())->test($page);
+
+        if ($registration->isConference()) {
+            $test->set('activeTab', 'all');
+        }
+
+        $test->callTableAction('delete', $registration);
+
+        $this->assertSoftDeleted($registration);
+    }
+
+    public function test_admin_can_delete_a_registration_from_its_detail_page(): void
+    {
+        $student = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_STUDENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Hemin Karim',
+            'phone' => '7701110003',
+            'phone_country' => '+964',
+            'email' => 'hemin.view-delete@example.com',
+            'city' => 'Sulaimani',
+            'days' => [1],
+            'confirmed_at' => now(),
+        ]);
+
+        Livewire::actingAs($this->admin())
+            ->test(ViewRegistration::class, ['record' => $student->getRouteKey()])
+            ->callAction('delete');
+
+        $this->assertSoftDeleted($student);
+
+        $rsvp = Registration::create([
+            'track' => Registration::TRACK_CONFERENCE,
+            'type' => Registration::TYPE_GOVERNMENT,
+            'status' => Registration::STATUS_PENDING,
+            'locale' => 'en',
+            'full_name' => 'Dr. Rezan Kareem',
+            'phone' => '7513004413',
+            'phone_country' => '+964',
+            'email' => 'r.kareem.view-delete@mhe.krd',
+            'position' => 'Director',
+            'organization' => 'Ministry of Higher Education',
+            'city' => 'Erbil',
+            'days' => [1],
+        ]);
+
+        Livewire::actingAs($this->admin())
+            ->test(ViewConferenceRsvp::class, ['record' => $rsvp->getRouteKey()])
+            ->callAction('delete');
+
+        $this->assertSoftDeleted($rsvp);
     }
 }

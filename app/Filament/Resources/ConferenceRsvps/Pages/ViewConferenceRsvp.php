@@ -18,6 +18,7 @@ class ViewConferenceRsvp extends ViewRecord
             RegistrationActions::regenerateBadge(),
             RegistrationActions::downloadBadge(),
             RegistrationActions::cancel(),
+            RegistrationActions::delete(),
         ];
     }
 }

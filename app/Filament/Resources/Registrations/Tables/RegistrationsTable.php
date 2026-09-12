@@ -175,12 +175,14 @@ class RegistrationsTable
                     RegistrationActions::downloadBadge(),
                     RegistrationActions::cancel(),
                 ]),
+                RegistrationActions::delete(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     RegistrationActions::resendBulk(),
                     RegistrationActions::regenerateBadgeBulk(),
                     RegistrationActions::cancelBulk(),
+                    RegistrationActions::deleteBulk(),
                     ExportBulkAction::make()->exporter(RegistrationExporter::class),
                 ]),
             ]);

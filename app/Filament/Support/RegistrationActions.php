@@ -8,13 +8,15 @@ use App\Services\Messaging\MessageDispatcher;
 use App\Services\RegistrationConfirmer;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
  * The desk's day-to-day operations, shared by the fair and conference tables:
- * approve, cancel, resend, regenerate a badge.
+ * approve, cancel, delete, resend, regenerate a badge.
  *
  * Each one is available as a row action and as a bulk action, because the desk
  * works one registrant at a time and the registration manager works in batches.
@@ -83,6 +85,31 @@ class RegistrationActions
 
                 Notification::make()->title(__('admin.notify.cancelled', ['count' => $records->count()]))->success()->send();
             });
+    }
+
+    /**
+     * Removes a registration from the desk (soft-delete).
+     *
+     * Cancel keeps the row; this takes it off the queues so the same phone or
+     * email can register again. Shared by fair (student / parent) and conference.
+     */
+    public static function delete(): DeleteAction
+    {
+        return DeleteAction::make()
+            ->label(__('admin.actions.delete'))
+            ->icon('heroicon-m-trash')
+            ->modalHeading(__('admin.actions.delete'))
+            ->modalDescription(__('admin.actions.delete_help'))
+            ->successNotificationTitle(__('admin.notify.deleted'));
+    }
+
+    public static function deleteBulk(): DeleteBulkAction
+    {
+        return DeleteBulkAction::make()
+            ->label(__('admin.actions.delete'))
+            ->modalHeading(__('admin.actions.delete'))
+            ->modalDescription(__('admin.actions.delete_help'))
+            ->successNotificationTitle(__('admin.notify.deleted'));
     }
 
     /** Re-queues the confirmation on WhatsApp. */

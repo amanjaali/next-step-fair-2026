@@ -19,6 +19,7 @@ class EditRegistration extends EditRecord
             RegistrationActions::resend(),
             RegistrationActions::regenerateBadge(),
             RegistrationActions::downloadBadge(),
+            RegistrationActions::delete(),
         ];
     }
 

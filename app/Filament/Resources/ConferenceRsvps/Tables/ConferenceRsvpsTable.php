@@ -112,6 +112,7 @@ class ConferenceRsvpsTable
                     RegistrationActions::downloadBadge(),
                     RegistrationActions::cancel(),
                 ]),
+                RegistrationActions::delete(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -119,6 +120,7 @@ class ConferenceRsvpsTable
                     RegistrationActions::resendBulk(),
                     RegistrationActions::regenerateBadgeBulk(),
                     RegistrationActions::cancelBulk(),
+                    RegistrationActions::deleteBulk(),
                     ExportBulkAction::make()->exporter(RegistrationExporter::class),
                 ]),
             ]);
