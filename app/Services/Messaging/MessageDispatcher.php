@@ -26,6 +26,7 @@ class MessageDispatcher
         string $templateKey,
         array $variables = [],
         bool $withBadge = false,
+        bool $immediate = false,
     ): ?Message {
         if (! $registration->msisdn()) {
             WhatsAppLog::warning('whatsapp.skipped_no_phone', [
@@ -58,7 +59,11 @@ class MessageDispatcher
             'queued_at' => now(),
         ]);
 
-        $this->dispatchWhatsApp($message->id, $variables, $withBadge);
+        if ($immediate) {
+            $this->sendNow($message->id, $variables, $withBadge);
+        } else {
+            $this->dispatchWhatsApp($message->id, $variables, $withBadge);
+        }
 
         WhatsAppLog::info('whatsapp.queued', [
             'message_id' => $message->id,
@@ -121,14 +126,14 @@ class MessageDispatcher
      * URL-button tail for the template approved as …/ticket/{{1}}.
      *
      * OTPIQ's example uses "{ticket}/badge.png" (PNG only — not PDF, not /b/).
-     * 
+     *
      * Conference (RSVP) templates require a leading slash: "/6bdf0806.../badge.png"
      * Fair (student/parent) templates do NOT: "6bdf0806.../badge.png"
      */
     public function badgeLinkParam(Registration $registration): string
     {
         $param = $registration->ticket_id.'/badge.png';
-        
+
         return $registration->isConference() ? '/'.$param : $param;
     }
 
@@ -195,6 +200,58 @@ class MessageDispatcher
             .'Set OTPIQ_PUBLIC_URL to the host that serves this ticket, ensure the badge is generated, '
             .'then run: php artisan config:clear && php artisan queue:restart'
         );
+    }
+
+    /** @return array<string, string> */
+    public function templateVariables(Registration $registration, string $templateKey): array
+    {
+        return match ($templateKey) {
+            'rsvp_confirmed',
+            'registration_confirmed_student',
+            'registration_confirmed_parent',
+            'registration_confirmed_visitor' => ['name' => $registration->firstName()],
+            default => [],
+        };
+    }
+
+    public function templateUsesBadge(string $templateKey): bool
+    {
+        return in_array($templateKey, [
+            'rsvp_confirmed',
+            'registration_confirmed_student',
+            'registration_confirmed_parent',
+            'registration_confirmed_visitor',
+        ], true);
+    }
+
+    /** Send immediately — used from the admin desk so failures surface in the UI. */
+    public function sendNow(int $messageId, array $variables, bool $withBadge): void
+    {
+        (new SendWhatsAppMessage($messageId, $variables, $withBadge))->handle(
+            app(WhatsAppGateway::class),
+            app(self::class),
+            app(OtpiqTemplateRegistry::class),
+        );
+    }
+
+    public function retry(Message $message): void
+    {
+        $registration = $message->registration;
+
+        if (! $registration) {
+            throw new RuntimeException('Cannot retry a message with no registration.');
+        }
+
+        $variables = $this->templateVariables($registration, $message->template_key);
+        $withBadge = $this->templateUsesBadge($message->template_key);
+
+        $message->forceFill([
+            'status' => Message::STATUS_QUEUED,
+            'error' => null,
+            'failed_at' => null,
+        ])->save();
+
+        $this->sendNow($message->id, $variables, $withBadge);
     }
 
     /**

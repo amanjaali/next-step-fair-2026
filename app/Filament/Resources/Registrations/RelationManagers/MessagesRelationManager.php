@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Registrations\RelationManagers;
 
-use App\Jobs\SendWhatsAppMessage;
 use App\Models\Message;
+use App\Services\Messaging\MessageDispatcher;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -42,9 +42,13 @@ class MessagesRelationManager extends RelationManager
                     ->icon('heroicon-m-arrow-path')
                     ->visible(fn (Message $record) => $record->channel === 'whatsapp' && $record->isFailed())
                     ->action(function (Message $record) {
-                        $record->forceFill(['status' => Message::STATUS_QUEUED, 'error' => null])->save();
-                        SendWhatsAppMessage::dispatch($record->id);
-                        Notification::make()->title(__('admin.notify.retried', ['count' => 1]))->success()->send();
+                        try {
+                            app(MessageDispatcher::class)->retry($record);
+                            Notification::make()->title(__('admin.notify.retried', ['count' => 1]))->success()->send();
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()->title(__('admin.notify.resent_failed', ['count' => 1]))->danger()->send();
+                        }
                     }),
             ]);
     }

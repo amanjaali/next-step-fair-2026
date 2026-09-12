@@ -13,6 +13,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
+use Throwable;
 
 /**
  * The desk's day-to-day operations, shared by the fair and conference tables:
@@ -119,6 +120,7 @@ class RegistrationActions
             ->label(__('admin.actions.resend_whatsapp'))
             ->icon('heroicon-m-paper-airplane')
             ->color('info')
+            ->visible(fn (Registration $record) => $record->badgeIssued() && $record->msisdn())
             ->requiresConfirmation()
             ->action(fn (Registration $record) => static::applyResend(collect([$record])));
     }
@@ -204,35 +206,50 @@ class RegistrationActions
 
     private static function applyResend(Collection|\Illuminate\Support\Collection $records): void
     {
-        $dispatcher = app(MessageDispatcher::class);
         $confirmer = app(RegistrationConfirmer::class);
         $sent = 0;
+        $failed = 0;
 
         foreach ($records as $record) {
-            if (! $record->badgeIssued()) {
-                continue;
-            }
-
-            if ($record->isConference()) {
-                $dispatcher->whatsapp(
-                    $record,
-                    'rsvp_confirmed',
-                    [
-                        'name' => $record->firstName(),
-                    ],
-                    withBadge: true,
-                );
-                $sent++;
-
-                continue;
-            }
-
-            if ($record->isFair() && $confirmer->sendFairConfirmationWhatsApp($record)) {
-                $sent++;
+            try {
+                if ($confirmer->resendConfirmationWhatsApp($record)) {
+                    $sent++;
+                }
+            } catch (Throwable $e) {
+                $failed++;
+                report($e);
             }
         }
 
-        Notification::make()->title(__('admin.notify.resent', ['count' => $sent]))->success()->send();
+        if ($failed > 0 && $sent === 0) {
+            Notification::make()
+                ->title(__('admin.notify.resent_failed', ['count' => $failed]))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        if ($sent === 0) {
+            Notification::make()
+                ->title(__('admin.notify.resent_skipped'))
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $notification = Notification::make()
+            ->title(__('admin.notify.resent', ['count' => $sent]))
+            ->success();
+
+        if ($failed > 0) {
+            $notification
+                ->body(__('admin.notify.resent_partial', ['failed' => $failed]))
+                ->warning();
+        }
+
+        $notification->send();
     }
 
     private static function applyRegenerate(Collection|\Illuminate\Support\Collection $records): void
@@ -249,7 +266,7 @@ class RegistrationActions
             $badges->generate($record);
 
             if ($record->isFair()) {
-                $confirmer->sendFairConfirmationWhatsApp($record);
+                $confirmer->sendFairConfirmationWhatsApp($record, immediate: true);
             }
 
             $count++;

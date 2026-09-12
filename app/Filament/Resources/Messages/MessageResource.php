@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Messages;
 
 use App\Filament\Resources\Messages\Pages\ListMessages;
-use App\Jobs\SendWhatsAppMessage;
 use App\Models\Message;
+use App\Services\Messaging\MessageDispatcher;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -101,9 +101,13 @@ class MessageResource extends Resource
                     ->icon('heroicon-m-arrow-path')
                     ->visible(fn (Message $record) => $record->channel === 'whatsapp' && $record->isFailed())
                     ->action(function (Message $record) {
-                        $record->forceFill(['status' => Message::STATUS_QUEUED, 'error' => null])->save();
-                        SendWhatsAppMessage::dispatch($record->id);
-                        Notification::make()->title(__('admin.notify.retried', ['count' => 1]))->success()->send();
+                        try {
+                            app(MessageDispatcher::class)->retry($record);
+                            Notification::make()->title(__('admin.notify.retried', ['count' => 1]))->success()->send();
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()->title(__('admin.notify.resent_failed', ['count' => 1]))->danger()->send();
+                        }
                     }),
             ])
             ->toolbarActions([
@@ -113,12 +117,26 @@ class MessageResource extends Resource
                         ->icon('heroicon-m-arrow-path')
                         ->deselectRecordsAfterCompletion()
                         ->action(function (Collection $records) {
+                            $dispatcher = app(MessageDispatcher::class);
                             $count = 0;
+                            $failed = 0;
+
                             foreach ($records->where('channel', 'whatsapp') as $record) {
-                                $record->forceFill(['status' => Message::STATUS_QUEUED, 'error' => null])->save();
-                                SendWhatsAppMessage::dispatch($record->id);
-                                $count++;
+                                try {
+                                    $dispatcher->retry($record);
+                                    $count++;
+                                } catch (\Throwable $e) {
+                                    $failed++;
+                                    report($e);
+                                }
                             }
+
+                            if ($count === 0) {
+                                Notification::make()->title(__('admin.notify.resent_failed', ['count' => $failed ?: 1]))->danger()->send();
+
+                                return;
+                            }
+
                             Notification::make()->title(__('admin.notify.retried', ['count' => $count]))->success()->send();
                         }),
                 ]),

@@ -46,7 +46,7 @@ class RegistrationConfirmer
     }
 
     /** Queues the fair student, parent or visitor confirmation with the badge attached. */
-    public function sendFairConfirmationWhatsApp(Registration $registration): ?Message
+    public function sendFairConfirmationWhatsApp(Registration $registration, bool $immediate = false): ?Message
     {
         if (! $registration->isFair()) {
             WhatsAppLog::info('whatsapp.skipped_not_fair', [
@@ -75,7 +75,28 @@ class RegistrationConfirmer
                 'name' => $registration->firstName(),
             ],
             withBadge: true,
+            immediate: $immediate,
         );
+    }
+
+    /** Re-sends the confirmation WhatsApp from the admin desk (student, parent, visitor, RSVP). */
+    public function resendConfirmationWhatsApp(Registration $registration): ?Message
+    {
+        if (! $registration->badgeIssued() || ! $registration->msisdn()) {
+            return null;
+        }
+
+        if ($registration->isConference()) {
+            return $this->dispatcher->whatsapp(
+                $registration,
+                'rsvp_confirmed',
+                ['name' => $registration->firstName()],
+                withBadge: true,
+                immediate: true,
+            );
+        }
+
+        return $this->sendFairConfirmationWhatsApp($registration, immediate: true);
     }
 
     private function fairConfirmationTemplateKey(Registration $registration): ?string

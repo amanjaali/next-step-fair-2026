@@ -8,12 +8,14 @@ use App\Filament\Resources\Registrations\Pages\ListRegistrations;
 use App\Filament\Resources\Registrations\Pages\ViewRegistration;
 use App\Models\Edition;
 use App\Models\EventSession;
+use App\Models\Message;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Registration;
 use App\Models\Speaker;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -255,5 +257,79 @@ class AdminPanelTest extends TestCase
             ->callAction('delete');
 
         $this->assertSoftDeleted($rsvp);
+    }
+
+    /** @return array<string, array{0: string, 1: string, 2: string, 3: class-string}> */
+    public static function resendableRegistrations(): array
+    {
+        return [
+            'student' => [
+                Registration::TRACK_FAIR,
+                Registration::TYPE_STUDENT,
+                'registration_confirmed_student',
+                ViewRegistration::class,
+            ],
+            'parent' => [
+                Registration::TRACK_FAIR,
+                Registration::TYPE_PARENT,
+                'registration_confirmed_parent',
+                ViewRegistration::class,
+            ],
+            'visitor' => [
+                Registration::TRACK_FAIR,
+                Registration::TYPE_VISITOR,
+                'registration_confirmed_visitor',
+                ViewRegistration::class,
+            ],
+            'conference RSVP' => [
+                Registration::TRACK_CONFERENCE,
+                Registration::TYPE_GOVERNMENT,
+                'rsvp_confirmed',
+                ViewConferenceRsvp::class,
+            ],
+        ];
+    }
+
+    #[DataProvider('resendableRegistrations')]
+    public function test_admin_resend_whatsapp_sends_for_each_registration_type(
+        string $track,
+        string $type,
+        string $templateKey,
+        string $pageClass,
+    ): void {
+        Http::fake([
+            'https://demi.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+            'https://www.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+        ]);
+
+        config(['whatsapp.otpiq.public_url' => 'https://demi.nextstepfair.com']);
+
+        $registration = Registration::create([
+            'track' => $track,
+            'type' => $type,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Hemin Karim',
+            'phone' => '7701110'.random_int(100, 999),
+            'phone_country' => '+964',
+            'email' => 'resend.'.uniqid().'@example.com',
+            'city' => 'Sulaimani',
+            'days' => [1],
+            'confirmed_at' => now(),
+            'badge_generated_at' => now(),
+            'position' => $track === Registration::TRACK_CONFERENCE ? 'Director' : null,
+            'organization' => $track === Registration::TRACK_CONFERENCE ? 'Ministry of Higher Education' : null,
+        ]);
+
+        Livewire::actingAs($this->admin())
+            ->test($pageClass, ['record' => $registration->getRouteKey()])
+            ->callAction('resend');
+
+        $this->assertDatabaseHas('messages', [
+            'registration_id' => $registration->id,
+            'template_key' => $templateKey,
+            'channel' => 'whatsapp',
+            'status' => Message::STATUS_DELIVERED,
+        ]);
     }
 }
