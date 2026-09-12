@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Registration;
 use App\Services\CaptchaService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -23,6 +24,11 @@ class CaptchaTest extends TestCase
     {
         parent::setUp();
         $this->seed();
+
+        Http::fake([
+            'https://demi.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+            'https://www.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+        ]);
     }
 
     public static function forms(): array
@@ -159,6 +165,8 @@ class CaptchaTest extends TestCase
     /** A form posted with no code at all is refused before anything is written. */
     public function test_the_fair_form_will_not_register_anybody_without_the_code(): void
     {
+        config(['nextstep.captcha.enabled' => true]);
+
         $before = Registration::count();
 
         $this->post('/en/register/fair', [
@@ -173,6 +181,8 @@ class CaptchaTest extends TestCase
 
     public function test_the_conference_form_will_not_register_anybody_without_the_code(): void
     {
+        config(['nextstep.captcha.enabled' => true]);
+
         $before = Registration::count();
 
         $this->post('/en/register/conference', [
@@ -196,6 +206,8 @@ class CaptchaTest extends TestCase
      */
     public function test_a_failed_submission_goes_back_to_the_form_not_to_the_picture(): void
     {
+        config(['nextstep.captcha.enabled' => true]);
+
         $this->get('/en/register/quick')->assertOk();
         $this->get(route('captcha'))->assertOk();
 

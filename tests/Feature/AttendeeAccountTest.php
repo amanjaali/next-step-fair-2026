@@ -7,6 +7,7 @@ use App\Models\Registration;
 use App\Services\Messaging\OtpService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
@@ -22,6 +23,13 @@ class AttendeeAccountTest extends TestCase
     {
         parent::setUp();
         $this->seed();
+
+        // Sync queue runs SendWhatsAppMessage inline; badge reachability is checked
+        // against OTPIQ_PUBLIC_URL, which is not this test server.
+        Http::fake([
+            'https://demi.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+            'https://www.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+        ]);
     }
 
     private function registrant(array $attributes = []): Registration
@@ -233,18 +241,26 @@ class AttendeeAccountTest extends TestCase
         $pass = Registration::wherePhone('7719990003')->firstOrFail();
 
         $this->assertNotNull($pass->badge_generated_at);
-        $this->assertFalse($pass->messages()->where('channel', 'whatsapp')->exists());
+        $this->assertTrue(
+            $pass->messages()->where('channel', 'whatsapp')->where('template_key', 'registration_confirmed_visitor')->exists()
+        );
         $this->assertAuthenticatedAs($pass, 'attendee');
     }
 
     /** And the picture code is what stands between the form and a script. */
     public function test_the_quick_pass_refuses_a_wrong_picture_code(): void
     {
-        $this->captcha();
+        config(['nextstep.captcha.enabled' => true]);
+
+        $this->get('/en/register/quick')->assertOk();
+        $this->get(route('captcha'))->assertOk();
 
         $this->post('/en/register/quick', [
-            'full_name' => 'Hemin Star', 'phone_country' => '+964',
-            'phone' => '07719990017', 'consent_terms' => '1', 'captcha' => 'WRONG',
+            'full_name' => 'Hemin Star',
+            'phone_country' => '+964',
+            'phone' => '07719990017',
+            'consent_terms' => '1',
+            'captcha' => 'WRONG',
         ])->assertSessionHasErrors('captcha');
 
         $this->assertSame(0, Registration::wherePhone('7719990017')->count());

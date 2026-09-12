@@ -23,9 +23,7 @@ class MessageTemplateSeeder extends Seeder
             'rsvp_confirmed' => ['name'],
             'registration_confirmed_student' => ['name'],
             'registration_confirmed_parent' => ['name'],
-            // The visitor pass confirms through the same path, so it needs its own
-            // template — without one the message body renders as the lookup key.
-            'registration_confirmed_visitor' => ['name', 'ticket'],
+            'registration_confirmed_visitor' => ['name'],
             'event_reminder_3days' => [],
             'event_reminder_1day' => [],
             'day_of_directions' => ['name'],

@@ -96,6 +96,12 @@ return [
             'ku' => ['body' => ['name'], 'header' => true, 'button' => true],
             'ar' => ['body' => ['name'], 'header' => true, 'button' => true],
         ],
+
+        'registration_confirmed_visitor' => [
+            'en' => ['body' => ['name'], 'header' => true, 'button' => true],
+            'ku' => ['body' => ['name'], 'header' => true, 'button' => true],
+            'ar' => ['body' => ['name'], 'header' => true, 'button' => true],
+        ],
     ],
 
     // Meta language codes for template selection (Cloud API).

@@ -9,8 +9,8 @@ use App\Services\Messaging\Contracts\WhatsAppGateway;
 use App\Services\Messaging\LogWhatsAppGateway;
 use App\Services\Messaging\MessageDispatcher;
 use App\Services\Messaging\OtpiqTemplateRegistry;
-use Database\Seeders\OtpiqTemplateSeeder;
 use App\Services\Messaging\OtpiqWhatsAppGateway;
+use Database\Seeders\OtpiqTemplateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
@@ -360,6 +360,70 @@ class OtpiqWhatsAppTest extends TestCase
             return $body['templateName'] === 'registration_confirmed_new_student_en_2026'
                 && $body['phoneNumber'] === '9647501594292'
                 && $parameters['body'] === ['1' => 'Mohammed']
+                && $parameters['header']['imageUrl']
+                === 'https://demi.nextstepfair.com/ticket/'.$registration->ticket_id.'/badge.png'
+                && $parameters['buttons'] === [
+                    '0' => ['1' => $registration->ticket_id.'/badge.png'],
+                ];
+        });
+    }
+
+    public function test_visitor_registration_payload_matches_the_otpiq_example(): void
+    {
+        config([
+            'whatsapp.otpiq.public_url' => 'https://demi.nextstepfair.com',
+            'whatsapp.otpiq.send_button_link' => true,
+        ]);
+
+        Http::fake([
+            'https://demi.nextstepfair.com/*' => Http::response('', 200, ['Content-Type' => 'image/png']),
+            'https://api.otpiq.com/api/sms' => Http::response(['smsId' => 'otpiq-visitor-en'], 200),
+        ]);
+
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_VISITOR,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Hemin Star',
+            'phone' => '7719990003',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+            'badge_generated_at' => now(),
+        ]);
+
+        $message = Message::create([
+            'registration_id' => $registration->id,
+            'channel' => 'whatsapp',
+            'template_key' => 'registration_confirmed_visitor',
+            'locale' => 'en',
+            'recipient' => $registration->msisdn(),
+            'preview' => 'preview',
+            'status' => Message::STATUS_QUEUED,
+            'queued_at' => now(),
+        ]);
+
+        (new SendWhatsAppMessage($message->id, [
+            'name' => 'Hemin',
+        ], true))->handle(
+            app(WhatsAppGateway::class),
+            app(MessageDispatcher::class),
+            app(OtpiqTemplateRegistry::class),
+        );
+
+        Http::assertSent(function (ClientRequest $request) use ($registration) {
+            if ($request->url() !== 'https://api.otpiq.com/api/sms') {
+                return false;
+            }
+
+            $body = $this->jsonBody($request);
+            $parameters = $body['templateParameters'];
+
+            return $body['templateName'] === 'registration_confirmed_new_visitor_en_2026'
+                && $body['phoneNumber'] === '9647719990003'
+                && $parameters['body'] === ['1' => 'Hemin']
                 && $parameters['header']['imageUrl']
                 === 'https://demi.nextstepfair.com/ticket/'.$registration->ticket_id.'/badge.png'
                 && $parameters['buttons'] === [

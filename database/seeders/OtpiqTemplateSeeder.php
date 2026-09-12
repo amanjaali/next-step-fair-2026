@@ -27,6 +27,10 @@ class OtpiqTemplateSeeder extends Seeder
             ['logical_key' => 'registration_confirmed_parent', 'locale' => 'en', 'name' => 'registration_confirmed_new_parent_en_2026', 'provider_id' => '6aa40adb7896ab80e45570df'],
             ['logical_key' => 'registration_confirmed_parent', 'locale' => 'ku', 'name' => 'registration_confirmed_new_parent_ku_2026', 'provider_id' => '6aa409d17896ab80e4554fe8'],
             ['logical_key' => 'registration_confirmed_parent', 'locale' => 'ar', 'name' => 'registration_confirmed_new_parent_ar_2026', 'provider_id' => '6aa409377896ab80e4544188'],
+
+            ['logical_key' => 'registration_confirmed_visitor', 'locale' => 'en', 'name' => 'registration_confirmed_new_visitor_en_2026', 'provider_id' => '6aa53a2a93320cc410a093fe'],
+            ['logical_key' => 'registration_confirmed_visitor', 'locale' => 'ku', 'name' => 'registration_confirmed_new_visitor_ku_2026', 'provider_id' => '6aa53bc193320cc410a0e4c5'],
+            ['logical_key' => 'registration_confirmed_visitor', 'locale' => 'ar', 'name' => 'registration_confirmed_new_visitor_ar_2026', 'provider_id' => '6aa53ae093320cc410a0a304'],
         ];
 
         foreach ($templates as $template) {

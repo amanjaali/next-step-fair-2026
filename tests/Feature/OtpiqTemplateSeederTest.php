@@ -12,11 +12,11 @@ class OtpiqTemplateSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_seeds_all_nine_otpiq_templates(): void
+    public function test_it_seeds_all_twelve_otpiq_templates(): void
     {
         $this->seed(OtpiqTemplateSeeder::class);
 
-        $this->assertDatabaseCount('otpiq_templates', 9);
+        $this->assertDatabaseCount('otpiq_templates', 12);
 
         $this->assertDatabaseHas('otpiq_templates', [
             'logical_key' => 'rsvp_confirmed',
@@ -37,6 +37,13 @@ class OtpiqTemplateSeederTest extends TestCase
             'locale' => 'ar',
             'name' => 'registration_confirmed_new_parent_ar_2026',
             'provider_id' => '6aa409377896ab80e4544188',
+        ]);
+
+        $this->assertDatabaseHas('otpiq_templates', [
+            'logical_key' => 'registration_confirmed_visitor',
+            'locale' => 'en',
+            'name' => 'registration_confirmed_new_visitor_en_2026',
+            'provider_id' => '6aa53a2a93320cc410a093fe',
         ]);
     }
 

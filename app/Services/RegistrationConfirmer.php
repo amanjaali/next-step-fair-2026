@@ -10,8 +10,8 @@ use App\Support\WhatsAppLog;
 /**
  * Turning a filled-in form into a badge in somebody's hand.
  *
- * Fair student and parent registrations are confirmed, badged, and queued for
- * WhatsApp immediately. Conference RSVP (rsvp_confirmed) waits for backend
+ * Fair student, parent and visitor registrations are confirmed, badged, and queued
+ * for WhatsApp immediately. Conference RSVP (rsvp_confirmed) waits for backend
  * approval in the admin panel.
  */
 class RegistrationConfirmer
@@ -45,7 +45,7 @@ class RegistrationConfirmer
         $this->sendFairConfirmationWhatsApp($registration);
     }
 
-    /** Queues the fair student/parent confirmation with the badge attached. */
+    /** Queues the fair student, parent or visitor confirmation with the badge attached. */
     public function sendFairConfirmationWhatsApp(Registration $registration): ?Message
     {
         if (! $registration->isFair()) {
@@ -83,6 +83,7 @@ class RegistrationConfirmer
         return match ($registration->type) {
             Registration::TYPE_STUDENT => 'registration_confirmed_student',
             Registration::TYPE_PARENT => 'registration_confirmed_parent',
+            Registration::TYPE_VISITOR => 'registration_confirmed_visitor',
             default => null,
         };
     }

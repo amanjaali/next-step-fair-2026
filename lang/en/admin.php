@@ -399,6 +399,7 @@ return [
             'rsvp_confirmed' => 'Conference RSVP confirmed',
             'registration_confirmed_student' => 'Fair registration — student',
             'registration_confirmed_parent' => 'Fair registration — parent',
+            'registration_confirmed_visitor' => 'Fair registration — visitor pass',
         ],
         'locale' => 'Language',
         'template_name' => 'OTPIQ template name',
