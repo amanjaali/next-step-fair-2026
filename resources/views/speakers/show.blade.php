@@ -20,7 +20,7 @@
                     <div class="ns-card !p-[26px]">
                         @foreach ([
                             __('site.common.track') => $speaker->track === 'conference' ? __('site.nav.conference') : __('site.nav.expo'),
-                            __('site.common.role') => $speaker->speaker_type,
+                            __('site.common.role') => __('site.pages.speakers.roles.'.$speaker->speaker_type),
                             __('site.common.institution') => $speaker->t('organization'),
                             __('site.common.country') => $speaker->countryName(),
                             __('site.common.sessions') => (string) $speaker->sessions->count(),
@@ -48,7 +48,7 @@
                     <div class="flex items-center gap-3 mb-5 flex-wrap">
                         <span class="w-[26px] h-2" style="background:{{ $speaker->accent() }}"></span>
                         <span class="ns-eyebrow" style="color:{{ $speaker->accent() }}">
-                            {{ $speaker->track === 'conference' ? __('site.nav.conference') : __('site.nav.expo') }} · {{ $speaker->speaker_type }}
+                            {{ $speaker->track === 'conference' ? __('site.nav.conference') : __('site.nav.expo') }} · {{ __('site.pages.speakers.roles.'.$speaker->speaker_type) }}
                         </span>
                     </div>
 

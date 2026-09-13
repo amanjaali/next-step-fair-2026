@@ -16,7 +16,7 @@
         <div class="flex items-center gap-2 mb-[10px]">
             <span class="w-4 h-[5px] shrink-0" style="background:{{ $speaker->accent() }}"></span>
             <span @class(['ns-eyebrow !text-[10px] !tracking-[0.18em]', '!text-white/55' => $dark])>
-                {{ $speaker->speaker_type }}
+                {{ __('site.pages.speakers.roles.'.$speaker->speaker_type) }}
             </span>
             @if ($speaker->country !== 'IQ')
                 <span @class(['ns-meta ms-auto text-[11px]', '!text-white/55' => $dark])>{{ $speaker->country }}</span>

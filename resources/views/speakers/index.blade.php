@@ -12,9 +12,9 @@
                 ]" />
                 <x-ns.filter-chips param="type" :active="$activeType" :options="[
                     'all' => __('site.common.all'),
-                    'panelist' => 'Panelist',
-                    'moderator' => 'Moderator',
-                    'international' => 'International',
+                    'panelist' => __('site.pages.speakers.roles.panelist'),
+                    'moderator' => __('site.pages.speakers.roles.moderator'),
+                    'international' => __('site.pages.speakers.filter_international'),
                 ]" />
             </div>
 
