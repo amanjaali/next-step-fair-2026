@@ -171,7 +171,7 @@ return [
                 'seminars_note' => ':count sessions across the three days',
             ],
         ],
-        'theme' => 'Pathways to Purpose: Progressing Through Change — Powering the Youth',
+        'theme' => 'Pathways to Purpose: Progressing Through Change — Empowering Youth',
         'hero_lead' => 'Three days. :universities universities and institutes, :sessions seminars and panels, and a Day 1 policy conference. Free entry. Bring your grades and your questions.',
         'hero_media' => 'Hero video loop — 2025 fair floor',
         'counters' => [
