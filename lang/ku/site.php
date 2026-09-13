@@ -33,7 +33,7 @@ return [
     'cta' => [
         'explore_expo' => 'پرۆگرامی پێشانگا ببینە',
         'explore_conference' => 'پرۆگرامی کۆنفرانس ببینە',
-        'register_fair' => 'تۆمارکردن بۆ پێشانگا',
+        'register_fair' => 'خۆتۆمارکردن بۆ پێشانگا',
         'conference_rsvp' => 'بەشداری کۆنفرانس',
         'become_sponsor' => 'ببە بە سپۆنسەر',
         'exhibit' => 'بەشداری وەک پێشانگاکەر',
@@ -126,7 +126,7 @@ return [
         'terms' => 'مەرجەکان',
         'press' => 'پاکەتی ڕاگەیاندن',
         'links' => [
-            'register_fair' => 'تۆمارکردن بۆ پێشانگا',
+            'register_fair' => 'خۆتۆمارکردن بۆ پێشانگا',
             'conference_rsvp' => 'بەشداری کۆنفرانس',
             'agenda' => 'خشتەی ڕۆژان',
             'speakers' => 'قسەکەران',
