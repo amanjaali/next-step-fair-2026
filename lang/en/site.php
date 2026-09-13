@@ -171,6 +171,7 @@ return [
                 'seminars_note' => ':count sessions across the three days',
             ],
         ],
+        'theme' => 'Pathways to Purpose: Progressing Through Change — Powering the Youth',
         'hero_lead' => 'Three days. :universities universities and institutes, :sessions seminars and panels, and a Day 1 policy conference. Free entry. Bring your grades and your questions.',
         'hero_media' => 'Hero video loop — 2025 fair floor',
         'counters' => [
@@ -205,7 +206,7 @@ return [
         'archive_title' => 'Past editions',
         'archive_note' => 'Themes, opening address, speakers, panels, partners and the impact report for each year',
         'venue_kicker' => 'Venue & directions',
-        'venue_title' => 'Cultural Factory, Sulaimani',
+        'venue_title' => 'Foundation Hall, Cultural Factory, Sulaimani',
         'venue_map' => 'Map embed',
         'venue_notes' => [
             'Free parking for 400 cars, entrance from Salim Street.',

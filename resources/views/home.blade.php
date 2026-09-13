@@ -29,6 +29,7 @@
              style="background:linear-gradient(90deg, rgba(5,7,8,0.92) 0%, rgba(5,7,8,0.72) 55%, rgba(5,7,8,0.32) 100%)"></div>
 
         <div class="ns-wrap relative pt-[clamp(64px,9vw,112px)] pb-[clamp(56px,8vw,96px)]">
+            <span class="ns-eyebrow !text-magenta mb-4 block">{{ __('site.home.theme') }}</span>
             <h1 class="ns-display max-w-[14ch] mb-7">{{ config('nextstep.event.name') }}</h1>
 
             <p class="ns-lead !text-white/80 max-w-[56ch] mb-10">

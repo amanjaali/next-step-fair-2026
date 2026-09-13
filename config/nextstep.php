@@ -16,20 +16,20 @@ return [
         'edition' => 4,
         'edition_label' => '4th Edition',
         'year' => 2026,
-        'start_date' => '2026-09-28',
-        'end_date' => '2026-09-30',
+        'start_date' => '2026-09-19',
+        'end_date' => '2026-09-21',
         'opening_hours' => '10:00–20:00',
         'timezone' => 'Asia/Baghdad',
 
         // Day 1 carries the conference track; all three days are fair days.
         'days' => [
-            1 => ['date' => '2026-09-28', 'conference' => true],
-            2 => ['date' => '2026-09-29', 'conference' => false],
-            3 => ['date' => '2026-09-30', 'conference' => false],
+            1 => ['date' => '2026-09-19', 'conference' => true],
+            2 => ['date' => '2026-09-20', 'conference' => false],
+            3 => ['date' => '2026-09-21', 'conference' => false],
         ],
 
         'venue' => [
-            'name' => 'Cultural Factory',
+            'name' => 'Foundation Hall, Cultural Factory',
             'city' => 'Sulaimani',
             'address' => [
                 'en' => 'Cultural Factory, Salim Street, Sulaimani 46001, Kurdistan Region, Iraq',
