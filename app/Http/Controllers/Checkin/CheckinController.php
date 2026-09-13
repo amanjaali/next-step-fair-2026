@@ -95,11 +95,14 @@ class CheckinController extends Controller
             'ticket' => ['required', 'string'],
             'sig' => ['nullable', 'string'],
             'day' => ['nullable', 'integer'],
+            'gate' => ['nullable', 'string', 'max:20'],
             'device_id' => ['nullable', 'string', 'max:64'],
             'scanned_at' => ['nullable', 'date'],
         ]);
 
         $day = (int) ($data['day'] ?? $this->currentDay($request));
+        $this->rememberDay($request, $data['day'] ?? null);
+        $this->rememberGate($request, $data['gate'] ?? null);
         [$ticket, $signature] = $this->parseToken($data['ticket'], $data['sig'] ?? null);
 
         $registration = $this->tickets->resolve($ticket, $signature);
@@ -160,10 +163,20 @@ class CheckinController extends Controller
 
     public function manual(Request $request, Registration $registration): JsonResponse
     {
-        $day = (int) $request->input('day', $this->currentDay($request));
+        $data = $request->validate([
+            'day' => ['nullable', 'integer'],
+            'gate' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $day = (int) ($data['day'] ?? $this->currentDay($request));
+        $this->rememberDay($request, $data['day'] ?? null);
+        $this->rememberGate($request, $data['gate'] ?? null);
 
         return response()->json(
-            $this->checkIn($registration->load('checkIns'), $day, $request, ['method' => 'manual'])
+            $this->checkIn($registration->load('checkIns'), $day, $request, [
+                'method' => 'manual',
+                'gate' => $data['gate'] ?? null,
+            ])
         );
     }
 
@@ -198,12 +211,16 @@ class CheckinController extends Controller
     public function sync(Request $request): JsonResponse
     {
         $data = $request->validate([
+            'gate' => ['nullable', 'string', 'max:20'],
             'scans' => ['required', 'array', 'max:500'],
             'scans.*.ticket' => ['required', 'string'],
             'scans.*.day' => ['required', 'integer'],
+            'scans.*.gate' => ['nullable', 'string', 'max:20'],
             'scans.*.scanned_at' => ['nullable', 'date'],
             'scans.*.device_id' => ['nullable', 'string', 'max:64'],
         ]);
+
+        $this->rememberGate($request, $data['gate'] ?? null);
 
         $accepted = 0;
         $rejected = [];
@@ -224,7 +241,9 @@ class CheckinController extends Controller
                     [
                         'checked_in_at' => isset($scan['scanned_at']) ? Carbon::parse($scan['scanned_at']) : now(),
                         'staff_id' => $request->user()?->id,
-                        'gate' => $request->session()->get('checkin.gate'),
+                        'gate' => $scan['gate']
+                            ?? $data['gate']
+                            ?? $request->session()->get('checkin.gate'),
                         'method' => 'scan',
                         'device_id' => $scan['device_id'] ?? null,
                         'synced_at' => now(),
@@ -338,7 +357,8 @@ class CheckinController extends Controller
             'day' => $day,
             'checked_in_at' => isset($data['scanned_at']) ? Carbon::parse($data['scanned_at']) : now(),
             'staff_id' => $request->user()?->id,
-            'gate' => $request->session()->get('checkin.gate', $request->user()?->default_gate ?? 'A'),
+            'gate' => $data['gate']
+                ?? $request->session()->get('checkin.gate', $request->user()?->default_gate ?? 'A'),
             'method' => $data['method'] ?? 'scan',
             'device_id' => $data['device_id'] ?? null,
             'synced_at' => now(),
@@ -396,6 +416,25 @@ class CheckinController extends Controller
     private function isSecretScanner(Request $request): bool
     {
         return $request->routeIs('scanner.*');
+    }
+
+    /** Keep the session gate in step with the device setting when the client sends one. */
+    private function rememberGate(Request $request, ?string $gate): void
+    {
+        if ($gate === null || $gate === '') {
+            return;
+        }
+
+        $request->session()->put('checkin.gate', $gate);
+    }
+
+    private function rememberDay(Request $request, int|string|null $day): void
+    {
+        if ($day === null || $day === '') {
+            return;
+        }
+
+        $request->session()->put('checkin.day', (int) $day);
     }
 
     /**

@@ -36,4 +36,13 @@ return [
     'queued' => 'Saved on this device. It syncs when the connection returns.',
     'day_selector' => 'Event day',
     'gate_selector' => 'Gate',
+    'setup_title' => 'Choose day and gate',
+    'setup_lead' => 'Pick the event day and gate for this phone before scanning. You can change them later in Settings.',
+    'setup_start' => 'Start scanning',
+    'settings' => 'Settings',
+    'settings_title' => 'Scanner settings',
+    'settings_lead' => 'Changes stay on this phone until you update them again.',
+    'settings_save' => 'Save',
+    'settings_cancel' => 'Cancel',
+    'settings_hint' => 'Day and gate are saved on this device.',
 ];

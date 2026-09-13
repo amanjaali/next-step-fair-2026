@@ -3,9 +3,9 @@ import { Html5Qrcode } from 'html5-qrcode';
 /**
  * Gate scanner.
  *
- * Online it posts each scan and shows the server's verdict. Offline it validates
- * against the cached ticket list, shows the same verdict, and queues the scan in
- * localStorage until the connection returns.
+ * Day and gate are chosen once on this device, kept in localStorage, and only
+ * changed from Settings. Online scans post to the server; offline scans queue
+ * locally against a cached ticket list until the connection returns.
  */
 const shell = document.querySelector('.ck-shell');
 if (shell) {
@@ -17,13 +17,21 @@ if (shell) {
         manual: shell.dataset.manualUrl,
     };
     const csrf = shell.dataset.csrf;
-    const day = parseInt(shell.dataset.day, 10) || 1;
 
     const QUEUE_KEY = 'ns.checkin.queue';
     const TICKETS_KEY = 'ns.checkin.tickets';
     const DEVICE_KEY = 'ns.checkin.device';
+    const SETTINGS_KEY = 'ns.checkin.settings';
 
     const el = {
+        setup: shell.querySelector('[data-setup]'),
+        workspace: shell.querySelector('[data-workspace]'),
+        settings: shell.querySelector('[data-settings]'),
+        setupDay: shell.querySelector('[data-setup-day]'),
+        setupGate: shell.querySelector('[data-setup-gate]'),
+        settingsDay: shell.querySelector('[data-settings-day]'),
+        settingsGate: shell.querySelector('[data-settings-gate]'),
+        gateLabel: shell.querySelector('[data-gate-label]'),
         result: shell.querySelector('[data-result]'),
         status: shell.querySelector('[data-result-status]'),
         title: shell.querySelector('[data-result-title]'),
@@ -58,6 +66,76 @@ if (shell) {
         } catch (e) {}
     };
 
+    const suggestedDay = parseInt(shell.dataset.suggestedDay, 10) || 1;
+    const suggestedGate = shell.dataset.suggestedGate || 'A';
+
+    let day = suggestedDay;
+    let gate = suggestedGate;
+    let cameraStarted = false;
+    let paused = false;
+    let reader = null;
+    let clearTimer = null;
+    let lastToken = null;
+    let lastTokenAt = 0;
+
+    /* ------------------------------------------------------------ settings -- */
+
+    function readSettings() {
+        const stored = readJson(SETTINGS_KEY, null);
+        if (!stored || !stored.day || !stored.gate) return null;
+        return {
+            day: parseInt(stored.day, 10) || suggestedDay,
+            gate: String(stored.gate),
+        };
+    }
+
+    function writeSettings(next) {
+        day = next.day;
+        gate = next.gate;
+        writeJson(SETTINGS_KEY, { day, gate });
+        updateGateLabel();
+    }
+
+    function updateGateLabel() {
+        if (!el.gateLabel) return;
+        const template = shell.dataset.labelGate || 'Gate :gate · Day :day';
+        el.gateLabel.textContent = template.replace(':gate', gate).replace(':day', String(day));
+    }
+
+    function fillSelects(daySelect, gateSelect) {
+        if (daySelect) daySelect.value = String(day);
+        if (gateSelect) gateSelect.value = gate;
+    }
+
+    function showSetup() {
+        el.setup.hidden = false;
+        el.workspace.hidden = true;
+        el.settings.hidden = true;
+        fillSelects(el.setupDay, el.setupGate);
+    }
+
+    function showWorkspace() {
+        el.setup.hidden = true;
+        el.workspace.hidden = false;
+        el.settings.hidden = true;
+        updateGateLabel();
+        startCamera();
+        updateSyncLabel();
+        refreshTickets();
+        flushQueue();
+    }
+
+    function openSettings() {
+        fillSelects(el.settingsDay, el.settingsGate);
+        el.settings.hidden = false;
+        paused = true;
+    }
+
+    function closeSettings() {
+        el.settings.hidden = true;
+        paused = false;
+    }
+
     /* ------------------------------------------------------------ display -- */
 
     const STATE_LABEL = {
@@ -69,8 +147,6 @@ if (shell) {
         wrong_day: shell.dataset.labelWrongDay,
         pending: shell.dataset.labelPending,
     };
-
-    let paused = false;
 
     function show(result) {
         paused = true;
@@ -87,9 +163,17 @@ if (shell) {
         if (result.state.startsWith('valid') && el.count) {
             el.count.textContent = String(parseInt(el.count.textContent, 10) + 1);
         }
+
+        // Auto-resume so the next badge can be scanned without a tap.
+        // Valid: short flash. Amber/red: a bit longer so staff can read it.
+        const delay = result.state.startsWith('valid') ? 1400 : 2200;
+        clearTimeout(clearTimer);
+        clearTimer = setTimeout(clearResult, delay);
     }
 
     function clearResult() {
+        if (!el.settings.hidden) return;
+        clearTimeout(clearTimer);
         paused = false;
         el.result.hidden = true;
     }
@@ -114,7 +198,13 @@ if (shell) {
 
     function queueScan(token) {
         const queue = readJson(QUEUE_KEY, []);
-        queue.push({ ticket: token, day, scanned_at: new Date().toISOString(), device_id: deviceId });
+        queue.push({
+            ticket: token,
+            day,
+            gate,
+            scanned_at: new Date().toISOString(),
+            device_id: deviceId,
+        });
         writeJson(QUEUE_KEY, queue);
         updateSyncLabel();
     }
@@ -136,7 +226,7 @@ if (shell) {
             const response = await fetch(urls.sync, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
-                body: JSON.stringify({ scans: queue }),
+                body: JSON.stringify({ scans: queue, gate }),
             });
             if (response.ok) {
                 writeJson(QUEUE_KEY, []);
@@ -158,7 +248,13 @@ if (shell) {
     /* ---------------------------------------------------------------- scan -- */
 
     async function handleToken(token) {
-        if (paused) return;
+        if (paused || el.workspace.hidden) return;
+
+        // Same QR still in frame after auto-resume — ignore briefly.
+        const now = Date.now();
+        if (token === lastToken && now - lastTokenAt < 3500) return;
+        lastToken = token;
+        lastTokenAt = now;
 
         if (!navigator.onLine) {
             queueScan(token);
@@ -170,7 +266,7 @@ if (shell) {
             const response = await fetch(urls.scan, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
-                body: JSON.stringify({ ticket: token, day, device_id: deviceId }),
+                body: JSON.stringify({ ticket: token, day, gate, device_id: deviceId }),
             });
             show(await response.json());
         } catch (e) {
@@ -179,24 +275,48 @@ if (shell) {
         }
     }
 
-    const reader = new Html5Qrcode('ck-reader', { verbose: false });
+    function startCamera() {
+        if (cameraStarted) return;
+        cameraStarted = true;
 
-    reader
-        .start(
-            { facingMode: 'environment' },
-            { fps: 10, qrbox: { width: 240, height: 240 } },
-            (decoded) => handleToken(decoded),
-            () => {}
-        )
-        .then(() => {
-            if (el.hint) el.hint.hidden = true;
-        })
-        .catch(() => {
-            if (el.hint) el.hint.textContent = shell.dataset.labelCameraDenied || '';
-        });
+        reader = new Html5Qrcode('ck-reader', { verbose: false });
+        reader
+            .start(
+                { facingMode: 'environment' },
+                { fps: 10, qrbox: { width: 240, height: 240 } },
+                (decoded) => handleToken(decoded),
+                () => {}
+            )
+            .then(() => {
+                if (el.hint) el.hint.hidden = true;
+            })
+            .catch(() => {
+                if (el.hint) el.hint.textContent = shell.dataset.labelCameraDenied || '';
+            });
+    }
 
-    shell.querySelector('[data-rescan]')?.addEventListener('click', clearResult);
+    // Tap the result to dismiss early; otherwise it clears on its own.
     el.result?.addEventListener('click', clearResult);
+
+    shell.querySelector('[data-setup-save]')?.addEventListener('click', () => {
+        writeSettings({
+            day: parseInt(el.setupDay.value, 10) || suggestedDay,
+            gate: el.setupGate.value || suggestedGate,
+        });
+        showWorkspace();
+    });
+
+    shell.querySelector('[data-open-settings]')?.addEventListener('click', openSettings);
+
+    shell.querySelector('[data-settings-cancel]')?.addEventListener('click', closeSettings);
+
+    shell.querySelector('[data-settings-save]')?.addEventListener('click', () => {
+        writeSettings({
+            day: parseInt(el.settingsDay.value, 10) || day,
+            gate: el.settingsGate.value || gate,
+        });
+        closeSettings();
+    });
 
     /* -------------------------------------------------------------- search -- */
 
@@ -240,7 +360,7 @@ if (shell) {
         const response = await fetch(`${urls.manual}/${button.dataset.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
-            body: JSON.stringify({ day }),
+            body: JSON.stringify({ day, gate }),
         });
         show(await response.json());
         el.search.hidden = true;
@@ -256,8 +376,16 @@ if (shell) {
     });
     window.addEventListener('offline', updateSyncLabel);
 
-    updateSyncLabel();
-    refreshTickets();
-    flushQueue();
+    const stored = readSettings();
+    if (stored) {
+        day = stored.day;
+        gate = stored.gate;
+        showWorkspace();
+    } else {
+        if (el.setupDay) el.setupDay.value = String(suggestedDay);
+        if (el.setupGate) el.setupGate.value = suggestedGate;
+        showSetup();
+    }
+
     setInterval(flushQueue, 30000);
 }
