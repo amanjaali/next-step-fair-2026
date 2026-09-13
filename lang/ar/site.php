@@ -227,12 +227,15 @@ return [
             'by_invitation' => 'بدعوة خاصة',
             'types' => [
                 'ceremony' => 'حفل',
+                'conference' => 'مؤتمر',
                 'plenary' => 'جلسة عامة',
                 'panel' => 'جلسة حوارية',
                 'roundtable' => 'طاولة مستديرة',
                 'seminar' => 'ندوة',
                 'workshop' => 'ورشة',
                 'exhibition' => 'معرض',
+                'expo' => 'معرض',
+                'break' => 'استراحة',
             ],
             'tracks' => [
                 'conference_who' => 'وفود مدعوة',

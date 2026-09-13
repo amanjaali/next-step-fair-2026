@@ -225,12 +225,15 @@ return [
             'by_invitation' => 'By invitation',
             'types' => [
                 'ceremony' => 'Ceremony',
+                'conference' => 'Conference',
                 'plenary' => 'Plenary',
                 'panel' => 'Panel',
                 'roundtable' => 'Roundtable',
                 'seminar' => 'Seminar',
                 'workshop' => 'Workshop',
                 'exhibition' => 'Exhibition',
+                'expo' => 'Expo',
+                'break' => 'Break',
             ],
             'tracks' => [
                 'conference_who' => 'Invited delegates',
