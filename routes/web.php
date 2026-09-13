@@ -92,6 +92,26 @@ Route::get('checkin/sw.js', [CheckinController::class, 'serviceWorker'])->name('
 
 /*
 |--------------------------------------------------------------------------
+| Secret key-gated scanner
+|--------------------------------------------------------------------------
+| Same gate check-in UI as /checkin, opened via /s/{SECRET_ROUTE_SCANNER_KEY}
+| on devices that should not hold a staff login. Wrong keys 404.
+*/
+Route::prefix('s/{key}')
+    ->where(['key' => '[A-Za-z0-9_-]+'])
+    ->middleware('scanner.key')
+    ->name('scanner.')
+    ->group(function () {
+        Route::get('/', [CheckinController::class, 'index'])->name('index');
+        Route::post('scan', [CheckinController::class, 'scan'])->name('scan');
+        Route::get('search', [CheckinController::class, 'search'])->name('search');
+        Route::post('manual/{registration}', [CheckinController::class, 'manual'])->name('manual');
+        Route::get('offline-manifest', [CheckinController::class, 'offlineManifest'])->name('offline');
+        Route::post('sync', [CheckinController::class, 'sync'])->name('sync');
+    });
+
+/*
+|--------------------------------------------------------------------------
 | The public site, one tree per language
 |--------------------------------------------------------------------------
 */

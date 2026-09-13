@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\DropHoneypotSubmissions;
+use App\Http\Middleware\EnsureSecretScannerKey;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'locale' => SetLocale::class,
+            'scanner.key' => EnsureSecretScannerKey::class,
         ]);
 
         // Every public form carries the same hidden decoy field, so the check
@@ -41,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->is('checkin/*') && $request->expectsJson(),
+            fn (Request $request) => $request->is('api/*')
+                || ($request->is('checkin/*', 's/*') && $request->expectsJson()),
         );
     })->create();

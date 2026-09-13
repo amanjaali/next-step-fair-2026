@@ -1,10 +1,10 @@
-<x-checkin.layout>
+<x-checkin.layout :secret="$secret ?? false">
     <main class="ck-shell"
-          data-scan-url="{{ route('checkin.scan') }}"
-          data-search-url="{{ route('checkin.search') }}"
-          data-sync-url="{{ route('checkin.sync') }}"
-          data-manifest-url="{{ route('checkin.offline') }}"
-          data-manual-url="{{ url('/checkin/manual') }}"
+          data-scan-url="{{ $urls['scan'] }}"
+          data-search-url="{{ $urls['search'] }}"
+          data-sync-url="{{ $urls['sync'] }}"
+          data-manifest-url="{{ $urls['manifest'] }}"
+          data-manual-url="{{ $urls['manual'] }}"
           data-day="{{ $day }}"
           data-csrf="{{ csrf_token() }}"
           data-label-valid="{{ __('checkin.states.valid') }}"
@@ -55,7 +55,7 @@
         </section>
 
         <footer class="ck-foot">
-            <form method="GET" action="{{ route('checkin.index') }}" class="ck-foot__form">
+            <form method="GET" action="{{ $urls['index'] }}" class="ck-foot__form">
                 <label class="ck-foot__field">
                     <span>{{ __('checkin.day_selector') }}</span>
                     <select name="day" class="ck-select" onchange="this.form.submit()">
@@ -74,10 +74,12 @@
                 </label>
             </form>
 
-            <form method="POST" action="{{ route('checkin.logout') }}">
-                @csrf
-                <button type="submit" class="ck-btn ck-btn--link">{{ __('checkin.sign_out') }}</button>
-            </form>
+            @unless ($secret ?? false)
+                <form method="POST" action="{{ route('checkin.logout') }}">
+                    @csrf
+                    <button type="submit" class="ck-btn ck-btn--link">{{ __('checkin.sign_out') }}</button>
+                </form>
+            @endunless
         </footer>
     </main>
 </x-checkin.layout>

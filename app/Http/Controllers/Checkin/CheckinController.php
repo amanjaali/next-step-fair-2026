@@ -70,11 +70,16 @@ class CheckinController extends Controller
             $request->session()->put('checkin.gate', $request->string('gate')->toString());
         }
 
+        $secret = $this->isSecretScanner($request);
+        $key = $secret ? (string) $request->route('key') : null;
+
         return view('checkin.index', [
             'day' => $this->currentDay($request),
-            'gate' => $request->session()->get('checkin.gate', Auth::user()->default_gate ?? 'A'),
+            'gate' => $request->session()->get('checkin.gate', $request->user()?->default_gate ?? 'A'),
             'days' => array_keys(config('nextstep.event.days')),
             'todayCount' => CheckIn::whereDate('checked_in_at', today())->count(),
+            'secret' => $secret,
+            'urls' => $this->scannerUrls($secret, $key),
         ]);
     }
 
@@ -218,7 +223,7 @@ class CheckinController extends Controller
                     ['registration_id' => $registration->id, 'day' => (int) $scan['day']],
                     [
                         'checked_in_at' => isset($scan['scanned_at']) ? Carbon::parse($scan['scanned_at']) : now(),
-                        'staff_id' => $request->user()->id,
+                        'staff_id' => $request->user()?->id,
                         'gate' => $request->session()->get('checkin.gate'),
                         'method' => 'scan',
                         'device_id' => $scan['device_id'] ?? null,
@@ -332,8 +337,8 @@ class CheckinController extends Controller
             'registration_id' => $registration->id,
             'day' => $day,
             'checked_in_at' => isset($data['scanned_at']) ? Carbon::parse($data['scanned_at']) : now(),
-            'staff_id' => $request->user()->id,
-            'gate' => $request->session()->get('checkin.gate', $request->user()->default_gate),
+            'staff_id' => $request->user()?->id,
+            'gate' => $request->session()->get('checkin.gate', $request->user()?->default_gate ?? 'A'),
             'method' => $data['method'] ?? 'scan',
             'device_id' => $data['device_id'] ?? null,
             'synced_at' => now(),
@@ -386,5 +391,39 @@ class CheckinController extends Controller
         parse_str((string) parse_url($value, PHP_URL_QUERY), $query);
 
         return [$ticket, $query['sig'] ?? $signature];
+    }
+
+    private function isSecretScanner(Request $request): bool
+    {
+        return $request->routeIs('scanner.*');
+    }
+
+    /**
+     * Endpoint URLs for the camera shell. Secret mode keeps the key in every path
+     * so the same Blade + JS work without a staff session.
+     *
+     * @return array{index: string, scan: string, search: string, sync: string, manifest: string, manual: string}
+     */
+    private function scannerUrls(bool $secret, ?string $key): array
+    {
+        if ($secret && $key !== null) {
+            return [
+                'index' => route('scanner.index', ['key' => $key]),
+                'scan' => route('scanner.scan', ['key' => $key]),
+                'search' => route('scanner.search', ['key' => $key]),
+                'sync' => route('scanner.sync', ['key' => $key]),
+                'manifest' => route('scanner.offline', ['key' => $key]),
+                'manual' => url('/s/'.$key.'/manual'),
+            ];
+        }
+
+        return [
+            'index' => route('checkin.index'),
+            'scan' => route('checkin.scan'),
+            'search' => route('checkin.search'),
+            'sync' => route('checkin.sync'),
+            'manifest' => route('checkin.offline'),
+            'manual' => url('/checkin/manual'),
+        ];
     }
 }

@@ -224,4 +224,59 @@ class TicketAndCheckinTest extends TestCase
 
         $this->assertSame($before + 1, $campaign->scans()->count());
     }
+
+    public function test_the_secret_scanner_rejects_a_wrong_key(): void
+    {
+        config(['nextstep.scanner.secret_key' => 'gate-secret-key']);
+
+        $this->get('/s/wrong-key')->assertNotFound();
+        $this->postJson('/s/wrong-key/scan', ['ticket' => 'x'])->assertNotFound();
+    }
+
+    public function test_the_secret_scanner_is_disabled_when_the_key_is_empty(): void
+    {
+        config(['nextstep.scanner.secret_key' => '']);
+
+        $this->get('/s/anything')->assertNotFound();
+    }
+
+    public function test_the_secret_scanner_checks_in_without_staff_login(): void
+    {
+        config(['nextstep.scanner.secret_key' => 'gate-secret-key']);
+
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_STUDENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Scanner Test Student',
+            'phone' => '7709998877',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+        ]);
+
+        $day = 1;
+        $url = app(TicketService::class)->verifyUrl($registration);
+
+        $this->get('/s/gate-secret-key')->assertOk();
+
+        $this->postJson('/s/gate-secret-key/scan', [
+            'ticket' => $url,
+            'day' => $day,
+        ])->assertOk()->assertJsonPath('state', 'valid');
+
+        $this->assertDatabaseHas('check_ins', [
+            'registration_id' => $registration->id,
+            'day' => $day,
+            'staff_id' => null,
+            'method' => 'scan',
+        ]);
+
+        $this->assertSame(
+            Registration::STATUS_CHECKED_IN,
+            $registration->fresh()->status
+        );
+    }
 }

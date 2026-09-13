@@ -162,6 +162,17 @@ return [
         'error_correction' => 'medium',
     ],
 
+    /*
+    |---------------------------------------------------------------------------
+    | Secret gate scanner
+    |---------------------------------------------------------------------------
+    | A key-gated copy of the staff check-in PWA at /s/{key}. Share the URL with
+    | gate devices that should not hold a staff login. Leave empty to disable.
+    */
+    'scanner' => [
+        'secret_key' => env('SECRET_ROUTE_SCANNER_KEY'),
+    ],
+
     'badge' => [
         'page_size' => 'A6',
         'download_link_ttl' => 60 * 24 * 7, // minutes a signed badge URL stays valid
