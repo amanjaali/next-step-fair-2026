@@ -69,6 +69,6 @@ return [
 
     'kinds' => [
         'university' => 'زانکۆ',
-        'institute' => 'پەیمانگا',
+        'institute' => 'پەیمانگە',
     ],
 ];
