@@ -143,6 +143,7 @@ return new class extends Migration
         /*
          * Check-in is per day: a three-day badge is scanned once on each day it
          * is used, and the row records who scanned it and at which gate.
+         * Later migrations relax this to allow multiple scans per day.
          */
         Schema::create('check_ins', function (Blueprint $table) {
             $table->id();

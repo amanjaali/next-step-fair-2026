@@ -56,7 +56,7 @@ class RegistrationExporter extends Exporter
             ExportColumn::make('utm_campaign')->label('Campaign'),
             ExportColumn::make('checked_in_days')
                 ->label('Checked in on')
-                ->state(fn (Registration $r) => $r->checkIns->pluck('day')->sort()->implode(', ')),
+                ->state(fn (Registration $r) => $r->checkIns->pluck('day')->unique()->sort()->values()->implode(', ')),
             ExportColumn::make('created_at')->label('Registered at'),
             ExportColumn::make('confirmed_at')->label('Confirmed at'),
             ExportColumn::make('approved_at')->label('Approved at'),

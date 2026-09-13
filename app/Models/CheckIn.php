@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/** One row per registrant per event day, with the staff member who scanned it. */
+/** One scan at the gate. A registrant may be scanned more than once per day. */
 class CheckIn extends Model
 {
     protected $guarded = ['id'];

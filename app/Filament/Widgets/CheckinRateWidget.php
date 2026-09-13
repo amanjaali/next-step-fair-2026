@@ -25,7 +25,7 @@ class CheckinRateWidget extends ChartWidget
 
         foreach ($days as $day) {
             $registered[] = Registration::active()->whereJsonContains('days', (int) $day)->count();
-            $attended[] = CheckIn::where('day', $day)->count();
+            $attended[] = CheckIn::where('day', $day)->distinct()->count('registration_id');
         }
 
         return [

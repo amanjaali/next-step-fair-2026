@@ -50,7 +50,9 @@ class RegistrationStatsWidget extends StatsOverviewWidget
                 ->description(__('admin.stats.failed', ['failed' => $failed, 'retried' => Message::where('attempts', '>', 1)->count()]))
                 ->color($rate >= 95 ? 'success' : 'warning'),
 
-            Stat::make(__('admin.stats.checked_in'), number_format(CheckIn::whereDate('checked_in_at', today())->count()))
+            Stat::make(__('admin.stats.checked_in'), number_format(
+                CheckIn::whereDate('checked_in_at', today())->distinct()->count('registration_id')
+            ))
                 ->color('success'),
         ];
     }

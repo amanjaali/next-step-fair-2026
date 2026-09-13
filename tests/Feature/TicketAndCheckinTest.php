@@ -120,21 +120,54 @@ class TicketAndCheckinTest extends TestCase
         $this->assertDatabaseHas('check_ins', ['registration_id' => $registration->id, 'day' => $day]);
     }
 
-    public function test_a_second_scan_on_the_same_day_returns_amber(): void
+    public function test_a_second_scan_on_the_same_day_is_recorded(): void
     {
-        $registration = Registration::fair()->has('checkIns')->firstOrFail();
-        $checkIn = $registration->checkIns()->firstOrFail();
+        config(['nextstep.scanner.secret_key' => 'gate-secret-key']);
 
-        $this->actingAs($this->staff())->postJson('/checkin/scan', [
-            'ticket' => $registration->ticket_id,
-            'sig' => app(TicketService::class)->signature($registration->ticket_id),
-            'day' => $checkIn->day,
-        ])->assertOk()->assertJsonPath('state', 'already');
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_STUDENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Multi Scan Student',
+            'phone' => '7709998811',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+        ]);
+
+        $url = app(TicketService::class)->verifyUrl($registration);
+
+        $this->postJson('/s/gate-secret-key/scan', [
+            'ticket' => $url,
+            'day' => 1,
+            'gate' => 'A',
+        ])->assertOk()->assertJsonPath('state', 'valid');
+
+        $this->postJson('/s/gate-secret-key/scan', [
+            'ticket' => $url,
+            'day' => 1,
+            'gate' => 'B',
+        ])->assertOk()->assertJsonPath('state', 'valid');
+
+        $this->assertSame(2, CheckIn::where('registration_id', $registration->id)->where('day', 1)->count());
     }
 
     public function test_an_unsigned_token_is_rejected_at_the_gate(): void
     {
-        $registration = $this->confirmed();
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_STUDENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Unsigned Token Student',
+            'phone' => '7709998822',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1],
+            'confirmed_at' => now(),
+        ]);
 
         $this->actingAs($this->staff())->postJson('/checkin/scan', [
             'ticket' => $registration->ticket_id,
@@ -173,10 +206,18 @@ class TicketAndCheckinTest extends TestCase
 
     public function test_the_offline_queue_syncs_without_double_counting(): void
     {
-        $registration = Registration::fair()
-            ->where('status', Registration::STATUS_CONFIRMED)
-            ->whereDoesntHave('checkIns')
-            ->firstOrFail();
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_STUDENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Offline Sync Student',
+            'phone' => '7709998833',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+        ]);
 
         $payload = ['scans' => [[
             'ticket' => $registration->ticket_id,
@@ -193,6 +234,18 @@ class TicketAndCheckinTest extends TestCase
             ->assertOk()->assertJsonPath('accepted', 0);
 
         $this->assertSame(1, CheckIn::where('registration_id', $registration->id)->where('day', 2)->count());
+
+        // A later pass the same day is a new scan.
+        $this->actingAs($this->staff())->postJson('/checkin/sync', [
+            'scans' => [[
+                'ticket' => $registration->ticket_id,
+                'day' => 2,
+                'scanned_at' => now()->subMinutes(5)->toIso8601String(),
+                'device_id' => 'dev-abc',
+            ]],
+        ])->assertOk()->assertJsonPath('accepted', 1);
+
+        $this->assertSame(2, CheckIn::where('registration_id', $registration->id)->where('day', 2)->count());
     }
 
     public function test_the_offline_manifest_carries_no_phone_numbers(): void

@@ -236,16 +236,24 @@ class CheckinController extends Controller
                     continue;
                 }
 
+                $checkedInAt = isset($scan['scanned_at']) ? Carbon::parse($scan['scanned_at']) : now();
+                $deviceId = $scan['device_id'] ?? null;
+
+                // Idempotent on exact offline replay; a later pass the same day
+                // is a new row (multi-scan).
                 $checkIn = CheckIn::firstOrCreate(
-                    ['registration_id' => $registration->id, 'day' => (int) $scan['day']],
                     [
-                        'checked_in_at' => isset($scan['scanned_at']) ? Carbon::parse($scan['scanned_at']) : now(),
+                        'registration_id' => $registration->id,
+                        'day' => (int) $scan['day'],
+                        'checked_in_at' => $checkedInAt,
+                        'device_id' => $deviceId,
+                    ],
+                    [
                         'staff_id' => $request->user()?->id,
                         'gate' => $scan['gate']
                             ?? $data['gate']
                             ?? $request->session()->get('checkin.gate'),
                         'method' => 'scan',
-                        'device_id' => $scan['device_id'] ?? null,
                         'synced_at' => now(),
                     ]
                 );
@@ -335,19 +343,6 @@ class CheckinController extends Controller
                 'detail' => __('checkin.wrong_day_detail', [
                     'days' => $registration->daysLabel(),
                     'today' => $day,
-                ]),
-            ];
-        }
-
-        $existing = $registration->checkIns->firstWhere('day', $day);
-
-        if ($existing) {
-            return $base + [
-                'state' => 'already',
-                'title' => $registration->full_name,
-                'detail' => __('checkin.already_detail', [
-                    'time' => $existing->checked_in_at->format('H:i'),
-                    'staff' => $existing->staff?->name ?? '—',
                 ]),
             ];
         }
