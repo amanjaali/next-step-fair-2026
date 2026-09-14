@@ -217,9 +217,11 @@ return [
     | application checks.
     */
     'education_stages' => [
-        'grade12' => 'grade12',
         'graduate' => 'graduate',
+        'grade12' => 'grade12',
+        'grade11' => 'grade11',
         'university' => 'university',
+        'institute' => 'institute',
         'other' => 'other',
     ],
 

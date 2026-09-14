@@ -161,9 +161,11 @@ return [
 
     'options' => [
         'stage' => [
-            'grade12' => 'Grade 12',
-            'graduate' => 'Finished school',
+            'graduate' => 'Grade 12 graduate',
+            'grade12' => 'In grade 12',
+            'grade11' => 'In grade 11',
             'university' => 'At university',
+            'institute' => 'At an institute',
             'other' => 'Something else',
         ],
         'gender' => [
