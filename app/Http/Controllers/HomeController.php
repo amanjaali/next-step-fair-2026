@@ -48,7 +48,7 @@ class HomeController extends Controller
              */
             'popup' => OfferPopup::live()->for($attendee)->with('items')->latest('updated_at')->first(),
             'sessionCount' => $this->sessionCount(),
-            'title' => config('nextstep.event.name').' — '.__('site.common.edition_4'),
+            'title' => ns_event_name().' — '.__('site.common.edition_4'),
             'counters' => $this->counters(),
             'featureCards' => FeatureCard::where('group', 'why_attend')->orderBy('sort')->get(),
             'sdgGoals' => SdgGoal::orderBy('sort')->get(),

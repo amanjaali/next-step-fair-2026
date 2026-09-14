@@ -29,8 +29,8 @@
              style="background:linear-gradient(90deg, rgba(5,7,8,0.92) 0%, rgba(5,7,8,0.72) 55%, rgba(5,7,8,0.32) 100%)"></div>
 
         <div class="ns-wrap relative pt-[clamp(64px,9vw,112px)] pb-[clamp(56px,8vw,96px)]">
-            <span class="ns-eyebrow !text-magenta mb-4 block">{{ __('site.home.theme') }}</span>
-            <h1 class="ns-display max-w-[14ch] mb-7">{{ config('nextstep.event.name') }}</h1>
+            <span class="ns-eyebrow !text-white mb-4 block">{{ __('site.home.theme') }}</span>
+            <h1 class="ns-display max-w-[22ch] mb-7">{{ ns_event_name() }}</h1>
 
             <p class="ns-lead !text-white/80 max-w-[56ch] mb-10">
                 {{ ns_home('hero_lead', ['universities' => ns_home_counter('universities', 32), 'sessions' => ns_home_counter('sessions', 26)]) }}
@@ -43,7 +43,7 @@
                      should follow the paragraph direction. --}}
                 @foreach ([
                     ['label' => __('site.common.dates'), 'value' => ns_event_dates(), 'isolate' => false],
-                    ['label' => __('site.common.venue'), 'value' => config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city'), 'isolate' => false],
+                    ['label' => __('site.common.venue'), 'value' => ns_venue_label(), 'isolate' => false],
                     ['label' => __('site.common.hours'), 'value' => config('nextstep.event.opening_hours'), 'isolate' => true],
                 ] as $fact)
                     <div>
@@ -601,7 +601,7 @@
             $eventSchema = [
                 '@context' => 'https://schema.org',
                 '@type' => 'Event',
-                'name' => config('nextstep.event.name'),
+                'name' => ns_event_name(),
                 'startDate' => config('nextstep.event.start_date'),
                 'endDate' => config('nextstep.event.end_date'),
                 'eventStatus' => 'https://schema.org/EventScheduled',

@@ -67,6 +67,7 @@ return [
         'free_entry' => 'الدخول مجاني · لا حاجة لموعد مسبق',
         'edition' => 'الدورة :n',
         'edition_4' => 'الدورة الرابعة',
+        'event_name' => 'معرض Next Step :year',
         'location' => 'السليمانية · العراق',
         'dates' => 'التواريخ',
         'venue' => 'المكان',

@@ -41,7 +41,7 @@
                                  a localised month name and follow the text direction. --}}
                             @foreach ([
                                 [__('site.common.dates'), ns_event_dates(), false],
-                                [__('site.common.venue'), config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city'), false],
+                                [__('site.common.venue'), ns_venue_label(), false],
                                 [__('site.common.hours'), config('nextstep.event.opening_hours'), true],
                             ] as [$label, $value, $isolate])
                                 <div class="flex flex-col gap-[3px] py-[10px] border-b border-[rgba(5,7,8,0.1)]">

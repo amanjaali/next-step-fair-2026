@@ -38,7 +38,7 @@
                         <dl class="m-0">
                             @foreach ([
                                 __('site.common.dates') => ns_day_date(1, 'j F Y'),
-                                __('site.common.venue') => config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city'),
+                                __('site.common.venue') => ns_venue_label(),
                             ] as $label => $value)
                                 <div class="flex flex-col gap-[3px] py-[10px] border-b border-[rgba(5,7,8,0.1)]">
                                     <dt class="ns-eyebrow !text-[9.5px]">{{ $label }}</dt>
