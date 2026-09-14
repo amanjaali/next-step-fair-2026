@@ -67,30 +67,20 @@ class HomeController extends Controller
     }
 
     /**
-     * The live counters bar. Registered attendees is a real count, cached for a
-     * minute so the home page never queries it once per visitor during a rush.
+     * The counters bar under the hero — every figure is typed in the dashboard
+     * as a string, not counted live from the database.
      */
     private function counters(): array
     {
-        $registered = Cache::remember('ns.counters.registered', now()->addMinute(), function () {
-            return Registration::active()->count();
-        });
-
-        $universities = Cache::remember('ns.counters.universities', now()->addHour(), function () {
-            return Organization::published()->ofKind(['university', 'institute'])->forYear(2026)->count();
-        });
-
-        $sessions = $this->sessionCount();
-
         return [
-            ['value' => ns_days_until(), 'label' => __('site.home.counters.days_until')],
-            ['value' => $universities, 'label' => __('site.home.counters.universities')],
-            ['value' => number_format($registered), 'label' => __('site.home.counters.registered')],
-            ['value' => $sessions, 'label' => __('site.home.counters.sessions')],
+            ['value' => ns_home_counter_display('days_until', '5'), 'label' => __('site.home.counters.days_until')],
+            ['value' => ns_home_counter_display('universities', '22'), 'label' => __('site.home.counters.universities')],
+            ['value' => ns_home_counter_display('registered', '172'), 'label' => __('site.home.counters.registered')],
+            ['value' => ns_home_counter_display('sessions', '11'), 'label' => __('site.home.counters.sessions')],
         ];
     }
 
-    /** Bookable sessions across the three days — the counter and the card share it. */
+    /** Bookable sessions across the three days — used by the signed-in cards. */
     private function sessionCount(): int
     {
         return Cache::remember('ns.counters.sessions', now()->addHour(), function () {

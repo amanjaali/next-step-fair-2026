@@ -117,6 +117,37 @@ class HomePageEditingTest extends TestCase
         $this->get('/en')->assertOk()->assertSee('Get your free badge');
     }
 
+    public function test_counter_figures_are_typed_strings_from_the_dashboard(): void
+    {
+        $this->actingAs($this->editor());
+
+        Livewire::test(HomePage::class)
+            ->set('data.counters.days_until', '5')
+            ->set('data.counters.universities', '22')
+            ->set('data.counters.registered', '172')
+            ->set('data.counters.sessions', '11')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame([
+            'days_until' => '5',
+            'universities' => '22',
+            'registered' => '172',
+            'sessions' => '11',
+        ], Setting::get('counters'));
+
+        $this->get('/en')
+            ->assertOk()
+            ->assertSee('5')
+            ->assertSee('22')
+            ->assertSee('172')
+            ->assertSee('11')
+            ->assertSee(__('site.home.counters.days_until'))
+            ->assertSee(__('site.home.counters.universities'))
+            ->assertSee(__('site.home.counters.registered'))
+            ->assertSee(__('site.home.counters.sessions'));
+    }
+
     /* -------------------------------------------------------- photographs -- */
 
     public function test_the_hero_is_plain_black_until_a_photograph_is_uploaded(): void

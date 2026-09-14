@@ -130,10 +130,22 @@ class HomePage extends Page
                     ->description(__('admin.home.numbers_help'))
                     ->columns(2)
                     ->schema([
+                        TextInput::make('counters.days_until')
+                            ->label(__('admin.home.days_until'))
+                            ->placeholder('5')
+                            ->helperText(__('admin.home.counter_value_help')),
                         TextInput::make('counters.universities')
-                            ->label(__('admin.home.universities'))->numeric()->minValue(0),
+                            ->label(__('admin.home.universities'))
+                            ->placeholder('22')
+                            ->helperText(__('admin.home.counter_value_help')),
+                        TextInput::make('counters.registered')
+                            ->label(__('admin.home.registered'))
+                            ->placeholder('172')
+                            ->helperText(__('admin.home.counter_value_help')),
                         TextInput::make('counters.sessions')
-                            ->label(__('admin.home.sessions'))->numeric()->minValue(0),
+                            ->label(__('admin.home.sessions'))
+                            ->placeholder('11')
+                            ->helperText(__('admin.home.counter_value_help')),
                     ]),
 
                 Section::make(__('admin.home.tracks'))
@@ -220,10 +232,15 @@ class HomePage extends Page
 
         Setting::put('site_images', array_filter($data['images'] ?? []), 'images');
 
-        Setting::put('counters', array_map(
-            fn ($v) => (int) $v,
-            array_filter($data['counters'] ?? [], fn ($v) => $v !== null && $v !== '')
-        ), 'home');
+        // Counter figures are free-form strings ("22", "1.2k", …). Empty = leave alone.
+        $counters = [];
+        foreach ($data['counters'] ?? [] as $key => $value) {
+            $value = trim((string) $value);
+            if ($value !== '') {
+                $counters[$key] = $value;
+            }
+        }
+        Setting::put('counters', $counters, 'home');
 
         Notification::make()->title(__('admin.notify.saved'))->success()->send();
     }

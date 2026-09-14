@@ -434,11 +434,10 @@ class SiteContentSeeder extends Seeder
     private function settings(): void
     {
         Setting::put('counters', [
-            'universities' => 32,
-            'sessions' => 26,
-            // Registered attendees is read live from the registrations table; this
-            // value only seeds the figure shown before the first registration.
-            'registered_baseline' => 0,
+            'days_until' => '5',
+            'universities' => '22',
+            'registered' => '172',
+            'sessions' => '11',
         ], 'home');
 
         Setting::put('green_practices', [

@@ -302,12 +302,27 @@ if (! function_exists('ns_home_track_points')) {
 }
 
 if (! function_exists('ns_home_counter')) {
-    /** A figure on the home page counters bar, editable in the dashboard. */
+    /**
+     * A numeric figure from the home counters setting (for :universities placeholders).
+     */
     function ns_home_counter(string $key, int $default): int
     {
-        $counters = Setting::get('counters', []);
+        $value = ns_home_counter_display($key, (string) $default);
 
-        return (int) ($counters[$key] ?? $default);
+        return is_numeric($value) ? (int) $value : $default;
+    }
+}
+
+if (! function_exists('ns_home_counter_display')) {
+    /**
+     * A counters-bar figure as typed in the dashboard — free-form string.
+     */
+    function ns_home_counter_display(string $key, string $default): string
+    {
+        $counters = Setting::get('counters', []);
+        $value = trim((string) ($counters[$key] ?? ''));
+
+        return $value !== '' ? $value : $default;
     }
 }
 
