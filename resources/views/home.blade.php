@@ -29,8 +29,8 @@
              style="background:linear-gradient(90deg, rgba(5,7,8,0.92) 0%, rgba(5,7,8,0.72) 55%, rgba(5,7,8,0.32) 100%)"></div>
 
         <div class="ns-wrap relative pt-[clamp(64px,9vw,112px)] pb-[clamp(56px,8vw,96px)]">
-            <span class="ns-eyebrow !text-white mb-4 block">{{ __('site.home.theme') }}</span>
-            <h1 class="ns-display max-w-[22ch] mb-7">{{ ns_event_name() }}</h1>
+            <span class="ns-eyebrow mb-4 block" style="color:#fff">{{ __('site.home.theme') }}</span>
+            <h1 class="ns-display max-w-[22ch] mb-7 text-white">{{ ns_event_name() }}</h1>
 
             <p class="ns-lead !text-white/80 max-w-[56ch] mb-10">
                 {{ ns_home('hero_lead', ['universities' => ns_home_counter('universities', 32), 'sessions' => ns_home_counter('sessions', 26)]) }}
@@ -611,11 +611,16 @@
                 'description' => __('site.seo.default_description'),
                 'location' => [
                     '@type' => 'Place',
-                    'name' => config('nextstep.event.venue.name'),
+                    'name' => ns_venue_label(),
                     'address' => [
                         '@type' => 'PostalAddress',
-                        'streetAddress' => config('nextstep.event.venue.address.en'),
-                        'addressLocality' => config('nextstep.event.venue.city'),
+                        'streetAddress' => config('nextstep.event.venue.address.'.app()->getLocale())
+                            ?: config('nextstep.event.venue.address.en'),
+                        'addressLocality' => match (app()->getLocale()) {
+                            'ku' => 'سلێمانی',
+                            'ar' => 'السليمانية',
+                            default => config('nextstep.event.venue.city'),
+                        },
                         'addressCountry' => 'IQ',
                     ],
                     'geo' => [

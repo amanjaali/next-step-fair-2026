@@ -72,20 +72,21 @@ if (! function_exists('ns_event_name')) {
     /**
      * The fair's public name in the active language.
      *
-     * A dashboard rename (event_overrides.name) wins in every locale — the
-     * editor typed one string on purpose. Otherwise the lang files supply the
-     * Kurdish and Arabic forms so the home hero is not stuck in English.
+     * Kurdish and Arabic always use the lang-file form so the hero cannot stick
+     * on the English config string. An English dashboard rename still wins on /en.
      */
     function ns_event_name(): string
     {
-        try {
-            $override = trim((string) (Setting::get('event_overrides', [])['name'] ?? ''));
-        } catch (\Throwable) {
-            $override = '';
-        }
+        if (app()->getLocale() === 'en') {
+            try {
+                $override = trim((string) (Setting::get('event_overrides', [])['name'] ?? ''));
+            } catch (\Throwable) {
+                $override = '';
+            }
 
-        if ($override !== '') {
-            return $override;
+            if ($override !== '') {
+                return $override;
+            }
         }
 
         return __('site.common.event_name', ['year' => config('nextstep.event.year')]);
@@ -96,22 +97,24 @@ if (! function_exists('ns_venue_label')) {
     /**
      * "Foundation Hall, Cultural Factory, Sulaimani" in the active language.
      *
-     * Dashboard venue overrides win (one string in every locale). Otherwise the
-     * home venue_title translations are used so KU/AR are not stuck in English.
+     * Same rule as ns_event_name: translated everywhere except when an English
+     * dashboard override is set and the page is in English.
      */
     function ns_venue_label(): string
     {
-        try {
-            $edited = Setting::get('event_overrides', []);
-        } catch (\Throwable) {
-            $edited = [];
-        }
+        if (app()->getLocale() === 'en') {
+            try {
+                $edited = Setting::get('event_overrides', []);
+            } catch (\Throwable) {
+                $edited = [];
+            }
 
-        $nameOverride = trim((string) ($edited['venue_name'] ?? ''));
-        $cityOverride = trim((string) ($edited['venue_city'] ?? ''));
+            $nameOverride = trim((string) ($edited['venue_name'] ?? ''));
+            $cityOverride = trim((string) ($edited['venue_city'] ?? ''));
 
-        if ($nameOverride !== '' || $cityOverride !== '') {
-            return config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city');
+            if ($nameOverride !== '' || $cityOverride !== '') {
+                return config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city');
+            }
         }
 
         return __('site.home.venue_title');
