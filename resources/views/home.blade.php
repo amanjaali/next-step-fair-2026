@@ -225,7 +225,7 @@
             <div class="p-[clamp(28px,4vw,52px)] flex flex-col gap-[22px] border-t-[6px] border-cobalt">
                 <span class="ns-eyebrow !text-cobalt">{{ __('site.home.conf_kicker') }}</span>
                 <h2 class="ns-h2 !text-[clamp(26px,3.2vw,40px)]">{{ ns_home('conf_title') }}</h2>
-                <p class="ns-body max-w-[46ch]">{{ __('site.home.conf_body') }}</p>
+                <p class="ns-body max-w-[46ch]">{{ ns_home('conf_body') }}</p>
                 <ul class="list-none m-0 p-0 flex flex-col gap-[10px]">
                     @foreach ([
                         __('site.pages.conference.programme'),

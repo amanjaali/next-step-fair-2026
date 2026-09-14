@@ -62,14 +62,20 @@ class HomePageEditingTest extends TestCase
 
         Livewire::test(HomePage::class)
             ->set('data.home_content.about_title.en', 'A heading written by the team')
+            ->set('data.home_content.fair_title.en', 'For every student who walks in')
             ->set('data.home_content.fair_body.en', 'A paragraph written by the team')
+            ->set('data.home_content.conf_title.en', 'For every delegate who RSVPs')
+            ->set('data.home_content.conf_body.en', 'A conference paragraph written by the team')
             ->call('save')
             ->assertHasNoErrors();
 
         $this->get('/en')
             ->assertOk()
             ->assertSee('A heading written by the team')
-            ->assertSee('A paragraph written by the team');
+            ->assertSee('For every student who walks in')
+            ->assertSee('A paragraph written by the team')
+            ->assertSee('For every delegate who RSVPs')
+            ->assertSee('A conference paragraph written by the team');
     }
 
     public function test_an_empty_box_falls_back_to_the_wording_the_site_shipped_with(): void
