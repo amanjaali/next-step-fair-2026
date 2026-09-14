@@ -238,7 +238,7 @@ class SiteContentSeeder extends Seeder
                 ],
                 'body' => [
                     'en' => 'Students, teachers, universities and employers in one hall for three days.',
-                    'ku' => 'قوتابی، مامۆستا، زانکۆ و خاوەنکار لە یەک هۆڵدا بۆ سێ ڕۆژ.',
+                    'ku' => 'خوێندکار، مامۆستا، زانکۆ و خاوەنکار لە یەک هۆڵدا بۆ سێ ڕۆژ.',
                     'ar' => 'طلبة ومعلمون وجامعات وأصحاب عمل في قاعة واحدة لثلاثة أيام.',
                 ],
             ],
