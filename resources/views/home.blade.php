@@ -29,8 +29,8 @@
              style="background:linear-gradient(90deg, rgba(5,7,8,0.92) 0%, rgba(5,7,8,0.72) 55%, rgba(5,7,8,0.32) 100%)"></div>
 
         <div class="ns-wrap relative pt-[clamp(64px,9vw,112px)] pb-[clamp(56px,8vw,96px)]">
-            <span class="ns-eyebrow !text-magenta mb-4 block">{{ __('site.home.theme') }}</span>
-            <h1 class="ns-display max-w-[14ch] mb-7">{{ config('nextstep.event.name') }}</h1>
+            <span class="ns-eyebrow mb-4 block" style="color:#fff">{{ __('site.home.theme') }}</span>
+            <h1 class="ns-display max-w-[22ch] mb-7 text-white">{{ ns_event_name() }}</h1>
 
             <p class="ns-lead !text-white/80 max-w-[56ch] mb-10">
                 {{ ns_home('hero_lead', ['universities' => ns_home_counter('universities', 32), 'sessions' => ns_home_counter('sessions', 26)]) }}
@@ -43,7 +43,7 @@
                      should follow the paragraph direction. --}}
                 @foreach ([
                     ['label' => __('site.common.dates'), 'value' => ns_event_dates(), 'isolate' => false],
-                    ['label' => __('site.common.venue'), 'value' => config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city'), 'isolate' => false],
+                    ['label' => __('site.common.venue'), 'value' => ns_venue_label(), 'isolate' => false],
                     ['label' => __('site.common.hours'), 'value' => config('nextstep.event.opening_hours'), 'isolate' => true],
                 ] as $fact)
                     <div>
@@ -202,12 +202,7 @@
                 <h2 class="ns-h2 !text-[clamp(26px,3.2vw,40px)]">{{ ns_home('fair_title') }}</h2>
                 <p class="ns-body max-w-[46ch]">{{ ns_home('fair_body') }}</p>
                 <ul class="list-none m-0 p-0 flex flex-col gap-[10px]">
-                    @foreach ([
-                        __('site.home.universities_title', ['count' => 32]),
-                        __('site.footer.links.seminars'),
-                        __('site.pages.scholarships.title'),
-                        __('site.common.free_entry'),
-                    ] as $point)
+                    @foreach (ns_home_track_points('fair') as $point)
                         <li class="font-[family-name:var(--ns-body)] text-[14.5px] flex gap-3 items-start">
                             <span class="ns-bar bg-magenta mt-2"></span><span>{{ $point }}</span>
                         </li>
@@ -225,14 +220,9 @@
             <div class="p-[clamp(28px,4vw,52px)] flex flex-col gap-[22px] border-t-[6px] border-cobalt">
                 <span class="ns-eyebrow !text-cobalt">{{ __('site.home.conf_kicker') }}</span>
                 <h2 class="ns-h2 !text-[clamp(26px,3.2vw,40px)]">{{ ns_home('conf_title') }}</h2>
-                <p class="ns-body max-w-[46ch]">{{ __('site.home.conf_body') }}</p>
+                <p class="ns-body max-w-[46ch]">{{ ns_home('conf_body') }}</p>
                 <ul class="list-none m-0 p-0 flex flex-col gap-[10px]">
-                    @foreach ([
-                        __('site.pages.conference.programme'),
-                        __('site.pages.conference.themes'),
-                        'KU · AR · EN',
-                        __('rsvp.step2.letter'),
-                    ] as $point)
+                    @foreach (ns_home_track_points('conference') as $point)
                         <li class="font-[family-name:var(--ns-body)] text-[14.5px] flex gap-3 items-start">
                             <span class="ns-bar bg-cobalt mt-2"></span><span>{{ $point }}</span>
                         </li>
@@ -601,7 +591,7 @@
             $eventSchema = [
                 '@context' => 'https://schema.org',
                 '@type' => 'Event',
-                'name' => config('nextstep.event.name'),
+                'name' => ns_event_name(),
                 'startDate' => config('nextstep.event.start_date'),
                 'endDate' => config('nextstep.event.end_date'),
                 'eventStatus' => 'https://schema.org/EventScheduled',
@@ -611,11 +601,16 @@
                 'description' => __('site.seo.default_description'),
                 'location' => [
                     '@type' => 'Place',
-                    'name' => config('nextstep.event.venue.name'),
+                    'name' => ns_venue_label(),
                     'address' => [
                         '@type' => 'PostalAddress',
-                        'streetAddress' => config('nextstep.event.venue.address.en'),
-                        'addressLocality' => config('nextstep.event.venue.city'),
+                        'streetAddress' => config('nextstep.event.venue.address.'.app()->getLocale())
+                            ?: config('nextstep.event.venue.address.en'),
+                        'addressLocality' => match (app()->getLocale()) {
+                            'ku' => 'سلێمانی',
+                            'ar' => 'السليمانية',
+                            default => config('nextstep.event.venue.city'),
+                        },
                         'addressCountry' => 'IQ',
                     ],
                     'geo' => [

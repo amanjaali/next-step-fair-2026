@@ -64,6 +64,7 @@ return [
         'free_entry' => 'Free entry · No appointment needed',
         'edition' => ':n Edition',
         'edition_4' => '4th Edition',
+        'event_name' => 'Next Step Fair :year',
         'location' => 'Sulaimani · Iraq',
         'dates' => 'Dates',
         'venue' => 'Venue',

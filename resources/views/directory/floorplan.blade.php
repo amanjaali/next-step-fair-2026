@@ -1,7 +1,7 @@
 <x-layouts.site :title="$title" :navKey="$navKey">
 
     <div class="pb-[clamp(72px,10vw,140px)]">
-        <x-ns.page-head :kicker="config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city')"
+        <x-ns.page-head :kicker="ns_venue_label()"
                         :title="__('site.pages.floorplan.title')"
                         :lead="__('site.pages.floorplan.lead', ['booths' => $boothCount])"
                         :breadcrumb="[

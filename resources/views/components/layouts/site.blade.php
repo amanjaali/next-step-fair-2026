@@ -13,7 +13,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#050708">
 
-    <title>{{ $title ?? config('nextstep.event.name') }}</title>
+    <title>{{ $title ?? ns_event_name() }}</title>
     <meta name="description" content="{{ $description ?? __('site.seo.default_description') }}">
 
     {{-- One canonical per language, with hreflang across all three plus x-default. --}}
@@ -25,8 +25,8 @@
     <link rel="alternate" hreflang="x-default" href="{{ ns_alternate_url('en') }}">
 
     <meta property="og:type" content="{{ $ogType }}">
-    <meta property="og:site_name" content="{{ config('nextstep.event.name') }}">
-    <meta property="og:title" content="{{ $title ?? config('nextstep.event.name') }}">
+    <meta property="og:site_name" content="{{ ns_event_name() }}">
+    <meta property="og:title" content="{{ $title ?? ns_event_name() }}">
     <meta property="og:description" content="{{ $description ?? __('site.seo.default_description') }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:locale" content="{{ $localeConfig['html_lang'] }}">
@@ -43,13 +43,13 @@
         <meta property="og:image" content="{{ url($social) }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
-        <meta property="og:image:alt" content="{{ $title ?? config('nextstep.event.name') }}">
+        <meta property="og:image:alt" content="{{ $title ?? ns_event_name() }}">
     @endif
 
     {{-- LinkedIn reads Open Graph and ignores the Twitter tags; X reads these.
          Repeating the values is what makes the same link look right in both. --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $title ?? config('nextstep.event.name') }}">
+    <meta name="twitter:title" content="{{ $title ?? ns_event_name() }}">
     <meta name="twitter:description" content="{{ $description ?? __('site.seo.default_description') }}">
     @isset($social)
         <meta name="twitter:image" content="{{ url($social) }}">

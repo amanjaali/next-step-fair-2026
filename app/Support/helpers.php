@@ -68,6 +68,59 @@ if (! function_exists('ns_format_date')) {
     }
 }
 
+if (! function_exists('ns_event_name')) {
+    /**
+     * The fair's public name in the active language.
+     *
+     * Kurdish and Arabic always use the lang-file form so the hero cannot stick
+     * on the English config string. An English dashboard rename still wins on /en.
+     */
+    function ns_event_name(): string
+    {
+        if (app()->getLocale() === 'en') {
+            try {
+                $override = trim((string) (Setting::get('event_overrides', [])['name'] ?? ''));
+            } catch (\Throwable) {
+                $override = '';
+            }
+
+            if ($override !== '') {
+                return $override;
+            }
+        }
+
+        return __('site.common.event_name', ['year' => config('nextstep.event.year')]);
+    }
+}
+
+if (! function_exists('ns_venue_label')) {
+    /**
+     * "Foundation Hall, Cultural Factory, Sulaimani" in the active language.
+     *
+     * Same rule as ns_event_name: translated everywhere except when an English
+     * dashboard override is set and the page is in English.
+     */
+    function ns_venue_label(): string
+    {
+        if (app()->getLocale() === 'en') {
+            try {
+                $edited = Setting::get('event_overrides', []);
+            } catch (\Throwable) {
+                $edited = [];
+            }
+
+            $nameOverride = trim((string) ($edited['venue_name'] ?? ''));
+            $cityOverride = trim((string) ($edited['venue_city'] ?? ''));
+
+            if ($nameOverride !== '' || $cityOverride !== '') {
+                return config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city');
+            }
+        }
+
+        return __('site.home.venue_title');
+    }
+}
+
 if (! function_exists('ns_event_dates')) {
     /**
      * "28–30 September 2026" — an en dash, and Latin numerals in every language.
@@ -204,13 +257,72 @@ if (! function_exists('ns_home')) {
     }
 }
 
+if (! function_exists('ns_home_track_points')) {
+    /**
+     * Bullet labels under the Expo or Conference home card.
+     *
+     * Returns editor-managed rows when any published points exist for the track;
+     * otherwise the wording the page shipped with.
+     *
+     * @return \Illuminate\Support\Collection<int, string>
+     */
+    function ns_home_track_points(string $track): \Illuminate\Support\Collection
+    {
+        try {
+            $points = \App\Models\HomeTrackPoint::query()
+                ->forTrack($track)
+                ->published()
+                ->orderBy('sort')
+                ->get();
+        } catch (\Throwable) {
+            $points = collect();
+        }
+
+        if ($points->isNotEmpty()) {
+            return $points->map(fn (\App\Models\HomeTrackPoint $point) => $point->t('label'));
+        }
+
+        $count = ns_home_counter('universities', 32);
+
+        return collect(match ($track) {
+            \App\Models\HomeTrackPoint::TRACK_CONFERENCE => [
+                __('site.pages.conference.programme'),
+                __('site.pages.conference.themes'),
+                'KU · AR · EN',
+                __('rsvp.step2.letter'),
+            ],
+            default => [
+                __('site.home.universities_title', ['count' => $count]),
+                __('site.footer.links.seminars'),
+                __('site.pages.scholarships.title'),
+                __('site.common.free_entry'),
+            ],
+        });
+    }
+}
+
 if (! function_exists('ns_home_counter')) {
-    /** A figure on the home page counters bar, editable in the dashboard. */
+    /**
+     * A numeric figure from the home counters setting (for :universities placeholders).
+     */
     function ns_home_counter(string $key, int $default): int
     {
-        $counters = Setting::get('counters', []);
+        $value = ns_home_counter_display($key, (string) $default);
 
-        return (int) ($counters[$key] ?? $default);
+        return is_numeric($value) ? (int) $value : $default;
+    }
+}
+
+if (! function_exists('ns_home_counter_display')) {
+    /**
+     * A counters-bar figure as typed in the dashboard — free-form string.
+     */
+    function ns_home_counter_display(string $key, string $default): string
+    {
+        $counters = Setting::get('counters', []);
+        $value = trim((string) ($counters[$key] ?? ''));
+
+        return $value !== '' ? $value : $default;
     }
 }
 
