@@ -54,6 +54,7 @@ class AdminPanelTest extends TestCase
             '/admin/downloads',
             '/admin/sdg-goals',
             '/admin/feature-cards',
+            '/admin/home-track-points',
             '/admin/halls',
             '/admin/qr-campaigns',
             '/admin/leads',

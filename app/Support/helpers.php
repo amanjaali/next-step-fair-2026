@@ -257,6 +257,50 @@ if (! function_exists('ns_home')) {
     }
 }
 
+if (! function_exists('ns_home_track_points')) {
+    /**
+     * Bullet labels under the Expo or Conference home card.
+     *
+     * Returns editor-managed rows when any published points exist for the track;
+     * otherwise the wording the page shipped with.
+     *
+     * @return \Illuminate\Support\Collection<int, string>
+     */
+    function ns_home_track_points(string $track): \Illuminate\Support\Collection
+    {
+        try {
+            $points = \App\Models\HomeTrackPoint::query()
+                ->forTrack($track)
+                ->published()
+                ->orderBy('sort')
+                ->get();
+        } catch (\Throwable) {
+            $points = collect();
+        }
+
+        if ($points->isNotEmpty()) {
+            return $points->map(fn (\App\Models\HomeTrackPoint $point) => $point->t('label'));
+        }
+
+        $count = ns_home_counter('universities', 32);
+
+        return collect(match ($track) {
+            \App\Models\HomeTrackPoint::TRACK_CONFERENCE => [
+                __('site.pages.conference.programme'),
+                __('site.pages.conference.themes'),
+                'KU · AR · EN',
+                __('rsvp.step2.letter'),
+            ],
+            default => [
+                __('site.home.universities_title', ['count' => $count]),
+                __('site.footer.links.seminars'),
+                __('site.pages.scholarships.title'),
+                __('site.common.free_entry'),
+            ],
+        });
+    }
+}
+
 if (! function_exists('ns_home_counter')) {
     /** A figure on the home page counters bar, editable in the dashboard. */
     function ns_home_counter(string $key, int $default): int

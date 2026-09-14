@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Download;
 use App\Models\FeatureCard;
+use App\Models\HomeTrackPoint;
 use App\Models\SdgGoal;
 use App\Models\Setting;
 use Illuminate\Database\Seeder;
@@ -18,8 +19,97 @@ class SiteContentSeeder extends Seeder
     {
         $this->sdgGoals();
         $this->whyAttendCards();
+        $this->homeTrackPoints();
         $this->downloads();
         $this->settings();
+    }
+
+    /**
+     * Bullets under the Expo and Conference cards on the home page.
+     */
+    private function homeTrackPoints(): void
+    {
+        $points = [
+            [
+                'track' => HomeTrackPoint::TRACK_FAIR,
+                'sort' => 1,
+                'label' => [
+                    'en' => '32 universities and institutes',
+                    'ku' => '32 زانکۆ و پەیمانگە',
+                    'ar' => '32 جامعة ومعهد',
+                ],
+            ],
+            [
+                'track' => HomeTrackPoint::TRACK_FAIR,
+                'sort' => 2,
+                'label' => [
+                    'en' => 'Seminars',
+                    'ku' => 'سیمینارەکان',
+                    'ar' => 'الندوات',
+                ],
+            ],
+            [
+                'track' => HomeTrackPoint::TRACK_FAIR,
+                'sort' => 3,
+                'label' => [
+                    'en' => 'Scholarships',
+                    'ku' => 'سکۆلەرشیپ',
+                    'ar' => 'المنح الدراسية',
+                ],
+            ],
+            [
+                'track' => HomeTrackPoint::TRACK_FAIR,
+                'sort' => 4,
+                'label' => [
+                    'en' => 'Free entry · No appointment needed',
+                    'ku' => 'چوونەژوورەوە بەخۆڕایی · پێویست بە کاتی پێشوەخت ناکات',
+                    'ar' => 'الدخول مجاني · لا حاجة لموعد مسبق',
+                ],
+            ],
+            [
+                'track' => HomeTrackPoint::TRACK_CONFERENCE,
+                'sort' => 1,
+                'label' => [
+                    'en' => 'Day 1 programme',
+                    'ku' => 'پرۆگرامی ڕۆژی یەکەم',
+                    'ar' => 'برنامج اليوم الأول',
+                ],
+            ],
+            [
+                'track' => HomeTrackPoint::TRACK_CONFERENCE,
+                'sort' => 2,
+                'label' => [
+                    'en' => 'Themes',
+                    'ku' => 'بابەتەکان',
+                    'ar' => 'المحاور',
+                ],
+            ],
+            [
+                'track' => HomeTrackPoint::TRACK_CONFERENCE,
+                'sort' => 3,
+                'label' => [
+                    'en' => 'KU · AR · EN',
+                    'ku' => 'KU · AR · EN',
+                    'ar' => 'KU · AR · EN',
+                ],
+            ],
+            [
+                'track' => HomeTrackPoint::TRACK_CONFERENCE,
+                'sort' => 4,
+                'label' => [
+                    'en' => 'Official letter of invitation',
+                    'ku' => 'نامەی فەرمی بانگهێشت',
+                    'ar' => 'رسالة دعوة رسمية',
+                ],
+            ],
+        ];
+
+        foreach ($points as $point) {
+            HomeTrackPoint::updateOrCreate(
+                ['track' => $point['track'], 'sort' => $point['sort']],
+                $point + ['published' => true]
+            );
+        }
     }
 
     private function sdgGoals(): void

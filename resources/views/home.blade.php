@@ -202,12 +202,7 @@
                 <h2 class="ns-h2 !text-[clamp(26px,3.2vw,40px)]">{{ ns_home('fair_title') }}</h2>
                 <p class="ns-body max-w-[46ch]">{{ ns_home('fair_body') }}</p>
                 <ul class="list-none m-0 p-0 flex flex-col gap-[10px]">
-                    @foreach ([
-                        __('site.home.universities_title', ['count' => 32]),
-                        __('site.footer.links.seminars'),
-                        __('site.pages.scholarships.title'),
-                        __('site.common.free_entry'),
-                    ] as $point)
+                    @foreach (ns_home_track_points('fair') as $point)
                         <li class="font-[family-name:var(--ns-body)] text-[14.5px] flex gap-3 items-start">
                             <span class="ns-bar bg-magenta mt-2"></span><span>{{ $point }}</span>
                         </li>
@@ -227,12 +222,7 @@
                 <h2 class="ns-h2 !text-[clamp(26px,3.2vw,40px)]">{{ ns_home('conf_title') }}</h2>
                 <p class="ns-body max-w-[46ch]">{{ ns_home('conf_body') }}</p>
                 <ul class="list-none m-0 p-0 flex flex-col gap-[10px]">
-                    @foreach ([
-                        __('site.pages.conference.programme'),
-                        __('site.pages.conference.themes'),
-                        'KU · AR · EN',
-                        __('rsvp.step2.letter'),
-                    ] as $point)
+                    @foreach (ns_home_track_points('conference') as $point)
                         <li class="font-[family-name:var(--ns-body)] text-[14.5px] flex gap-3 items-start">
                             <span class="ns-bar bg-cobalt mt-2"></span><span>{{ $point }}</span>
                         </li>
