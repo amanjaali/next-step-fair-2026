@@ -423,7 +423,7 @@ return [
     ],
 
     'seo' => [
-        'default_description' => 'Next Step Fair 2026 — the 4th edition of the Kurdistan Region\'s largest higher-education fair and conference. 28–30 September 2026, Cultural Factory, Sulaimani. Free entry.',
+        'default_description' => 'Next Step Fair 2026 — the 4th edition of the Kurdistan Region\'s largest higher-education fair and conference. 19–21 September 2026, Foundation Hall, Cultural Factory, Sulaimani. Free entry.',
     ],
 
     /* Month names are ours, not Carbon's: its `ku` locale is Kurmanji in Latin
