@@ -13,12 +13,12 @@
 
         <h1 class="ns-h1 !text-[clamp(32px,4.6vw,48px)] mb-3">{{ __('rsvp.title') }}</h1>
         <p class="ns-body max-w-[58ch] mb-3">{{ __('rsvp.lead') }}</p>
-        <p class="font-[family-name:var(--ns-body)] text-[15px] leading-[1.6] text-slate max-w-[58ch] mb-3">
+        <p class="font-[family-name:var(--ns-body)] text-[15px] leading-[1.6] text-slate max-w-[58ch] mb-5">
             {!! __('rsvp.cross_link', ['link' => '<a href="'.route('register.fair').'">'.__('rsvp.cross_link_label').'</a>']) !!}
         </p>
-        <p class="font-[family-name:var(--ns-body)] text-[15px] leading-[1.6] text-slate max-w-[58ch] mb-9">
-            {!! __('rsvp.agenda_link', ['link' => '<a href="'.route('agenda').'">'.__('rsvp.agenda_link_label').'</a>']) !!}
-        </p>
+        <a href="{{ route('agenda') }}" class="ns-btn ns-btn-ghost ns-btn-sm !text-cobalt !border-[rgba(44,75,224,0.5)] mb-9">
+            {{ __('rsvp.agenda_link_label') }}
+        </a>
 
         @if (session('status'))
             <div class="bg-bone-200 p-5 mb-8 font-[family-name:var(--ns-body)] text-[15px]">{{ session('status') }}</div>
