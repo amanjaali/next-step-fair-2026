@@ -40,14 +40,23 @@
                     });
                 };
 
+                // Every editor on the page reaches this at once when there are several
+                // language tabs. Without a shared promise, each one would inject its
+                // own <script> tag and race to initialise against a half-loaded
+                // library — most of them losing that race and rendering nothing.
                 if (window.tinymce) {
                     boot();
                 } else {
-                    const script = document.createElement('script');
-                    script.src = '{{ asset('vendor/tinymce/tinymce.min.js') }}';
-                    script.referrerPolicy = 'origin';
-                    script.onload = boot;
-                    document.head.appendChild(script);
+                    if (! window.__tinymceLoading) {
+                        window.__tinymceLoading = new Promise((resolve) => {
+                            const script = document.createElement('script');
+                            script.src = '{{ asset('vendor/tinymce/tinymce.min.js') }}';
+                            script.referrerPolicy = 'origin';
+                            script.onload = resolve;
+                            document.head.appendChild(script);
+                        });
+                    }
+                    window.__tinymceLoading.then(boot);
                 }
 
                 // Keep the editor in step when Livewire replaces the state (e.g. after save).
