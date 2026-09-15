@@ -16,7 +16,7 @@
         <p class="font-[family-name:var(--ns-body)] text-[15px] leading-[1.6] text-slate max-w-[58ch] mb-5">
             {!! __('rsvp.cross_link', ['link' => '<a href="'.route('register.fair').'">'.__('rsvp.cross_link_label').'</a>']) !!}
         </p>
-        <a href="{{ route('agenda') }}" class="ns-btn ns-btn-ghost ns-btn-sm !text-cobalt !border-[rgba(44,75,224,0.5)] mb-9">
+        <a href="{{ route('agenda') }}" class="ns-btn ns-btn-ghost ns-btn-sm !text-cobalt !border-[rgba(44,75,224,0.5)] hover:!bg-cobalt hover:!text-white hover:!border-cobalt mb-9">
             {{ __('rsvp.agenda_link_label') }}
         </a>
 
