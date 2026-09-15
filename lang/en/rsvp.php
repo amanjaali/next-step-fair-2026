@@ -11,8 +11,6 @@ return [
     'lead' => '28 September, Hall B, Cultural Factory. By RSVP for ministries, directorates, diplomatic missions, university leadership, companies and individuals. One short form.',
     'cross_link' => 'Registering as a student or parent instead? :link — the two are separate.',
     'cross_link_label' => 'Use the fair registration form',
-    'agenda_link' => 'Want to see the full programme first? :link',
-    'agenda_link_label' => 'View the full agenda',
 
     'attending_as' => 'I am attending as',
     'consent' => 'I accept the terms and privacy policy, and consent to my name and organisation appearing on the delegate list.',
