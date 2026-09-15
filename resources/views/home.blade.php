@@ -30,7 +30,7 @@
 
         <div class="ns-wrap relative pt-[clamp(64px,9vw,112px)] pb-[clamp(56px,8vw,96px)]">
             <span class="ns-eyebrow mb-4 block" style="color:#fff">{{ __('site.home.theme') }}</span>
-            <h1 class="ns-display max-w-[22ch] mb-7 text-white">{{ ns_event_name() }}</h1>
+            <h1 class="ns-display max-w-[16ch] mb-7 text-white">{{ ns_event_name() }}</h1>
 
             <p class="ns-lead !text-white/80 max-w-[56ch] mb-10">
                 {{ ns_home('hero_lead', ['universities' => ns_home_counter('universities', 32), 'sessions' => ns_home_counter('sessions', 26)]) }}
