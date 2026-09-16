@@ -62,7 +62,7 @@ class OpportunityResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->components([
+        return $schema->gap(false)->components([
             Section::make(__('admin.opportunities.content'))->schema([
                 Translatable::tabs(
                     fields: [
