@@ -21,7 +21,7 @@ class ScholarshipController extends Controller
     {
         return $this->page('scholarship.home', 'home', [
             'regions' => config('scholarship.regions'),
-            'universities' => config('scholarship.universities'),
+            'universities' => ns_scholarship_universities(),
         ]);
     }
 
@@ -42,13 +42,13 @@ class ScholarshipController extends Controller
     public function universities(): View
     {
         return $this->page('scholarship.universities', 'universities', [
-            'universities' => config('scholarship.universities'),
+            'universities' => ns_scholarship_universities(),
         ]);
     }
 
     public function university(string $slug): View
     {
-        $universities = collect(config('scholarship.universities'));
+        $universities = collect(ns_scholarship_universities());
         $university = $universities->firstWhere('slug', $slug);
 
         abort_if($university === null, 404);
@@ -66,7 +66,7 @@ class ScholarshipController extends Controller
         abort_if($region === null, 404);
 
         // Which departments a student from here could actually take a seat in.
-        $universities = collect(config('scholarship.universities'))
+        $universities = collect(ns_scholarship_universities())
             ->filter(fn ($u) => $u['city'] !== null)
             ->values()
             ->all();

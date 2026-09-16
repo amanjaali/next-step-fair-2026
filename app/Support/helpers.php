@@ -572,3 +572,27 @@ if (! function_exists('ns_partner_marks')) {
         return array_values(array_filter($marks, fn (array $mark) => filled($mark['src'])));
     }
 }
+
+if (! function_exists('ns_scholarship_universities')) {
+    /**
+     * Every university with National Scholarship Program seats.
+     *
+     * Two sources, merged: the hand-curated founding/donor partners in
+     * config('scholarship.universities'), plus any Scholarship-kind Opportunity
+     * that has a linked partner and a department/seats breakdown filled in.
+     * Adding a new one is then just publishing an Opportunity in the dashboard —
+     * no code change and no deploy needed for a new partner university to show
+     * up in the application form.
+     */
+    function ns_scholarship_universities(): array
+    {
+        $configured = config('scholarship.universities', []);
+
+        $fromOpportunities = \App\Models\Opportunity::scholarshipUniversities()
+            ->get()
+            ->map(fn (\App\Models\Opportunity $o) => $o->toScholarshipUniversityArray())
+            ->all();
+
+        return array_merge($configured, $fromOpportunities);
+    }
+}

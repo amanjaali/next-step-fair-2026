@@ -50,6 +50,7 @@ class Opportunity extends Model
             'closes_at' => 'date',
             'featured' => 'boolean',
             'published' => 'boolean',
+            'departments' => 'array',
         ];
     }
 
@@ -133,6 +134,20 @@ class Opportunity extends Model
             ->orderByRaw('closes_at is null, closes_at');
     }
 
+    /**
+     * Scholarship opportunities that can stand in for a National Scholarship
+     * Program university: live, linked to a partner organisation, with at
+     * least one department/seats row filled in.
+     */
+    public function scopeScholarshipUniversities(Builder $query): Builder
+    {
+        return $query->live()
+            ->where('kind', self::KIND_SCHOLARSHIP)
+            ->whereNotNull('organization_id')
+            ->whereNotNull('departments')
+            ->with('organization');
+    }
+
     /* ------------------------------------------------------------ helpers -- */
 
     public function partner(): string
@@ -169,5 +184,35 @@ class Opportunity extends Model
     public function actionLabel(): string
     {
         return $this->t('action_label') ?: __('opportunities.default_action');
+    }
+
+    /**
+     * The same shape config('scholarship.universities') uses, so the
+     * application form's university/department dropdowns can mix
+     * dashboard-added scholarships in with the hand-curated founding partners
+     * without the view knowing which source a given entry came from.
+     *
+     * Fields the organisation record doesn't carry (founding year, housing,
+     * a written "about" paragraph) fall back to something reasonable rather
+     * than a missing-translation key or a blank — this partner just hasn't
+     * had that extra profile detail added yet.
+     */
+    public function toScholarshipUniversityArray(): array
+    {
+        $org = $this->organization;
+
+        return [
+            'slug' => 'opportunity-'.$this->slug,
+            'name' => $org?->t('name') ?: $this->partner(),
+            'city' => $org?->city ?: '',
+            'language' => is_array($org?->languages) ? implode(' & ', $org->languages) : '',
+            'tier' => 'donor',
+            'founded' => $org?->since_year,
+            'housing' => 'none',
+            'about' => $this->t('body') ?: $this->t('summary'),
+            'departments' => collect($this->departments ?? [])
+                ->map(fn ($d) => ['name' => $d['name'] ?? '', 'seats' => (int) ($d['seats'] ?? 0)])
+                ->values()->all(),
+        ];
     }
 }

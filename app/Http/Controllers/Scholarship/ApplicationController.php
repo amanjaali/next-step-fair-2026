@@ -114,7 +114,7 @@ class ApplicationController extends Controller
             'cycle' => config('scholarship.cycle'),
             'step' => $step,
             'regions' => config('scholarship.regions'),
-            'universities' => config('scholarship.universities'),
+            'universities' => ns_scholarship_universities(),
         ]);
     }
 

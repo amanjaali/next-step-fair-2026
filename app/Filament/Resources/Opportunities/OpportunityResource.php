@@ -14,10 +14,12 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -88,6 +90,7 @@ class OpportunityResource extends Resource
                     ->label(__('admin.opportunities.kind'))
                     ->options(collect(Opportunity::kinds())->mapWithKeys(fn ($k) => [$k => __("opportunities.kinds.$k")]))
                     ->default(Opportunity::KIND_OFFER)
+                    ->live()
                     ->required(),
                 Select::make('audience')
                     ->label(__('admin.opportunities.audience'))
@@ -107,6 +110,27 @@ class OpportunityResource extends Resource
                     ->columnSpan(2)
                     ->helperText(__('admin.opportunities.url_help')),
             ]),
+
+            Section::make(__('admin.opportunities.departments'))
+                ->description(__('admin.opportunities.departments_help'))
+                ->visible(fn (Get $get) => $get('kind') === Opportunity::KIND_SCHOLARSHIP)
+                ->schema([
+                    Repeater::make('departments')
+                        ->label('')
+                        ->schema([
+                            TextInput::make('name')
+                                ->label(__('admin.opportunities.department_name'))
+                                ->required(),
+                            TextInput::make('seats')
+                                ->label(__('admin.opportunities.department_seats'))
+                                ->numeric()
+                                ->required(),
+                        ])
+                        ->columns(2)
+                        ->addActionLabel(__('admin.opportunities.department_add'))
+                        ->defaultItems(0)
+                        ->reorderable(false),
+                ]),
 
             Section::make()->columns(2)->schema([
                 Toggle::make('published')->label(__('admin.fields.published')),
