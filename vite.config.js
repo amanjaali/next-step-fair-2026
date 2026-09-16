@@ -10,6 +10,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/css/checkin.css',
                 'resources/js/checkin.js',
+                'resources/css/registration-desk.css',
+                'resources/js/registration-desk.js',
             ],
             refresh: true,
         }),

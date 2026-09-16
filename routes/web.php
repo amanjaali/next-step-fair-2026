@@ -4,6 +4,7 @@ use App\Http\Controllers\BadgeLinkController;
 use App\Http\Controllers\CaptchaController;
 use App\Http\Controllers\Checkin\CheckinController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\Registration\RegistrationDeskController;
 use App\Http\Controllers\OtpiqWebhookController;
 use App\Http\Controllers\QrCampaignController;
 use App\Http\Controllers\TicketController;
@@ -89,6 +90,30 @@ Route::prefix('checkin')->name('checkin.')->group(function () {
     });
 });
 Route::get('checkin/sw.js', [CheckinController::class, 'serviceWorker'])->name('checkin.sw');
+
+/*
+|--------------------------------------------------------------------------
+| Registration desk (volunteer walk-in registration)
+|--------------------------------------------------------------------------
+| A focused, walk-in-friendly screen for registration-desk volunteers: browse
+| the pre-registered list, create walk-in accounts, edit a record, and cancel
+| one within an hour of creating it. Deliberately not Filament — the desk
+| moves fast during rush hours and doesn't need the full admin surface.
+*/
+Route::prefix('registration')->name('registration.')->group(function () {
+    Route::get('login', [RegistrationDeskController::class, 'showLogin'])->name('login');
+    Route::post('login', [RegistrationDeskController::class, 'login'])->name('login.attempt');
+
+    Route::middleware(['auth', 'can:access-registration-desk'])->group(function () {
+        Route::get('/', [RegistrationDeskController::class, 'index'])->name('index');
+        Route::get('search', [RegistrationDeskController::class, 'search'])->name('search');
+        Route::get('{registration}', [RegistrationDeskController::class, 'show'])->name('show');
+        Route::post('/', [RegistrationDeskController::class, 'store'])->name('store');
+        Route::put('{registration}', [RegistrationDeskController::class, 'update'])->name('update');
+        Route::delete('{registration}', [RegistrationDeskController::class, 'destroy'])->name('destroy');
+        Route::post('logout', [RegistrationDeskController::class, 'logout'])->name('logout');
+    });
+});
 
 /*
 |--------------------------------------------------------------------------

@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(function (Request $request) {
             return match (true) {
                 $request->is('checkin*') => route('checkin.login'),
+                $request->is('registration*') => route('registration.login'),
                 $request->is('*/portal*') => route('portal.signin'),
                 default => route('attendee.signin'),
             };
@@ -44,6 +45,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*')
-                || ($request->is('checkin/*', 's/*') && $request->expectsJson()),
+                || ($request->is('checkin/*', 's/*', 'registration/*') && $request->expectsJson()),
         );
     })->create();

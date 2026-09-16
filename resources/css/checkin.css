@@ -196,8 +196,9 @@ body {
 
 .ck-hit {
     display: flex;
-    flex-direction: column;
-    gap: 3px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     text-align: start;
     background: var(--ck-ink-900);
     border: 0;
@@ -208,10 +209,21 @@ body {
     font-family: inherit;
 }
 
+.ck-hit__info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .ck-hit__name { font-size: 16px; font-weight: 700; }
 .ck-hit__detail { font-size: 13px; color: rgba(255, 255, 255, 0.65); }
 .ck-hit__ticket { font-size: 11px; letter-spacing: 0.1em; color: rgba(255, 255, 255, 0.45); }
 .ck-hit__empty { font-size: 14px; color: rgba(255, 255, 255, 0.6); padding: 12px 0; }
+
+.ck-hit__action {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 9px 14px;
+    background: var(--ck-magenta);
+    color: #fff;
+}
 
 .ck-foot {
     margin-top: auto;

@@ -721,12 +721,21 @@
     ]
   },
   "resources/css/checkin.css": {
-    "file": "assets/checkin-DGvmHxX1.css",
+    "file": "assets/checkin-CbmZV6ky.css",
     "name": "checkin",
     "names": [
       "checkin.css"
     ],
     "src": "resources/css/checkin.css",
+    "isEntry": true
+  },
+  "resources/css/registration-desk.css": {
+    "file": "assets/registration-desk-DgtlT8Vl.css",
+    "name": "registration-desk",
+    "names": [
+      "registration-desk.css"
+    ],
+    "src": "resources/css/registration-desk.css",
     "isEntry": true
   },
   "resources/js/app.js": {
@@ -736,9 +745,15 @@
     "isEntry": true
   },
   "resources/js/checkin.js": {
-    "file": "assets/checkin-BImLBoAY.js",
+    "file": "assets/checkin-CUXhA-TH.js",
     "name": "checkin",
     "src": "resources/js/checkin.js",
+    "isEntry": true
+  },
+  "resources/js/registration-desk.js": {
+    "file": "assets/registration-desk-BA_5RnyY.js",
+    "name": "registration-desk",
+    "src": "resources/js/registration-desk.js",
     "isEntry": true
   }
 }

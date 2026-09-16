@@ -12,6 +12,11 @@ use Spatie\Permission\Models\Role;
 /**
  * Role-based access, as specified: Super Admin, Registration Manager,
  * Content Editor, Check-in Staff and Sponsor Manager.
+ *
+ * Registration Volunteer is the door-desk counterpart to Registration
+ * Manager: it gets only the lightweight /registration desk, never the
+ * Filament admin panel — a volunteer working a shift at the door shouldn't
+ * also inherit edit/cancel/export access to every registration in the system.
  */
 class RoleSeeder extends Seeder
 {
@@ -19,6 +24,7 @@ class RoleSeeder extends Seeder
         // Registrations
         'view-registrations', 'edit-registrations', 'approve-registrations',
         'cancel-registrations', 'export-registrations', 'create-walkins',
+        'access-registration-desk',
         // Messaging
         'view-messages', 'send-messages', 'manage-templates',
         // Content
@@ -38,8 +44,12 @@ class RoleSeeder extends Seeder
         'Registration Manager' => [
             'view-registrations', 'edit-registrations', 'approve-registrations',
             'cancel-registrations', 'export-registrations', 'create-walkins',
+            'access-registration-desk',
             'view-messages', 'send-messages', 'manage-templates',
             'scan-tickets', 'view-analytics', 'manage-qr-campaigns',
+        ],
+        'Registration Volunteer' => [
+            'access-registration-desk',
         ],
         'Content Editor' => [
             'manage-content', 'publish-content', 'manage-media', 'view-analytics',
@@ -91,6 +101,7 @@ class RoleSeeder extends Seeder
         $accounts = [
             ['Avin Qadir', 'admin@nextstepfair.com', 'Super Admin', 'Organizer and Co-Founder'],
             ['Registration Desk', 'registration@nextstepfair.com', 'Registration Manager', 'Registration Manager'],
+            ['Registration Volunteer', 'volunteer@nextstepfair.com', 'Registration Volunteer', 'Registration Volunteer'],
             ['Newsroom', 'editor@nextstepfair.com', 'Content Editor', 'Content Editor'],
             ['Gate Staff', 'gate@nextstepfair.com', 'Check-in Staff', 'Check-in Staff'],
             ['Partnerships', 'partnerships@nextstepfair.com', 'Sponsor Manager', 'Sponsor Manager'],

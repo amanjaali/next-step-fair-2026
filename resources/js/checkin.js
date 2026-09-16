@@ -178,6 +178,12 @@ if (shell) {
         el.result.hidden = true;
     }
 
+    function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value == null ? '' : value;
+        return div.innerHTML;
+    }
+
     /* ------------------------------------------------------------- offline -- */
 
     function offlineVerdict(token) {
@@ -343,9 +349,12 @@ if (shell) {
                 ? results
                       .map(
                           (r) => `<button type="button" class="ck-hit" data-id="${r.id}">
-                                    <span class="ck-hit__name">${r.name}</span>
-                                    <span class="ck-hit__detail">${r.detail}</span>
-                                    <span class="ck-hit__ticket">${r.ticket}</span>
+                                    <span class="ck-hit__info">
+                                        <span class="ck-hit__name">${escapeHtml(r.name)}</span>
+                                        <span class="ck-hit__detail">${escapeHtml(r.detail)}</span>
+                                        <span class="ck-hit__ticket">${escapeHtml(r.ticket)}</span>
+                                    </span>
+                                    <span class="ck-hit__action">${shell.dataset.labelCheckIn || 'Check in'}</span>
                                   </button>`
                       )
                       .join('')

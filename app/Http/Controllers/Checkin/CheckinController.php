@@ -380,13 +380,7 @@ class CheckinController extends Controller
             return (int) $day;
         }
 
-        foreach (config('nextstep.event.days') as $number => $meta) {
-            if (Carbon::parse($meta['date'])->isToday()) {
-                return (int) $number;
-            }
-        }
-
-        return 1;
+        return Registration::currentEventDay();
     }
 
     /**

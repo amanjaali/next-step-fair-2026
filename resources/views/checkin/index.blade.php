@@ -19,6 +19,7 @@
           data-label-invalid-detail="{{ __('checkin.invalid_detail') }}"
           data-label-camera-denied="{{ __('checkin.camera_denied') }}"
           data-label-no-results="{{ __('checkin.no_results') }}"
+          data-label-check-in="{{ __('checkin.check_in') }}"
           data-label-synced="{{ __('checkin.synced') }}"
           data-label-offline="{{ __('checkin.offline', ['count' => ':count']) }}">
 

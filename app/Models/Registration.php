@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -278,6 +279,11 @@ class Registration extends Model implements AuthenticatableContract
         return $this->hasMany(CheckIn::class);
     }
 
+    public function audits(): HasMany
+    {
+        return $this->hasMany(RegistrationAudit::class)->latest('id');
+    }
+
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
@@ -384,6 +390,24 @@ class Registration extends Model implements AuthenticatableContract
         $clean = strtoupper(substr(str_replace('-', '', $uuid), 0, 12));
 
         return implode('-', str_split($clean, 4));
+    }
+
+    /**
+     * Today's event day (1/2/3), by calendar date — the fair's own "today".
+     *
+     * Shared by the gate scanner and the registration desk so a walk-in checked
+     * in at the desk lands on the same day a gate scan would. Falls back to
+     * Day 1 outside the event window.
+     */
+    public static function currentEventDay(): int
+    {
+        foreach (config('nextstep.event.days') as $number => $meta) {
+            if (Carbon::parse($meta['date'])->isToday()) {
+                return (int) $number;
+            }
+        }
+
+        return 1;
     }
 
     public function isFair(): bool
