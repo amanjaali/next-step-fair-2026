@@ -243,7 +243,6 @@ class OpportunityResource extends Resource
     private static function localeTabs(string $name): Tabs
     {
         return Tabs::make("{$name}_translations")
-            ->contained(false)
             ->tabs(collect(config('nextstep.locales'))->map(function (array $config, string $locale) use ($name) {
                 return Tab::make($config['code'])
                     ->schema([
