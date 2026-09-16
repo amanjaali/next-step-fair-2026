@@ -66,7 +66,7 @@ class ScholarshipUniversityRequirementResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->gap(false)->components([
+        return $schema->extraAttributes(['style' => 'gap: 0.75rem'])->components([
             Section::make(__('admin.scholarship_requirements.which'))->schema([
                 Select::make('university_slug')
                     ->label(__('admin.scholarship_requirements.university'))
