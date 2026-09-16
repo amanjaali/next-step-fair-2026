@@ -222,9 +222,32 @@ class Opportunity extends Model
                 ->map(fn ($d) => [
                     'name' => $d['name'] ?? '',
                     'seats' => (int) ($d['seats'] ?? 0),
-                    'requirements' => filled($d['requirements'] ?? null) ? $d['requirements'] : null,
+                    'requirements' => self::translatedDepartmentText($d['requirements'] ?? null),
                 ])
                 ->values()->all(),
         ];
+    }
+
+    /**
+     * A department row's requirements, in the current language.
+     *
+     * Stored per-locale (`['en' => ..., 'ku' => ..., 'ar' => ...]`) since the
+     * admin form added translation tabs for it, falling back to English. A
+     * bare string is also accepted — rows saved before translation tabs
+     * existed there still render instead of silently vanishing.
+     */
+    private static function translatedDepartmentText(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            return filled($value) ? $value : null;
+        }
+
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $text = $value[app()->getLocale()] ?? $value[config('app.fallback_locale')] ?? null;
+
+        return filled($text) ? $text : null;
     }
 }

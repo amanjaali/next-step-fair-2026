@@ -47,6 +47,8 @@ return [
         'url_help' => 'The partner’s own form. We count how many students reach it, and send them nothing else.',
         'departments' => 'Departments & seats',
         'departments_help' => 'Scholarship type only. Each row here shows up as a department choice on the National Scholarship application form, under this partner\'s name — but only once a partner is picked above from the directory. A partner typed into "Partner name" instead won\'t appear on the form.',
+        'university_requirements' => 'Requirements that apply to the whole university',
+        'university_requirements_help' => 'Most departments usually share the same requirements — write them once here rather than repeating them in every row below. A department can still add its own on top of this, further down. This is the same text as the one editable from "Scholarship — before you apply"; changing it here changes it there too.',
         'department_name' => 'Department',
         'department_seats' => 'Seats',
         'department_requirements' => 'Extra requirements for this department (optional)',

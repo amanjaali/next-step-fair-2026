@@ -8,6 +8,7 @@ use App\Filament\Resources\Opportunities\Pages\ListOpportunities;
 use App\Filament\Support\Translatable;
 use App\Models\Opportunity;
 use App\Models\Organization;
+use App\Models\ScholarshipUniversityRequirement;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -21,6 +22,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -116,8 +119,13 @@ class OpportunityResource extends Resource
                 ->description(__('admin.opportunities.departments_help'))
                 ->visible(fn (Get $get) => $get('kind') === Opportunity::KIND_SCHOLARSHIP)
                 ->schema([
+                    self::translatableTabs(
+                        'university_requirements',
+                        __('admin.opportunities.university_requirements'),
+                        __('admin.opportunities.university_requirements_help'),
+                    ),
                     Repeater::make('departments')
-                        ->label('')
+                        ->label(__('admin.opportunities.departments'))
                         ->schema([
                             TextInput::make('name')
                                 ->label(__('admin.opportunities.department_name'))
@@ -126,11 +134,11 @@ class OpportunityResource extends Resource
                                 ->label(__('admin.opportunities.department_seats'))
                                 ->numeric()
                                 ->required(),
-                            Textarea::make('requirements')
-                                ->label(__('admin.opportunities.department_requirements'))
-                                ->helperText(__('admin.opportunities.department_requirements_help'))
-                                ->rows(2)
-                                ->columnSpanFull(),
+                            self::translatableTabs(
+                                'requirements',
+                                __('admin.opportunities.department_requirements'),
+                                __('admin.opportunities.department_requirements_help'),
+                            ),
                         ])
                         ->columns(2)
                         ->addActionLabel(__('admin.opportunities.department_add'))
@@ -188,6 +196,60 @@ class OpportunityResource extends Resource
             ])
             ->recordActions([EditAction::make()])
             ->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
+    }
+
+    /**
+     * A plain per-language tabs field for a value that is not one of the
+     * model's own translatable attributes — a department row nested inside
+     * the repeater, or the virtual "whole university" field above it.
+     *
+     * Unlike Translatable::tabs(), this carries no completeness badge: that
+     * badge reads $record->translationCompleteness(), which here would be
+     * the Opportunity's own title/body/etc — a number with nothing to do
+     * with the field actually being edited.
+     */
+    private static function translatableTabs(string $name, string $label, string $help = ''): Section
+    {
+        return Section::make($label)
+            ->description($help)
+            ->columnSpanFull()
+            ->schema([
+                Tabs::make("{$name}_translations")
+                    ->contained(false)
+                    ->tabs(collect(config('nextstep.locales'))->map(function (array $config, string $locale) use ($name) {
+                        return Tab::make($config['code'])
+                            ->schema([
+                                Textarea::make("{$name}.{$locale}")
+                                    ->label('')
+                                    ->rows(2)
+                                    ->extraInputAttributes($config['dir'] === 'rtl' ? ['dir' => 'rtl'] : [])
+                                    ->columnSpanFull(),
+                            ]);
+                    })->values()->all()),
+            ]);
+    }
+
+    /**
+     * Keeps the "whole university" text in step with the same
+     * ScholarshipUniversityRequirement row the standalone dashboard section
+     * edits — one source of truth, reachable from either place. Blank in
+     * every language deletes the row rather than leaving an empty one behind.
+     */
+    public static function syncUniversityRequirements(Opportunity $opportunity, ?array $translations): void
+    {
+        $slug = 'opportunity-'.$opportunity->slug;
+        $hasContent = collect($translations ?? [])->contains(fn ($text) => filled($text));
+
+        if (! $hasContent) {
+            ScholarshipUniversityRequirement::where('university_slug', $slug)->delete();
+
+            return;
+        }
+
+        ScholarshipUniversityRequirement::updateOrCreate(
+            ['university_slug' => $slug],
+            ['requirements' => $translations],
+        );
     }
 
     public static function getPages(): array
