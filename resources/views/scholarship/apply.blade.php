@@ -99,7 +99,7 @@
                     <p class="ns-meta text-[12.5px] mt-4 max-w-[54ch]">{{ __('scholarship.apply.submit_note') }}</p>
                 </form>
             @else
-                <form method="POST" action="{{ route('scholarship.apply.save') }}">
+                <form method="POST" action="{{ route('scholarship.apply.save') }}" x-data="nsScholarshipChoice()">
                     @csrf
                     <input type="hidden" name="step" value="{{ $step }}">
 
@@ -179,16 +179,18 @@
                         <p class="ns-body !text-[14px] text-body-soft mb-5 max-w-[56ch]">{{ __('scholarship.apply.choices_lead') }}</p>
 
                         @foreach (['first' => true, 'second' => false] as $slot => $required)
-                            <div class="grid gap-[22px] sm:grid-cols-2 mb-5">
+                            <div class="grid gap-[22px] sm:grid-cols-2 mb-3">
                                 <label>
                                     <span class="ns-label">
                                         {{ __("scholarship.apply.f.{$slot}_university") }}
                                         @if ($required)<span class="ns-req">*</span>@endif
                                     </span>
-                                    <select name="{{ $slot }}_choice_university" class="ns-select">
+                                    <select name="{{ $slot }}_choice_university" class="ns-select"
+                                            @change="sync('{{ $slot }}')">
                                         <option value="">—</option>
                                         @foreach ($universities as $university)
                                             <option value="{{ $university['name'] }}"
+                                                    data-requirements="{{ $university['requirements'] ? ns_rich($university['requirements']) : '' }}"
                                                     @selected($application->{$slot.'_choice_university'} === $university['name'])>{{ $university['name'] }}</option>
                                         @endforeach
                                     </select>
@@ -199,12 +201,15 @@
                                         {{ __('scholarship.apply.f.department') }}
                                         @if ($required)<span class="ns-req">*</span>@endif
                                     </span>
-                                    <select name="{{ $slot }}_choice_department" class="ns-select">
+                                    <select name="{{ $slot }}_choice_department" class="ns-select"
+                                            @change="sync('{{ $slot }}')">
                                         <option value="">—</option>
                                         @foreach ($universities as $university)
                                             <optgroup label="{{ $university['name'] }}">
                                                 @foreach ($university['departments'] as $department)
                                                     <option value="{{ $department['name'] }}"
+                                                            data-university="{{ $university['name'] }}"
+                                                            data-requirements="{{ $department['requirements'] ?? '' }}"
                                                             @selected($application->{$slot.'_choice_department'} === $department['name'])>
                                                         {{ $department['name'] }} · {{ $department['seats'] }}
                                                     </option>
@@ -212,6 +217,20 @@
                                             </optgroup>
                                         @endforeach
                                     </select>
+                                </label>
+                            </div>
+
+                            <div x-show="slots.{{ $slot }}.hasRequirements" x-cloak
+                                 class="ns-card !p-4 !border !border-[rgba(5,7,8,0.14)] !shadow-none mb-5">
+                                <div class="ns-eyebrow !text-[9.5px] mb-2">{{ __('scholarship.apply.requirements_title') }}</div>
+                                <div class="ns-prose text-[13.5px] max-h-[240px] overflow-y-auto pe-2" x-html="slots.{{ $slot }}.requirements"></div>
+                                <label class="flex gap-[12px] items-start cursor-pointer mt-4">
+                                    <input type="checkbox" name="{{ $slot }}_choice_ack" value="1" class="sr-only"
+                                           x-model="slots.{{ $slot }}.ack">
+                                    <span class="ns-box mt-[2px]"></span>
+                                    <span class="font-[family-name:var(--ns-body)] text-[13.5px] leading-[1.5] max-w-[56ch]">
+                                        {{ __('scholarship.apply.requirements_ack') }}
+                                    </span>
                                 </label>
                             </div>
                         @endforeach
@@ -241,7 +260,9 @@
                             <span></span>
                         @endif
 
-                        <button type="submit" class="ns-btn ns-btn-magenta">{{ __('scholarship.apply.save_continue') }}</button>
+                        <button type="submit" class="ns-btn ns-btn-magenta"
+                                :disabled="(slots.first.hasRequirements && !slots.first.ack) || (slots.second.hasRequirements && !slots.second.ack)"
+                                :class="{ 'opacity-50 cursor-not-allowed': (slots.first.hasRequirements && !slots.first.ack) || (slots.second.hasRequirements && !slots.second.ack) }">{{ __('scholarship.apply.save_continue') }}</button>
                     </div>
                 </form>
             @endif

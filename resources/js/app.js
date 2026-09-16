@@ -365,6 +365,63 @@ Alpine.data('nsEligibility', (total) => ({
     },
 }));
 
+/**
+ * The requirements box on the scholarship application form.
+ *
+ * University and department are two independent selects, not a cascading
+ * pair, so both are read fresh on every change rather than assumed to agree.
+ * A department's own requirements only count when it actually belongs to the
+ * university currently selected — picking a different university without
+ * reselecting a department should not carry over a stranger's requirements.
+ *
+ * Changing either select clears that slot's acknowledgement: the box shown
+ * changed, so the tick has to happen again.
+ */
+Alpine.data('nsScholarshipChoice', () => ({
+    slots: {
+        first: { requirements: '', hasRequirements: false, ack: false },
+        second: { requirements: '', hasRequirements: false, ack: false },
+    },
+
+    init() {
+        this.sync('first');
+        this.sync('second');
+    },
+
+    sync(slot) {
+        const uniSelect = this.$root.querySelector(`select[name="${slot}_choice_university"]`);
+        const deptSelect = this.$root.querySelector(`select[name="${slot}_choice_department"]`);
+
+        if (!uniSelect || !deptSelect) {
+            return;
+        }
+
+        const uniOption = uniSelect.selectedOptions[0];
+        const deptOption = deptSelect.selectedOptions[0];
+
+        // The university's own text is dashboard-authored rich text, already
+        // sanitized server-side before it ever reached this attribute — safe
+        // to render as-is. The department's is a plain textarea, so it is
+        // escaped here rather than trusted, same reasoning as the "about"
+        // text this mirrors on the universities page.
+        const uniHtml = (uniOption && uniOption.value) ? (uniOption.dataset.requirements || '') : '';
+        const deptBelongsToUni = deptOption && uniOption && deptOption.dataset.university === uniOption.value;
+        const deptText = deptBelongsToUni ? (deptOption.dataset.requirements || '') : '';
+        const deptHtml = deptText ? `<p>${this.escapeHtml(deptText)}</p>` : '';
+
+        this.slots[slot].requirements = [uniHtml, deptHtml].filter(Boolean).join('<hr class="my-3 border-0 border-t border-[rgba(5,7,8,0.14)]">');
+        this.slots[slot].hasRequirements = this.slots[slot].requirements.length > 0;
+        this.slots[slot].ack = false;
+    },
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+
+        return div.innerHTML;
+    },
+}));
+
 /*
  * Every Alpine.data() above has to be registered before this line. Registering
  * one after it leaves the component undefined, and Alpine then resolves the

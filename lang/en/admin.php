@@ -20,6 +20,13 @@ return [
         'edited' => 'Last edited',
     ],
 
+    'scholarship_requirements' => [
+        'which' => 'University',
+        'university' => 'University',
+        'university_help' => 'Every university currently on the application form — both the founding/donor list and any partner added through Opportunities. Pick one; it cannot be changed once saved (delete and re-add instead).',
+        'content' => 'What it says',
+    ],
+
     'opportunities' => [
         'content' => 'What it says',
         'partner' => 'Partner',
@@ -42,6 +49,8 @@ return [
         'departments_help' => 'Scholarship type only. Each row here shows up as a department choice on the National Scholarship application form, under this partner\'s name — but only once a partner is picked above from the directory. A partner typed into "Partner name" instead won\'t appear on the form.',
         'department_name' => 'Department',
         'department_seats' => 'Seats',
+        'department_requirements' => 'Extra requirements for this department (optional)',
+        'department_requirements_help' => 'Only needed if this department has its own conditions beyond the university-wide requirements — e.g. a different GPA or a document nobody else needs.',
         'department_add' => 'Add a department',
         'featured' => 'Feature it',
         'featured_help' => 'Featured ones lead the board and appear on the home page.',
@@ -298,6 +307,8 @@ return [
         'subscribers' => 'Newsletter',
         'qr' => 'QR campaigns',
         'users' => 'Staff accounts',
+        'scholarship_university_requirements' => 'Scholarship — before you apply',
+        'scholarship_university_requirement_singular' => 'Requirements notice',
     ],
 
     'fields' => [
@@ -323,6 +334,7 @@ return [
         'label' => 'Label',
         'sort' => 'Order',
         'published' => 'Published',
+        'updated_at' => 'Last updated',
     ],
 
     'actions' => [

@@ -1,8 +1,12 @@
 <?php
 
+use App\Models\HomeTrackPoint;
+use App\Models\Opportunity;
+use App\Models\ScholarshipUniversityRequirement;
 use App\Models\Setting;
 use App\Support\Html;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 if (! function_exists('ns_alternate_url')) {
     /**
@@ -80,7 +84,7 @@ if (! function_exists('ns_event_name')) {
         if (app()->getLocale() === 'en') {
             try {
                 $override = trim((string) (Setting::get('event_overrides', [])['name'] ?? ''));
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $override = '';
             }
 
@@ -105,7 +109,7 @@ if (! function_exists('ns_venue_label')) {
         if (app()->getLocale() === 'en') {
             try {
                 $edited = Setting::get('event_overrides', []);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $edited = [];
             }
 
@@ -264,28 +268,28 @@ if (! function_exists('ns_home_track_points')) {
      * Returns editor-managed rows when any published points exist for the track;
      * otherwise the wording the page shipped with.
      *
-     * @return \Illuminate\Support\Collection<int, string>
+     * @return Collection<int, string>
      */
-    function ns_home_track_points(string $track): \Illuminate\Support\Collection
+    function ns_home_track_points(string $track): Collection
     {
         try {
-            $points = \App\Models\HomeTrackPoint::query()
+            $points = HomeTrackPoint::query()
                 ->forTrack($track)
                 ->published()
                 ->orderBy('sort')
                 ->get();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $points = collect();
         }
 
         if ($points->isNotEmpty()) {
-            return $points->map(fn (\App\Models\HomeTrackPoint $point) => $point->t('label'));
+            return $points->map(fn (HomeTrackPoint $point) => $point->t('label'));
         }
 
         $count = ns_home_counter('universities', 32);
 
         return collect(match ($track) {
-            \App\Models\HomeTrackPoint::TRACK_CONFERENCE => [
+            HomeTrackPoint::TRACK_CONFERENCE => [
                 __('site.pages.conference.programme'),
                 __('site.pages.conference.themes'),
                 'KU · AR · EN',
@@ -588,11 +592,24 @@ if (! function_exists('ns_scholarship_universities')) {
     {
         $configured = config('scholarship.universities', []);
 
-        $fromOpportunities = \App\Models\Opportunity::scholarshipUniversities()
+        $fromOpportunities = Opportunity::scholarshipUniversities()
             ->get()
-            ->map(fn (\App\Models\Opportunity $o) => $o->toScholarshipUniversityArray())
+            ->map(fn (Opportunity $o) => $o->toScholarshipUniversityArray())
             ->all();
 
-        return array_merge($configured, $fromOpportunities);
+        $universities = array_merge($configured, $fromOpportunities);
+
+        // What a student must read before picking each one — dashboard-managed,
+        // keyed by the same slug either source already carries. A university
+        // with nothing entered just gets no requirements text and no gate.
+        $requirements = ScholarshipUniversityRequirement::all()->keyBy('university_slug');
+
+        return collect($universities)
+            ->map(function (array $university) use ($requirements) {
+                $university['requirements'] = $requirements->get($university['slug'])?->t('requirements') ?: null;
+
+                return $university;
+            })
+            ->all();
     }
 }

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Registration;
 use App\Models\ScholarshipApplication;
+use App\Models\ScholarshipUniversityRequirement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -276,6 +277,63 @@ class ScholarshipTest extends TestCase
         ])->assertForbidden();
 
         $this->assertSame('SLM', $application->fresh()->region_code);
+    }
+
+    public function test_a_university_with_requirements_cannot_be_chosen_without_acknowledging_them(): void
+    {
+        ScholarshipUniversityRequirement::create([
+            'university_slug' => 'auis',
+            'requirements' => ['en' => 'Minimum 85% average.'],
+        ]);
+
+        $student = $this->student();
+        $this->pass($student);
+
+        $base = [
+            'step' => 2, 'exam_status' => 'published', 'exam_average' => '92.5',
+            'stream' => 'scientific', 'school_name' => 'Chamchamal Preparatory',
+            'first_choice_university' => 'American University of Iraq, Sulaimani',
+            'first_choice_department' => 'Computer Science',
+        ];
+
+        // Without the box checked, the choice is refused and the step does not advance.
+        $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', $base)
+            ->assertSessionHasErrors('first_choice_ack');
+
+        // Rejected before anything was saved — the step never moves past 1.
+        $this->assertSame(1, $student->scholarshipApplication()->step);
+
+        // Checked, it goes through — and what was shown is kept, not just a flag.
+        $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', $base + ['first_choice_ack' => '1'])
+            ->assertRedirect();
+
+        $application = $student->scholarshipApplication()->fresh();
+
+        $this->assertSame(3, $application->step);
+        $this->assertNotNull($application->first_choice_requirements_ack_at);
+        $this->assertStringContainsString('Minimum 85% average.', $application->first_choice_requirements_snapshot);
+    }
+
+    public function test_a_university_with_nothing_written_needs_no_acknowledgement(): void
+    {
+        $student = $this->student();
+        $this->pass($student);
+
+        // Tishk has no ScholarshipUniversityRequirement row in this test at all.
+        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/form', [
+            'step' => 2, 'exam_status' => 'published', 'exam_average' => '92.5',
+            'stream' => 'scientific', 'school_name' => 'Chamchamal Preparatory',
+            'first_choice_university' => 'Tishk International University',
+            'first_choice_department' => 'Medicine',
+        ])->assertRedirect();
+
+        $application = $student->scholarshipApplication()->fresh();
+
+        $this->assertSame(3, $application->step);
+        $this->assertNull($application->first_choice_requirements_ack_at);
+        $this->assertNull($application->first_choice_requirements_snapshot);
     }
 
     public function test_a_statement_below_the_word_count_is_rejected(): void

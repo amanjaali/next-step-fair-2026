@@ -161,6 +161,19 @@ class ApplicationController extends Controller
             default => [],
         };
 
+        // A choice with something to read cannot be saved without the box
+        // checked — but only if there is something to read: a university
+        // nobody has written requirements for asks for no acknowledgement.
+        if ($step === 2) {
+            if ($this->requirementsFor($request->input('first_choice_university'), $request->input('first_choice_department')) !== null) {
+                $rules['first_choice_ack'] = ['accepted'];
+            }
+            if (filled($request->input('second_choice_university'))
+                && $this->requirementsFor($request->input('second_choice_university'), $request->input('second_choice_department')) !== null) {
+                $rules['second_choice_ack'] = ['accepted'];
+            }
+        }
+
         $data = $request->validate($rules, [
             'region_code.required' => __('scholarship.apply.errors.region'),
             'district.required' => __('scholarship.apply.errors.district'),
@@ -169,7 +182,22 @@ class ApplicationController extends Controller
             'statement.min' => __('scholarship.apply.errors.statement_short'),
             'proposal.required' => __('scholarship.apply.errors.proposal'),
             'proposal.min' => __('scholarship.apply.errors.proposal_short'),
+            'first_choice_ack.accepted' => __('scholarship.apply.errors.first_choice_ack'),
+            'second_choice_ack.accepted' => __('scholarship.apply.errors.second_choice_ack'),
         ]);
+
+        if ($step === 2) {
+            // The ack checkboxes are not real columns — swap them for a
+            // timestamped snapshot of exactly what was shown and agreed to,
+            // so a requirements text edited later cannot rewrite history.
+            unset($data['first_choice_ack'], $data['second_choice_ack']);
+
+            foreach (['first', 'second'] as $slot) {
+                $text = $this->requirementsFor($data["{$slot}_choice_university"] ?? null, $data["{$slot}_choice_department"] ?? null);
+                $data["{$slot}_choice_requirements_ack_at"] = $text !== null ? now() : null;
+                $data["{$slot}_choice_requirements_snapshot"] = $text;
+            }
+        }
 
         $application->fill($data);
         $application->step = min($step + 1, 4);
@@ -232,6 +260,33 @@ class ApplicationController extends Controller
     }
 
     /* ------------------------------------------------------------ helpers -- */
+
+    /**
+     * What a student must read for a given university/department choice, or
+     * null when nobody has written anything for it — in which case there is
+     * nothing to acknowledge and no box to check.
+     */
+    private function requirementsFor(?string $universityName, ?string $departmentName): ?string
+    {
+        if (blank($universityName)) {
+            return null;
+        }
+
+        $university = collect(ns_scholarship_universities())->firstWhere('name', $universityName);
+
+        if ($university === null) {
+            return null;
+        }
+
+        $department = collect($university['departments'] ?? [])->firstWhere('name', $departmentName);
+
+        $parts = array_filter([
+            $university['requirements'] ?? null,
+            $department['requirements'] ?? null,
+        ], fn ($text) => filled($text));
+
+        return $parts === [] ? null : implode("\n\n", $parts);
+    }
 
     private function attendee(): ?Registration
     {

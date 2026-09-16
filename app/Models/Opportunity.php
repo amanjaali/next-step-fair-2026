@@ -219,7 +219,11 @@ class Opportunity extends Model
             // rather than trusted, and only used when there is nothing else.
             'about' => $this->t('summary') ?: strip_tags((string) $this->t('body')),
             'departments' => collect($this->departments ?? [])
-                ->map(fn ($d) => ['name' => $d['name'] ?? '', 'seats' => (int) ($d['seats'] ?? 0)])
+                ->map(fn ($d) => [
+                    'name' => $d['name'] ?? '',
+                    'seats' => (int) ($d['seats'] ?? 0),
+                    'requirements' => filled($d['requirements'] ?? null) ? $d['requirements'] : null,
+                ])
                 ->values()->all(),
         ];
     }

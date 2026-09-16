@@ -16,11 +16,12 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -125,6 +126,11 @@ class OpportunityResource extends Resource
                                 ->label(__('admin.opportunities.department_seats'))
                                 ->numeric()
                                 ->required(),
+                            Textarea::make('requirements')
+                                ->label(__('admin.opportunities.department_requirements'))
+                                ->helperText(__('admin.opportunities.department_requirements_help'))
+                                ->rows(2)
+                                ->columnSpanFull(),
                         ])
                         ->columns(2)
                         ->addActionLabel(__('admin.opportunities.department_add'))

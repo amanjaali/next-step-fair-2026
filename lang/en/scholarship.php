@@ -369,6 +369,9 @@ return [
 
         'choices_title' => 'Where you want to study',
         'choices_lead' => 'A first choice is required. A second is optional but useful, because seats are held per department and the one you want may already be taken in your region.',
+        'requirements_title' => 'Before you choose this one',
+        'requirements_none' => 'Nothing has been added for this university yet.',
+        'requirements_ack' => 'I have read all of the above and understand it applies to this choice.',
 
         'statement_title' => 'Your statement and proposal',
         'statement_lead' => 'These are what the committee actually reads. Write them yourself, in your own words.',
@@ -396,6 +399,8 @@ return [
             'proposal_short' => 'The proposal should be at least 500 words.',
             'incomplete' => 'Some parts of the application are still empty. Go back through the four steps before submitting.',
             'confirm' => 'Confirm that the information is true before submitting.',
+            'first_choice_ack' => 'Read the requirements for your first choice, then check the box to confirm.',
+            'second_choice_ack' => 'Read the requirements for your second choice, then check the box to confirm.',
         ],
 
         'f' => [
