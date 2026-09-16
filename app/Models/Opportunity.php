@@ -205,7 +205,9 @@ class Opportunity extends Model
             'slug' => 'opportunity-'.$this->slug,
             'name' => $org?->t('name') ?: $this->partner(),
             'city' => $org?->city ?: '',
-            'language' => is_array($org?->languages) ? implode(' & ', $org->languages) : '',
+            'language' => is_array($org?->languages)
+                ? collect($org->languages)->map(fn ($code) => config("nextstep.locales.$code.label", $code))->implode(' & ')
+                : '',
             'tier' => 'donor',
             'founded' => $org?->since_year,
             'housing' => 'none',
