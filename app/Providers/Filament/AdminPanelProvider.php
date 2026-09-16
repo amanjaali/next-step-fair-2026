@@ -51,6 +51,8 @@ class AdminPanelProvider extends PanelProvider
             ->font('Manrope')
             ->maxContentWidth(Width::Full)
             ->sidebarCollapsibleOnDesktop()
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->navigationGroups([
                 NavigationGroup::make()->label(fn () => __('admin.groups.registrations')),
                 NavigationGroup::make()->label(fn () => __('admin.groups.messaging')),
