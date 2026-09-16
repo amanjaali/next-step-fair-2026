@@ -39,7 +39,7 @@ return [
         'url' => 'Where the button goes',
         'url_help' => 'The partner’s own form. We count how many students reach it, and send them nothing else.',
         'departments' => 'Departments & seats',
-        'departments_help' => 'Scholarship type only. Each row here shows up as a department choice on the National Scholarship application form, under this partner\'s name.',
+        'departments_help' => 'Scholarship type only. Each row here shows up as a department choice on the National Scholarship application form, under this partner\'s name — but only once a partner is picked above from the directory. A partner typed into "Partner name" instead won\'t appear on the form.',
         'department_name' => 'Department',
         'department_seats' => 'Seats',
         'department_add' => 'Add a department',

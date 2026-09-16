@@ -211,7 +211,10 @@ class Opportunity extends Model
             'tier' => 'donor',
             'founded' => $org?->since_year,
             'housing' => 'none',
-            'about' => $this->t('body') ?: $this->t('summary'),
+            // `summary` is plain text and safe to print escaped, like the rest of
+            // this array; `body` is a rich-text editor field, so it is stripped
+            // rather than trusted, and only used when there is nothing else.
+            'about' => $this->t('summary') ?: strip_tags((string) $this->t('body')),
             'departments' => collect($this->departments ?? [])
                 ->map(fn ($d) => ['name' => $d['name'] ?? '', 'seats' => (int) ($d['seats'] ?? 0)])
                 ->values()->all(),
