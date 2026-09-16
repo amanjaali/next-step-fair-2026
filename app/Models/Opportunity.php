@@ -204,7 +204,10 @@ class Opportunity extends Model
         return [
             'slug' => 'opportunity-'.$this->slug,
             'name' => $org?->t('name') ?: $this->partner(),
-            'city' => $org?->city ?: '',
+            // Left null (not '') when the partner has no city on file: the
+            // regional filter on the scholarship pages checks for null, and an
+            // empty string would pass that check and misreport as "has a city".
+            'city' => $org?->city ?: null,
             'language' => is_array($org?->languages)
                 ? collect($org->languages)->map(fn ($code) => config("nextstep.locales.$code.label", $code))->implode(' & ')
                 : '',
