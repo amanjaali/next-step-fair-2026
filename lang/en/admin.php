@@ -50,6 +50,7 @@ return [
         'university_requirements' => 'Requirements that apply to the whole university',
         'university_requirements_help' => 'Most departments usually share the same requirements — write them once here rather than repeating them in every row below. A department can still add its own on top of this, further down. This is the same text as the one editable from "Scholarship — before you apply"; changing it here changes it there too.',
         'department_name' => 'Department',
+        'department_new' => 'New department',
         'department_seats' => 'Seats',
         'department_requirements' => 'Extra requirements for this department (optional)',
         'department_requirements_help' => 'Only needed if this department has its own conditions beyond the university-wide requirements — e.g. a different GPA or a document nobody else needs.',

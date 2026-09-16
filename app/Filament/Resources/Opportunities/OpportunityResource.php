@@ -21,11 +21,14 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -125,16 +128,17 @@ class OpportunityResource extends Resource
                         __('admin.opportunities.university_requirements_help'),
                     ),
                     Repeater::make('departments')
-                        ->label(__('admin.opportunities.departments'))
+                        ->label('')
                         ->schema([
                             TextInput::make('name')
                                 ->label(__('admin.opportunities.department_name'))
-                                ->required(),
+                                ->required()
+                                ->live(onBlur: true),
                             TextInput::make('seats')
                                 ->label(__('admin.opportunities.department_seats'))
                                 ->numeric()
                                 ->required(),
-                            self::translatableTabs(
+                            self::translatableTabsCompact(
                                 'requirements',
                                 __('admin.opportunities.department_requirements'),
                                 __('admin.opportunities.department_requirements_help'),
@@ -143,7 +147,11 @@ class OpportunityResource extends Resource
                         ->columns(2)
                         ->addActionLabel(__('admin.opportunities.department_add'))
                         ->defaultItems(0)
-                        ->reorderable(false),
+                        ->reorderable(false)
+                        ->collapsible()
+                        ->itemLabel(fn (array $state): ?string => filled($state['name'] ?? null)
+                            ? $state['name'].($state['seats'] ?? null ? ' · '.$state['seats'] : '')
+                            : __('admin.opportunities.department_new')),
                 ]),
 
             Section::make()->columns(2)->schema([
@@ -213,20 +221,39 @@ class OpportunityResource extends Resource
         return Section::make($label)
             ->description($help)
             ->columnSpanFull()
+            ->schema([self::localeTabs($name)]);
+    }
+
+    /**
+     * The same per-language tabs, without the surrounding card — for a field
+     * that is explicitly the exception rather than the main content, so it
+     * should not look as weighty as the department's own Name and Seats.
+     */
+    private static function translatableTabsCompact(string $name, string $label, string $help = ''): Fieldset
+    {
+        return Fieldset::make($label)
+            ->columns(1)
+            ->columnSpanFull()
             ->schema([
-                Tabs::make("{$name}_translations")
-                    ->contained(false)
-                    ->tabs(collect(config('nextstep.locales'))->map(function (array $config, string $locale) use ($name) {
-                        return Tab::make($config['code'])
-                            ->schema([
-                                Textarea::make("{$name}.{$locale}")
-                                    ->label('')
-                                    ->rows(2)
-                                    ->extraInputAttributes($config['dir'] === 'rtl' ? ['dir' => 'rtl'] : [])
-                                    ->columnSpanFull(),
-                            ]);
-                    })->values()->all()),
+                Text::make($help)->size(TextSize::ExtraSmall)->color('gray'),
+                self::localeTabs($name),
             ]);
+    }
+
+    private static function localeTabs(string $name): Tabs
+    {
+        return Tabs::make("{$name}_translations")
+            ->contained(false)
+            ->tabs(collect(config('nextstep.locales'))->map(function (array $config, string $locale) use ($name) {
+                return Tab::make($config['code'])
+                    ->schema([
+                        Textarea::make("{$name}.{$locale}")
+                            ->label('')
+                            ->rows(2)
+                            ->extraInputAttributes($config['dir'] === 'rtl' ? ['dir' => 'rtl'] : [])
+                            ->columnSpanFull(),
+                    ]);
+            })->values()->all());
     }
 
     /**
