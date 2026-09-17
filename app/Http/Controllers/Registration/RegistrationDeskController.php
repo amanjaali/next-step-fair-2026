@@ -7,6 +7,7 @@ use App\Models\CheckIn;
 use App\Models\Registration;
 use App\Models\RegistrationAudit;
 use App\Services\BadgeService;
+use App\Services\RegistrationConfirmer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,20 +15,19 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 /**
- * The registration desk: where volunteers create and correct walk-in accounts.
+ * The registration desk: where volunteers issue and correct visitor passes.
  *
- * A record made here is confirmed and checked in for today on the spot — the
- * desk already verified the visitor in person, so nobody needs to queue a
- * second time at a gate scanner during rush hours.
+ * A name and a phone number, same as the public "Just attending" flow — the
+ * desk version of the same real registration. It's confirmed, badged and
+ * checked in for today on the spot, so nobody queues twice during rush hours.
+ * If the visitor later fills in the full student form on their own phone with
+ * this same number, that form completes this record rather than duplicating
+ * it — see FairRegistrationController::store().
  */
 class RegistrationDeskController extends Controller
 {
     /** The fields a volunteer can set, whether creating or correcting a record. */
-    private const EDITABLE_FIELDS = [
-        'full_name', 'type', 'locale', 'phone_country', 'phone', 'email', 'city',
-        'date_of_birth', 'gender', 'days', 'school_name', 'relationship',
-        'current_status', 'notes',
-    ];
+    private const EDITABLE_FIELDS = ['full_name', 'phone_country', 'phone'];
 
     /* ------------------------------------------------------------- auth --- */
 
@@ -76,27 +76,17 @@ class RegistrationDeskController extends Controller
     }
 
     /**
-     * Browse the pre-registered list, or search it by name/phone/ticket/email.
+     * Browse the pre-registered visitor list, or search it by name/phone/ticket.
      *
-     * With no query, this is the volunteer's roster of people who signed up
-     * before the fair — the whole reason for this screen. With a query, it
-     * narrows the same list, walk-ins included.
+     * With no query, this is every visitor pass on file — desk-issued and
+     * self-service alike. With a query, it narrows the same list.
      */
     public function search(Request $request): JsonResponse
     {
         $term = trim((string) $request->input('q'));
-        $type = $request->input('type');
         $digits = preg_replace('/\D/', '', $term);
 
-        // The desk only ever creates/edits student and parent accounts — a quick
-        // visitor pass has no "type" field on this form and must stay untouched.
-        $query = Registration::query()->fair()->active()->whereIn('type', [
-            Registration::TYPE_STUDENT, Registration::TYPE_PARENT,
-        ]);
-
-        if ($type && $type !== 'all') {
-            $query->where('type', $type);
-        }
+        $query = Registration::query()->fair()->active()->where('type', Registration::TYPE_VISITOR);
 
         if ($term !== '') {
             $query->where(function ($q) use ($term, $digits) {
@@ -105,9 +95,6 @@ class RegistrationDeskController extends Controller
 
                 if ($digits !== '') {
                     $q->orWhere('phone_hash', Registration::hashValue(ltrim($digits, '0')));
-                }
-                if (str_contains($term, '@')) {
-                    $q->orWhere('email_hash', Registration::hashValue(strtolower($term)));
                 }
             });
         }
@@ -132,22 +119,30 @@ class RegistrationDeskController extends Controller
     {
         $data = $this->validated($request);
 
+        // One phone number, one registration, one badge — same rule the public
+        // quick-pass form enforces, so the desk can't accidentally duplicate
+        // someone who already has a pass.
+        if (Registration::fair()->active()->wherePhone($data['phone'])->exists()) {
+            return response()->json(['message' => __('registration_desk.phone_already_registered')], 422);
+        }
+
         $registration = new Registration($data);
         $registration->track = Registration::TRACK_FAIR;
+        $registration->type = Registration::TYPE_VISITOR;
+        $registration->locale = app()->getLocale();
         $registration->is_walk_in = true;
         $registration->created_by = auth()->id();
-        $registration->status = Registration::STATUS_CONFIRMED;
+        // A visitor pass is valid for the whole run; there is nothing to choose.
+        $registration->days = array_keys(config('nextstep.event.days'));
+        $registration->status = Registration::STATUS_DRAFT;
         $registration->consented_at = now();
-        $registration->confirmed_at = now();
-        $registration->consents = [
-            'terms' => ['given' => true, 'at' => now()->toIso8601String()],
-            'whatsapp' => ['given' => true, 'at' => now()->toIso8601String()],
-        ];
+        $registration->consent_ip = $request->ip();
+        $registration->consents = ['terms' => true, 'whatsapp' => true];
         $registration->save();
 
-        if ($registration->badgeIssued()) {
-            app(BadgeService::class)->generate($registration);
-        }
+        // Same confirmation the public quick-pass and full form use: badge
+        // generated, WhatsApp confirmation queued.
+        app(RegistrationConfirmer::class)->confirm($registration);
         $this->autoCheckInToday($registration);
 
         return response()->json($this->present($registration->fresh('checkIns'), full: true), 201);
@@ -179,7 +174,7 @@ class RegistrationDeskController extends Controller
                 'changes' => $changes,
             ]);
 
-            if ($registration->badgeIssued() && $changedFields->intersect(['full_name', 'type', 'days', 'locale'])->isNotEmpty()) {
+            if ($registration->badgeIssued() && $changedFields->contains('full_name')) {
                 app(BadgeService::class)->generate($registration);
             }
         }
@@ -201,13 +196,10 @@ class RegistrationDeskController extends Controller
 
     /* ----------------------------------------------------------- helpers -- */
 
-    /** This desk only manages fair student/parent walk-ins — never a visitor pass or a conference RSVP. */
+    /** This desk only manages fair visitor passes — never a student/parent record or a conference RSVP. */
     private function assertDeskManaged(Registration $registration): void
     {
-        abort_unless(
-            $registration->isFair() && in_array($registration->type, [Registration::TYPE_STUDENT, Registration::TYPE_PARENT], true),
-            404
-        );
+        abort_unless($registration->isFair() && $registration->type === Registration::TYPE_VISITOR, 404);
     }
 
     /**
@@ -215,26 +207,21 @@ class RegistrationDeskController extends Controller
      */
     private function validated(Request $request): array
     {
-        return $request->validate([
-            'full_name' => ['required', 'string', 'max:120'],
-            'type' => ['required', 'in:student,parent'],
-            'locale' => ['required', 'in:'.implode(',', array_keys(config('nextstep.locales')))],
+        $data = $request->validate([
+            'full_name' => ['required', 'string', 'min:3', 'max:120'],
             'phone_country' => ['required', 'string', 'max:8', 'in:'.implode(',', array_keys(config('nextstep.phone.countries')))],
-            'phone' => ['required', 'string', 'max:20'],
-            'email' => ['nullable', 'email', 'max:190'],
-            'city' => ['required', 'string', 'max:60', 'in:'.implode(',', config('nextstep.cities'))],
-            'date_of_birth' => ['nullable', 'date'],
-            'gender' => ['nullable', 'string', 'max:20'],
-            'days' => ['required', 'array', 'min:1'],
-            'days.*' => ['integer', 'min:1', 'max:3'],
-            'school_name' => ['nullable', 'string', 'max:190'],
-            'relationship' => ['nullable', 'string', 'max:20'],
-            'current_status' => ['nullable', 'string', 'max:30'],
-            'notes' => ['nullable', 'string', 'max:1000'],
+            'phone' => ['required', 'string', 'regex:/^0?[0-9]{9,12}$/'],
         ]);
+
+        // Strip a leading zero before it's stored — left in, it survives into the
+        // WhatsApp number (phone_country + phone) as an extra digit and the badge
+        // never arrives. Same normalisation QuickPassController applies.
+        $data['phone'] = ltrim(preg_replace('/\D/', '', $data['phone']), '0');
+
+        return $data;
     }
 
-    /** Checks the visitor in for today only — other selected days still need a gate scan. */
+    /** Checks the visitor in for today only — other days still need a gate scan. */
     private function autoCheckInToday(Registration $registration): void
     {
         CheckIn::create([
@@ -259,12 +246,9 @@ class RegistrationDeskController extends Controller
         $base = [
             'id' => $registration->id,
             'full_name' => $registration->full_name,
-            'type' => $registration->type,
-            'city' => $registration->city,
             'phone' => $registration->maskedPhone(),
             'ticket' => $registration->ticket_ref,
             'status' => $registration->status,
-            'days' => $registration->dayList(),
             'is_walk_in' => (bool) $registration->is_walk_in,
             'checked_in_today' => $registration->relationLoaded('checkIns')
                 ? $registration->isCheckedInOn($today)
@@ -276,16 +260,8 @@ class RegistrationDeskController extends Controller
         }
 
         return array_merge($base, [
-            'locale' => $registration->locale,
             'phone_country' => $registration->phone_country,
             'phone' => $registration->phone, // the real, editable number — overrides the masked list value above
-            'email' => $registration->email,
-            'date_of_birth' => optional($registration->date_of_birth)->toDateString(),
-            'gender' => $registration->gender,
-            'school_name' => $registration->school_name,
-            'relationship' => $registration->relationship,
-            'current_status' => $registration->current_status,
-            'notes' => $registration->notes,
             'created_by' => $registration->created_by,
             'created_at' => $registration->created_at?->toIso8601String(),
             'can_delete' => $registration->created_by === auth()->id()

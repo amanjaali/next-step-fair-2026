@@ -201,6 +201,23 @@ class InsightService
         ];
     }
 
+    /**
+     * Visitors who came in on a quick pass and later completed the full
+     * student form on the same phone number.
+     *
+     * Counts desk-issued walk-ins specifically (`is_walk_in`): a visitor who
+     * self-registered online and upgraded from the same browser isn't walked
+     * through the desk at all, so there's nothing here to distinguish that
+     * case from having registered as a student from the start.
+     */
+    public function visitorToStudentConversions(): int
+    {
+        return Registration::fair()
+            ->where('type', Registration::TYPE_STUDENT)
+            ->where('is_walk_in', true)
+            ->count();
+    }
+
     /** Of the students an institution matched, how many actually came to the desk? */
     public function matchToVisitConversion(): float
     {

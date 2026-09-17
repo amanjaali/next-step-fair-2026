@@ -422,6 +422,8 @@ return [
         'institutions_note' => 'Have listed their programmes',
         'conversion' => 'Match to visit',
         'conversion_note' => 'Good matches who came to the desk',
+        'visitor_conversions' => 'Visitors who became students',
+        'visitor_conversions_note' => 'Desk visitor passes completed as a full student registration',
         'booth_total' => 'Booth scans',
         'booth_total_note' => 'Every desk QR tap, in total',
         'booth_identified' => 'Identified',

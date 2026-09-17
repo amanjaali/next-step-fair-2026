@@ -35,6 +35,7 @@ return [
     'field_relationship' => 'Relationship',
     'field_notes' => 'Internal notes',
     'fill_required' => 'Please fill in the required fields.',
+    'phone_already_registered' => 'This number is already registered — search for it above.',
     'save' => 'Save',
     'saving' => 'Saving…',
     'cancel' => 'Cancel',

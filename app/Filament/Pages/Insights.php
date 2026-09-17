@@ -10,6 +10,7 @@ use App\Filament\Widgets\EngagementLeaderboardWidget;
 use App\Filament\Widgets\MatchQualityWidget;
 use App\Filament\Widgets\RecentBoothScansWidget;
 use App\Filament\Widgets\SupplyGapWidget;
+use App\Filament\Widgets\VisitorConversionWidget;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -53,6 +54,7 @@ class Insights extends Page
     {
         return [
             MatchQualityWidget::class,
+            VisitorConversionWidget::class,
             DemandByFieldWidget::class,
             SupplyGapWidget::class,
             DemandByCountryWidget::class,

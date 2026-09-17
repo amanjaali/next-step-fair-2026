@@ -3,7 +3,6 @@
           data-search-url="{{ $urls['search'] }}"
           data-store-url="{{ $urls['store'] }}"
           data-csrf="{{ csrf_token() }}"
-          data-cities="{{ implode(',', config('nextstep.cities')) }}"
           data-phone-countries="{{ implode(',', array_keys(config('nextstep.phone.countries'))) }}"
           data-default-phone-country="{{ config('nextstep.phone.default_country') }}"
           data-label-no-results="{{ __('registration_desk.no_results') }}"
@@ -20,7 +19,12 @@
           data-label-created-walk-in="{{ __('registration_desk.created_walk_in') }}"
           data-label-deleted="{{ __('registration_desk.deleted') }}"
           data-label-showing-count="{{ __('registration_desk.showing_count', ['shown' => ':shown', 'total' => ':total']) }}"
-          data-label-fill-required="{{ __('registration_desk.fill_required') }}">
+          data-label-fill-required="{{ __('registration_desk.fill_required') }}"
+          data-label-history-by="{{ __('registration_desk.history_by', ['user' => ':user', 'field' => ':field', 'old' => ':old', 'new' => ':new']) }}"
+          data-label-history-empty="{{ __('registration_desk.history_empty') }}"
+          data-label-field-name="{{ __('registration_desk.field_name') }}"
+          data-label-field-phone-country="{{ __('registration_desk.field_phone_country') }}"
+          data-label-field-phone="{{ __('registration_desk.field_phone') }}">
 
         <header class="rg-top">
             <strong class="rg-top__title">{{ __('registration_desk.title') }}</strong>
@@ -34,12 +38,6 @@
             <p class="rg-search__lead">{{ __('registration_desk.search_lead') }}</p>
             <input type="search" class="rg-input" data-search-input
                    placeholder="{{ __('registration_desk.search_placeholder') }}" autocomplete="off">
-
-            <div class="rg-tabs" data-filter-tabs>
-                <button type="button" class="rg-tab rg-tab--active" data-filter="all">{{ __('registration_desk.filter_all') }}</button>
-                <button type="button" class="rg-tab" data-filter="student">{{ __('registration_desk.filter_student') }}</button>
-                <button type="button" class="rg-tab" data-filter="parent">{{ __('registration_desk.filter_parent') }}</button>
-            </div>
 
             <button type="button" class="rg-btn rg-btn--primary rg-search__new" data-open-new>
                 {{ __('registration_desk.new_walk_in') }}
@@ -70,25 +68,6 @@
                     </label>
 
                     <div class="rg-row">
-                        <label class="rg-field">
-                            <span class="rg-label">{{ __('registration_desk.field_type') }} *</span>
-                            <select class="rg-select" data-field="type" data-required>
-                                <option value="student">{{ __('registration_desk.type_student') }}</option>
-                                <option value="parent">{{ __('registration_desk.type_parent') }}</option>
-                            </select>
-                        </label>
-
-                        <label class="rg-field">
-                            <span class="rg-label">{{ __('registration_desk.field_locale') }} *</span>
-                            <select class="rg-select" data-field="locale" data-required>
-                                <option value="en">EN</option>
-                                <option value="ku">KU</option>
-                                <option value="ar">AR</option>
-                            </select>
-                        </label>
-                    </div>
-
-                    <div class="rg-row">
                         <label class="rg-field rg-field--narrow">
                             <span class="rg-label">{{ __('registration_desk.field_phone_country') }} *</span>
                             <select class="rg-select" data-field="phone_country" data-required></select>
@@ -98,40 +77,6 @@
                             <input type="tel" class="rg-input" data-field="phone" data-required>
                         </label>
                     </div>
-
-                    <label class="rg-field">
-                        <span class="rg-label">{{ __('registration_desk.field_email') }}</span>
-                        <input type="email" class="rg-input" data-field="email">
-                    </label>
-
-                    <label class="rg-field">
-                        <span class="rg-label">{{ __('registration_desk.field_city') }} *</span>
-                        <select class="rg-select" data-field="city" data-required></select>
-                    </label>
-
-                    <fieldset class="rg-field" data-days-field>
-                        <legend class="rg-label">{{ __('registration_desk.field_days') }} *</legend>
-                        <div class="rg-days">
-                            <label class="rg-day"><input type="checkbox" value="1" data-day> 1</label>
-                            <label class="rg-day"><input type="checkbox" value="2" data-day> 2</label>
-                            <label class="rg-day"><input type="checkbox" value="3" data-day> 3</label>
-                        </div>
-                    </fieldset>
-
-                    <label class="rg-field" data-field-wrap="school_name">
-                        <span class="rg-label">{{ __('registration_desk.field_school') }} *</span>
-                        <input type="text" class="rg-input" data-field="school_name" data-required>
-                    </label>
-
-                    <label class="rg-field" data-field-wrap="relationship">
-                        <span class="rg-label">{{ __('registration_desk.field_relationship') }} *</span>
-                        <input type="text" class="rg-input" data-field="relationship" data-required>
-                    </label>
-
-                    <label class="rg-field">
-                        <span class="rg-label">{{ __('registration_desk.field_notes') }}</span>
-                        <textarea class="rg-input" rows="2" data-field="notes"></textarea>
-                    </label>
 
                     <p class="rg-hint" data-delete-hint></p>
 

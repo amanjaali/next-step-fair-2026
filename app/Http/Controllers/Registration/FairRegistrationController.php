@@ -64,8 +64,14 @@ class FairRegistrationController extends Controller
             return $this->completeQuickPass($request, $pass);
         }
 
-        // One phone number, one registration, one badge.
+        // Same number, but it's a visitor pass — this form finishes it, it
+        // doesn't duplicate it. A different device from the one that got the
+        // pass (the desk's, a friend's) is exactly the normal case here.
         if ($existing = $request->existingRegistration()) {
+            if ($existing->isQuickPass()) {
+                return $this->completeQuickPass($request, $existing);
+            }
+
             return redirect()->route('register.fair', ['type' => $request->input('type')])
                 ->with('duplicate', $this->rememberDuplicate($request, $existing));
         }
@@ -138,10 +144,12 @@ class FairRegistrationController extends Controller
     /**
      * Finish a visitor pass rather than starting again.
      *
-     * The pass already carries a ticket, a QR and a phone number, and its holder is
-     * signed in on this device. So the answers are written onto that record, the
-     * badge is reissued under the new name, and nobody registers the same number
-     * twice.
+     * The pass already carries a ticket, a QR and a phone number. Its holder may
+     * already be signed in on this device (completing their own pass), or may not
+     * be (a phone match found from a fresh device — a desk-issued pass, most
+     * often). Either way the answers are written onto that record, the badge is
+     * reissued under the new name, nobody registers the same number twice, and
+     * this device leaves signed in as the account it just finished creating.
      */
     private function completeQuickPass(StoreFairRegistrationRequest $request, Registration $pass): RedirectResponse
     {
@@ -155,6 +163,7 @@ class FairRegistrationController extends Controller
         }
 
         $this->confirm($pass);
+        $this->signIn($request, $pass);
 
         return redirect()->route('register.fair.done', $pass->ticket_id)
             ->with('status', __('register.upgrade.done'));

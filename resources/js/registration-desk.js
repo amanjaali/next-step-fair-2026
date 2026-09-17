@@ -1,9 +1,9 @@
 /**
  * Registration desk.
  *
- * Browse the pre-registered list, create a walk-in (auto checked-in for today
- * server-side), edit any record, and — only for the volunteer who created it,
- * only within an hour — delete it.
+ * Browse the visitor pass list, issue one (name + phone, auto checked-in for
+ * today server-side), edit any record, and — only for the volunteer who
+ * created it, only within an hour — delete it.
  */
 const shell = document.querySelector('.rg-shell');
 if (shell) {
@@ -12,7 +12,6 @@ if (shell) {
         base: shell.dataset.storeUrl,
     };
     const csrf = shell.dataset.csrf;
-    const cities = (shell.dataset.cities || '').split(',').filter(Boolean);
     const phoneCountries = (shell.dataset.phoneCountries || '').split(',').filter(Boolean);
     const defaultPhoneCountry = shell.dataset.defaultPhoneCountry || phoneCountries[0] || '';
 
@@ -20,7 +19,6 @@ if (shell) {
 
     const el = {
         searchInput: shell.querySelector('[data-search-input]'),
-        tabs: shell.querySelector('[data-filter-tabs]'),
         results: shell.querySelector('[data-results]'),
         resultsCount: shell.querySelector('[data-results-count]'),
         loadMore: shell.querySelector('[data-load-more]'),
@@ -33,21 +31,9 @@ if (shell) {
         deleteHint: shell.querySelector('[data-delete-hint]'),
         history: shell.querySelector('[data-history]'),
         historyList: shell.querySelector('[data-history-list]'),
-        citySelect: shell.querySelector('[data-field="city"]'),
         phoneCountrySelect: shell.querySelector('[data-field="phone_country"]'),
-        typeSelect: shell.querySelector('[data-field="type"]'),
-        localeSelect: shell.querySelector('[data-field="locale"]'),
-        schoolWrap: shell.querySelector('[data-field-wrap="school_name"]'),
-        relationshipWrap: shell.querySelector('[data-field-wrap="relationship"]'),
-        daysField: shell.querySelector('[data-days-field]'),
     };
 
-    cities.forEach((city) => {
-        const opt = document.createElement('option');
-        opt.value = city;
-        opt.textContent = city;
-        el.citySelect.appendChild(opt);
-    });
     phoneCountries.forEach((code) => {
         const opt = document.createElement('option');
         opt.value = code;
@@ -57,7 +43,6 @@ if (shell) {
     el.phoneCountrySelect.value = defaultPhoneCountry;
 
     let currentId = null;
-    let filterType = 'all';
     let currentPage = 1;
     let hasMorePages = false;
 
@@ -87,7 +72,7 @@ if (shell) {
                         ${r.is_walk_in ? `<span class="rg-hit__badge rg-hit__badge--walkin">${t('walk_in', 'Walk-in')}</span>` : ''}
                         ${r.checked_in_today ? `<span class="rg-hit__badge rg-hit__badge--checked">${t('checked_in_today', 'Checked in today')}</span>` : ''}
                     </span>
-                    <span class="rg-hit__detail">${[r.type ? escapeHtml(r.type.toUpperCase()) : '', escapeHtml(r.city || ''), escapeHtml(r.phone || '')].filter(Boolean).join(' · ')}</span>
+                    <span class="rg-hit__detail">${escapeHtml(r.phone || '')}</span>
                     <span class="rg-hit__ticket">${escapeHtml(r.ticket || '')}</span>
                 </button>
             `;
@@ -118,7 +103,6 @@ if (shell) {
         const q = el.searchInput.value.trim();
         const params = new URLSearchParams();
         if (q) params.set('q', q);
-        if (filterType !== 'all') params.set('type', filterType);
 
         try {
             const response = await fetch(`${urls.search}?${params.toString()}`, { headers: { Accept: 'application/json' } });
@@ -135,7 +119,6 @@ if (shell) {
         const q = el.searchInput.value.trim();
         const params = new URLSearchParams();
         if (q) params.set('q', q);
-        if (filterType !== 'all') params.set('type', filterType);
         params.set('page', currentPage + 1);
 
         el.loadMore.disabled = true;
@@ -158,14 +141,6 @@ if (shell) {
         searchTimer = setTimeout(runSearch, 250);
     });
 
-    el.tabs?.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-filter]');
-        if (!button) return;
-        filterType = button.dataset.filter;
-        el.tabs.querySelectorAll('.rg-tab').forEach((tab) => tab.classList.toggle('rg-tab--active', tab === button));
-        runSearch();
-    });
-
     el.results?.addEventListener('click', (event) => {
         const button = event.target.closest('[data-id]');
         if (!button) return;
@@ -178,17 +153,6 @@ if (shell) {
         return Array.from(form.querySelectorAll('[data-field]'));
     }
 
-    function toggleTypeFields() {
-        const isStudent = el.typeSelect.value === 'student';
-        el.schoolWrap.hidden = !isStudent;
-        el.relationshipWrap.hidden = isStudent;
-        // Clear whichever field just went out of view so a stale value from the
-        // other type can't ride along in the next save.
-        if (!isStudent) el.schoolWrap.querySelector('[data-field]').value = '';
-        if (isStudent) el.relationshipWrap.querySelector('[data-field]').value = '';
-    }
-    el.typeSelect?.addEventListener('change', toggleTypeFields);
-
     // Clear a field's red outline as soon as the volunteer fixes it.
     el.panel.querySelector('[data-form]')?.addEventListener('input', (event) => {
         const field = event.target.closest('[data-required]');
@@ -198,22 +162,11 @@ if (shell) {
         const field = event.target.closest('[data-required]');
         if (field && field.value.trim() !== '') field.classList.remove('rg-input--error');
     });
-    shell.querySelectorAll('[data-day]').forEach((box) => {
-        box.addEventListener('change', () => {
-            if (shell.querySelectorAll('[data-day]:checked').length > 0) {
-                el.daysField.classList.remove('rg-field--error');
-            }
-        });
-    });
 
     function resetForm() {
         const form = el.panel.querySelector('[data-form]');
         fieldsOf(form).forEach((input) => { input.value = ''; });
         el.phoneCountrySelect.value = defaultPhoneCountry;
-        el.typeSelect.value = 'student';
-        el.localeSelect.value = 'ku';
-        toggleTypeFields();
-        shell.querySelectorAll('[data-day]').forEach((box) => { box.checked = false; });
         clearFieldErrors();
         el.del.hidden = true;
         el.deleteHint.textContent = '';
@@ -228,10 +181,6 @@ if (shell) {
             if (key in record && record[key] !== null) input.value = record[key];
         });
         if (record.phone_country) el.phoneCountrySelect.value = record.phone_country;
-        toggleTypeFields();
-        shell.querySelectorAll('[data-day]').forEach((box) => {
-            box.checked = (record.days || []).includes(parseInt(box.value, 10));
-        });
     }
 
     function openPanel() {
@@ -278,7 +227,7 @@ if (shell) {
         if (record.audits && record.audits.length) {
             el.history.hidden = false;
             el.historyList.innerHTML = record.audits
-                .map((a) => `<p class="rg-history__row">${escapeHtml(JSON.stringify(a.changes))} — ${escapeHtml(a.user || '')}</p>`)
+                .flatMap((a) => Object.entries(a.changes || {}).map(([field, diff]) => historyLine(a, field, diff)))
                 .join('');
         }
 
@@ -291,6 +240,23 @@ if (shell) {
         return div.innerHTML;
     }
 
+    const FIELD_LABEL_KEYS = {
+        full_name: 'field_name',
+        phone_country: 'field_phone_country',
+        phone: 'field_phone',
+    };
+
+    function historyLine(audit, field, diff) {
+        const fieldLabel = t(FIELD_LABEL_KEYS[field] || field, field);
+        const line = t('history_by', ':user changed :field from ":old" to ":new"')
+            .replace(':user', escapeHtml(audit.user || ''))
+            .replace(':field', escapeHtml(fieldLabel))
+            .replace(':old', escapeHtml(diff?.old ?? ''))
+            .replace(':new', escapeHtml(diff?.new ?? ''));
+
+        return `<p class="rg-history__row">${line}</p>`;
+    }
+
     function collectPayload() {
         const form = el.panel.querySelector('[data-form]');
         const payload = {};
@@ -298,7 +264,6 @@ if (shell) {
             const key = input.dataset.field;
             if (input.value !== '') payload[key] = input.value;
         });
-        payload.days = Array.from(shell.querySelectorAll('[data-day]:checked')).map((box) => parseInt(box.value, 10));
         return payload;
     }
 
@@ -307,28 +272,19 @@ if (shell) {
     function clearFieldErrors() {
         const form = el.panel.querySelector('[data-form]');
         fieldsOf(form).forEach((input) => input.classList.remove('rg-input--error'));
-        el.daysField.classList.remove('rg-field--error');
     }
 
-    // Every field is required except e-mail and notes. School/relationship only
-    // count while their type-dependent section is actually showing.
     function validateForm() {
         const form = el.panel.querySelector('[data-form]');
         const invalid = [];
 
         fieldsOf(form).forEach((input) => {
             if (!input.hasAttribute('data-required')) return;
-            const wrap = input.closest('[data-field-wrap]');
-            if (wrap && wrap.hidden) return;
 
             const missing = input.value.trim() === '';
             input.classList.toggle('rg-input--error', missing);
             if (missing) invalid.push(input);
         });
-
-        const anyDayChecked = shell.querySelectorAll('[data-day]:checked').length > 0;
-        el.daysField.classList.toggle('rg-field--error', !anyDayChecked);
-        if (!anyDayChecked) invalid.push(el.daysField);
 
         return invalid;
     }
@@ -398,6 +354,5 @@ if (shell) {
         }
     });
 
-    toggleTypeFields();
     runSearch();
 }
