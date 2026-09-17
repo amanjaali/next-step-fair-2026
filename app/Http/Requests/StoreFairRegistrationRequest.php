@@ -103,18 +103,19 @@ class StoreFairRegistrationRequest extends FormRequest
     }
 
     /**
-     * The visitor pass this submission completes, if one is signed in.
+     * The incomplete record this submission completes, if one is signed in.
      *
-     * A quick pass is a real registration with only a name and a verified phone on
-     * it. When its holder comes back to fill in the rest, the answer belongs on
-     * that record — same ticket, same QR — not on a second one.
+     * A visitor pass, or a desk-issued student walk-in with no password yet, is
+     * a real registration with just a name and phone on it. When its holder
+     * comes back to fill in the rest, the answer belongs on that record — same
+     * ticket, same QR — not on a second one.
      */
     public function upgrading(): ?Registration
     {
         if (! $this->upgradeResolved) {
             $attendee = $this->user('attendee');
 
-            $this->upgrade = $attendee instanceof Registration && $attendee->isQuickPass()
+            $this->upgrade = $attendee instanceof Registration && $attendee->isIncomplete()
                 ? $attendee
                 : null;
             $this->upgradeResolved = true;

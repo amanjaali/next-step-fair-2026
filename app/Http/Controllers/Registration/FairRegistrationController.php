@@ -68,7 +68,7 @@ class FairRegistrationController extends Controller
         // doesn't duplicate it. A different device from the one that got the
         // pass (the desk's, a friend's) is exactly the normal case here.
         if ($existing = $request->existingRegistration()) {
-            if ($existing->isQuickPass()) {
+            if ($existing->isIncomplete()) {
                 return $this->completeQuickPass($request, $existing);
             }
 
@@ -203,12 +203,12 @@ class FairRegistrationController extends Controller
         ]);
     }
 
-    /** The signed-in visitor pass this form would complete, if there is one. */
+    /** The signed-in incomplete pass this form would complete, if there is one. */
     private function upgradable(Request $request): ?Registration
     {
         $attendee = $request->user('attendee');
 
-        return $attendee instanceof Registration && $attendee->isQuickPass() ? $attendee : null;
+        return $attendee instanceof Registration && $attendee->isIncomplete() ? $attendee : null;
     }
 
     public function showVerify(string $registration): View

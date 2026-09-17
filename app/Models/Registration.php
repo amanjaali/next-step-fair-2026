@@ -124,6 +124,20 @@ class Registration extends Model implements AuthenticatableContract
     }
 
     /**
+     * True when this record can still be finished into a full account online.
+     *
+     * A visitor pass always qualifies. So does a desk-issued student record
+     * that was kept deliberately minimal (name and phone, no password yet) —
+     * the desk's own walk-in form asks for nothing else, and this is what lets
+     * that person finish the rest from home on the same number. A parent
+     * record never needs finishing: nothing else is ever asked of one.
+     */
+    public function isIncomplete(): bool
+    {
+        return $this->isQuickPass() || ($this->type === self::TYPE_STUDENT && blank($this->password));
+    }
+
+    /**
      * A Next Step ID: one student account for everything Next Step runs.
      *
      * The expo, the panels, the seminars, the workshops, Zankoline and the

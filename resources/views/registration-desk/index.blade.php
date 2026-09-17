@@ -24,7 +24,8 @@
           data-label-history-empty="{{ __('registration_desk.history_empty') }}"
           data-label-field-name="{{ __('registration_desk.field_name') }}"
           data-label-field-phone-country="{{ __('registration_desk.field_phone_country') }}"
-          data-label-field-phone="{{ __('registration_desk.field_phone') }}">
+          data-label-field-phone="{{ __('registration_desk.field_phone') }}"
+          data-label-field-type="{{ __('registration_desk.field_type') }}">
 
         <header class="rg-top">
             <strong class="rg-top__title">{{ __('registration_desk.title') }}</strong>
@@ -65,6 +66,15 @@
                     <label class="rg-field">
                         <span class="rg-label">{{ __('registration_desk.field_name') }} *</span>
                         <input type="text" class="rg-input" data-field="full_name" data-required maxlength="120">
+                    </label>
+
+                    <label class="rg-field">
+                        <span class="rg-label">{{ __('registration_desk.field_type') }} *</span>
+                        <select class="rg-select" data-field="type" data-required>
+                            <option value="visitor">{{ __('registration_desk.type_visitor') }}</option>
+                            <option value="parent">{{ __('registration_desk.type_parent') }}</option>
+                            <option value="student">{{ __('registration_desk.type_student') }}</option>
+                        </select>
                     </label>
 
                     <div class="rg-row">

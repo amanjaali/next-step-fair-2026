@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Registration;
 
 use App\Http\Controllers\Controller;
-use App\Models\CheckIn;
 use App\Models\Registration;
 use App\Models\RegistrationAudit;
 use App\Services\BadgeService;
@@ -15,19 +14,23 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 /**
- * The registration desk: where volunteers issue and correct visitor passes.
+ * The registration desk: where volunteers issue and correct quick accounts.
  *
- * A name and a phone number, same as the public "Just attending" flow — the
- * desk version of the same real registration. It's confirmed, badged and
- * checked in for today on the spot, so nobody queues twice during rush hours.
- * If the visitor later fills in the full student form on their own phone with
- * this same number, that form completes this record rather than duplicating
- * it — see FairRegistrationController::store().
+ * A name, a phone number and a type (visitor, parent or student) — the desk
+ * version of the public "Just attending" flow, just with an accurate label
+ * for the headcount. It's confirmed and badged on the spot, but not checked
+ * in: that still happens at the gate, on purpose, so a walk-in that never
+ * actually reaches the fair floor doesn't quietly count as attendance. If the
+ * person later fills in the full student form on their own phone with this
+ * same number, that form completes this record rather than duplicating it —
+ * see FairRegistrationController::store().
  */
 class RegistrationDeskController extends Controller
 {
     /** The fields a volunteer can set, whether creating or correcting a record. */
-    private const EDITABLE_FIELDS = ['full_name', 'phone_country', 'phone'];
+    private const EDITABLE_FIELDS = ['full_name', 'type', 'phone_country', 'phone'];
+
+    private const TYPES = [Registration::TYPE_VISITOR, Registration::TYPE_PARENT, Registration::TYPE_STUDENT];
 
     /* ------------------------------------------------------------- auth --- */
 
@@ -76,17 +79,18 @@ class RegistrationDeskController extends Controller
     }
 
     /**
-     * Browse the pre-registered visitor list, or search it by name/phone/ticket.
+     * Browse the desk's list, or search it by name/phone/ticket.
      *
-     * With no query, this is every visitor pass on file — desk-issued and
-     * self-service alike. With a query, it narrows the same list.
+     * With no query, this is every visitor, parent and student record made
+     * this way — desk-issued and self-service quick passes alike. With a
+     * query, it narrows the same list.
      */
     public function search(Request $request): JsonResponse
     {
         $term = trim((string) $request->input('q'));
         $digits = preg_replace('/\D/', '', $term);
 
-        $query = Registration::query()->fair()->active()->where('type', Registration::TYPE_VISITOR);
+        $query = Registration::query()->fair()->active()->whereIn('type', self::TYPES);
 
         if ($term !== '') {
             $query->where(function ($q) use ($term, $digits) {
@@ -128,11 +132,11 @@ class RegistrationDeskController extends Controller
 
         $registration = new Registration($data);
         $registration->track = Registration::TRACK_FAIR;
-        $registration->type = Registration::TYPE_VISITOR;
         $registration->locale = app()->getLocale();
         $registration->is_walk_in = true;
         $registration->created_by = auth()->id();
-        // A visitor pass is valid for the whole run; there is nothing to choose.
+        // Same-shape record as a quick pass: valid for the whole run, nothing
+        // to choose.
         $registration->days = array_keys(config('nextstep.event.days'));
         $registration->status = Registration::STATUS_DRAFT;
         $registration->consented_at = now();
@@ -141,9 +145,10 @@ class RegistrationDeskController extends Controller
         $registration->save();
 
         // Same confirmation the public quick-pass and full form use: badge
-        // generated, WhatsApp confirmation queued.
+        // generated, WhatsApp confirmation queued. Deliberately not checked
+        // in — that only happens at the gate, so a walk-in a volunteer made
+        // up can never quietly count as someone who actually attended.
         app(RegistrationConfirmer::class)->confirm($registration);
-        $this->autoCheckInToday($registration);
 
         return response()->json($this->present($registration->fresh('checkIns'), full: true), 201);
     }
@@ -174,7 +179,7 @@ class RegistrationDeskController extends Controller
                 'changes' => $changes,
             ]);
 
-            if ($registration->badgeIssued() && $changedFields->contains('full_name')) {
+            if ($registration->badgeIssued() && $changedFields->intersect(['full_name', 'type'])->isNotEmpty()) {
                 app(BadgeService::class)->generate($registration);
             }
         }
@@ -196,10 +201,10 @@ class RegistrationDeskController extends Controller
 
     /* ----------------------------------------------------------- helpers -- */
 
-    /** This desk only manages fair visitor passes — never a student/parent record or a conference RSVP. */
+    /** This desk only manages fair visitor/parent/student walk-ins — never a conference RSVP. */
     private function assertDeskManaged(Registration $registration): void
     {
-        abort_unless($registration->isFair() && $registration->type === Registration::TYPE_VISITOR, 404);
+        abort_unless($registration->isFair() && in_array($registration->type, self::TYPES, true), 404);
     }
 
     /**
@@ -209,6 +214,7 @@ class RegistrationDeskController extends Controller
     {
         $data = $request->validate([
             'full_name' => ['required', 'string', 'min:3', 'max:120'],
+            'type' => ['required', 'in:'.implode(',', self::TYPES)],
             'phone_country' => ['required', 'string', 'max:8', 'in:'.implode(',', array_keys(config('nextstep.phone.countries')))],
             'phone' => ['required', 'string', 'regex:/^0?[0-9]{9,12}$/'],
         ]);
@@ -221,21 +227,6 @@ class RegistrationDeskController extends Controller
         return $data;
     }
 
-    /** Checks the visitor in for today only — other days still need a gate scan. */
-    private function autoCheckInToday(Registration $registration): void
-    {
-        CheckIn::create([
-            'registration_id' => $registration->id,
-            'day' => Registration::currentEventDay(),
-            'checked_in_at' => now(),
-            'staff_id' => auth()->id(),
-            'method' => 'registration_desk',
-            'synced_at' => now(),
-        ]);
-
-        $registration->forceFill(['status' => Registration::STATUS_CHECKED_IN])->save();
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -246,6 +237,7 @@ class RegistrationDeskController extends Controller
         $base = [
             'id' => $registration->id,
             'full_name' => $registration->full_name,
+            'type' => $registration->type,
             'phone' => $registration->maskedPhone(),
             'ticket' => $registration->ticket_ref,
             'status' => $registration->status,

@@ -1,9 +1,9 @@
 /**
  * Registration desk.
  *
- * Browse the visitor pass list, issue one (name + phone, auto checked-in for
- * today server-side), edit any record, and — only for the volunteer who
- * created it, only within an hour — delete it.
+ * Browse the list, issue an account (name, type and phone), edit any record,
+ * and — only for the volunteer who created it, only within an hour —
+ * delete it. Check-in still happens at the gate, not here.
  */
 const shell = document.querySelector('.rg-shell');
 if (shell) {
@@ -32,6 +32,7 @@ if (shell) {
         history: shell.querySelector('[data-history]'),
         historyList: shell.querySelector('[data-history-list]'),
         phoneCountrySelect: shell.querySelector('[data-field="phone_country"]'),
+        typeSelect: shell.querySelector('[data-field="type"]'),
     };
 
     phoneCountries.forEach((code) => {
@@ -72,7 +73,7 @@ if (shell) {
                         ${r.is_walk_in ? `<span class="rg-hit__badge rg-hit__badge--walkin">${t('walk_in', 'Walk-in')}</span>` : ''}
                         ${r.checked_in_today ? `<span class="rg-hit__badge rg-hit__badge--checked">${t('checked_in_today', 'Checked in today')}</span>` : ''}
                     </span>
-                    <span class="rg-hit__detail">${escapeHtml(r.phone || '')}</span>
+                    <span class="rg-hit__detail">${[r.type ? escapeHtml(r.type.toUpperCase()) : '', escapeHtml(r.phone || '')].filter(Boolean).join(' · ')}</span>
                     <span class="rg-hit__ticket">${escapeHtml(r.ticket || '')}</span>
                 </button>
             `;
@@ -167,6 +168,7 @@ if (shell) {
         const form = el.panel.querySelector('[data-form]');
         fieldsOf(form).forEach((input) => { input.value = ''; });
         el.phoneCountrySelect.value = defaultPhoneCountry;
+        el.typeSelect.value = 'visitor';
         clearFieldErrors();
         el.del.hidden = true;
         el.deleteHint.textContent = '';
@@ -242,6 +244,7 @@ if (shell) {
 
     const FIELD_LABEL_KEYS = {
         full_name: 'field_name',
+        type: 'field_type',
         phone_country: 'field_phone_country',
         phone: 'field_phone',
     };
@@ -318,7 +321,7 @@ if (shell) {
                 return;
             }
 
-            toast(currentId ? t('saved', 'Saved.') : t('created_walk_in', 'Walk-in created and checked in for today.'));
+            toast(currentId ? t('saved', 'Saved.') : t('created_walk_in', 'Account created. They still check in at the gate.'));
             closePanel();
             runSearch();
         } catch (e) {
