@@ -40,15 +40,19 @@ return new class extends Migration
 
         Schema::create('scholarship_university_departments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('scholarship_university_id')
-                ->constrained('scholarship_universities')
-                ->cascadeOnDelete();
+            $table->unsignedBigInteger('scholarship_university_id');
 
             $table->string('name');
             $table->unsignedTinyInteger('seats')->default(1);
             $table->unsignedSmallInteger('sort')->default(0);
 
             $table->timestamps();
+
+            // Named short: MySQL caps identifiers at 64 characters.
+            $table->foreign('scholarship_university_id', 'sch_uni_dept_university_fk')
+                ->references('id')
+                ->on('scholarship_universities')
+                ->cascadeOnDelete();
 
             $table->index(['scholarship_university_id', 'sort'], 'sch_uni_dept_sort_idx');
         });
