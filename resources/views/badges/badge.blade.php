@@ -9,14 +9,18 @@
     <style>
         @page { margin: 0; size: A6 portrait; }
         * { box-sizing: border-box; }
+        {!! $fontCss ?? '' !!}
         body {
             margin: 0;
-            font-family: DejaVu Sans, sans-serif;
+            font-family: {!! $bodyFont ?? 'DejaVu Sans' !!}, DejaVu Sans, sans-serif;
             color: #ffffff;
             background: {{ $accent }};
         }
         .badge { width: 100%; padding: 9mm 8mm 7mm; }
-        .brand { font-size: 13pt; font-weight: bold; line-height: 1.1; letter-spacing: -0.2pt; }
+        .brand {
+            font-family: {!! $displayFont ?? 'DejaVu Sans' !!}, DejaVu Sans, sans-serif;
+            font-size: 13pt; font-weight: bold; line-height: 1.1; letter-spacing: -0.2pt;
+        }
         .edition { font-size: 6.5pt; letter-spacing: 1.6pt; text-transform: uppercase; opacity: 0.78; margin-top: 2mm; }
         .chip {
             background: #ffffff; color: {{ $accent }}; font-size: 7pt; font-weight: bold;
@@ -36,9 +40,19 @@
         .partners .rule { display: inline-block; width: 0.4mm; height: 10mm; background: rgba(5, 7, 8, 0.18); vertical-align: middle; margin: 0 2.5mm; }
         .partnership-label { font-size: 5.5pt; letter-spacing: 1.2pt; text-transform: uppercase; opacity: 0.8; margin-bottom: 1.4mm; }
 
-        .name { font-size: {{ mb_strlen($registration->full_name) > 26 ? '15pt' : '19pt' }}; font-weight: bold; line-height: 1.05; margin-top: 5mm; }
-        .institution { font-size: 10pt; font-weight: bold; line-height: 1.3; margin-top: 2mm; }
-        .position { font-size: 8.5pt; opacity: 0.85; margin-top: 1mm; }
+        .name {
+            font-family: {!! $displayFont ?? 'DejaVu Sans' !!}, DejaVu Sans, sans-serif;
+            font-size: {{ mb_strlen($registration->full_name) > 26 ? '15pt' : '19pt' }};
+            font-weight: bold; line-height: 1.05; margin-top: 5mm;
+        }
+        .institution {
+            font-family: {!! $bodyFont ?? 'DejaVu Sans' !!}, DejaVu Sans, sans-serif;
+            font-size: 10pt; font-weight: bold; line-height: 1.3; margin-top: 2mm;
+        }
+        .position {
+            font-family: {!! $bodyFont ?? 'DejaVu Sans' !!}, DejaVu Sans, sans-serif;
+            font-size: 8.5pt; opacity: 0.85; margin-top: 1mm;
+        }
         .meta { font-size: 8pt; opacity: 0.9; margin-top: 2mm; }
         .qr-wrap { background: #ffffff; padding: 3mm; margin-top: 6mm; width: 46mm; }
         .qr-wrap img { display: block; width: 40mm; height: 40mm; }

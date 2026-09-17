@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Scholarship;
 
 use App\Http\Controllers\Controller;
 use App\Models\Registration;
+use App\Models\ScholarshipUniversity;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -21,7 +22,7 @@ class ScholarshipController extends Controller
     {
         return $this->page('scholarship.home', 'home', [
             'regions' => config('scholarship.regions'),
-            'universities' => ns_scholarship_universities(),
+            'universities' => ScholarshipUniversity::catalog(),
         ]);
     }
 
@@ -42,19 +43,18 @@ class ScholarshipController extends Controller
     public function universities(): View
     {
         return $this->page('scholarship.universities', 'universities', [
-            'universities' => ns_scholarship_universities(),
+            'universities' => ScholarshipUniversity::catalog(),
         ]);
     }
 
     public function university(string $slug): View
     {
-        $universities = collect(ns_scholarship_universities());
-        $university = $universities->firstWhere('slug', $slug);
+        $university = ScholarshipUniversity::findBySlug($slug);
 
         abort_if($university === null, 404);
 
         return $this->page('scholarship.university', 'universities', [
-            'university' => $university,
+            'university' => $university->toCatalogArray(),
         ]);
     }
 
@@ -66,10 +66,7 @@ class ScholarshipController extends Controller
         abort_if($region === null, 404);
 
         // Which departments a student from here could actually take a seat in.
-        $universities = collect(ns_scholarship_universities())
-            ->filter(fn ($u) => $u['city'] !== null)
-            ->values()
-            ->all();
+        $universities = ScholarshipUniversity::catalog();
 
         return $this->page('scholarship.region', 'home', [
             'code' => $code,

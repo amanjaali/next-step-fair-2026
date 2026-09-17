@@ -282,8 +282,30 @@ return [
         'empty_help' => 'Applications appear here the moment a student submits one.',
     ],
 
+    'scholarship_universities' => [
+        'identity' => 'The university',
+        'slug_help' => 'Lowercase, no spaces. Used in the page address, e.g. /scholarship/universities/auis.',
+        'city' => 'City',
+        'language' => 'Teaching language',
+        'language_help' => 'As shown on the public page — e.g. English, or English & Kurdish.',
+        'tier' => 'Tier',
+        'housing' => 'Housing',
+        'founded' => 'Founded',
+        'students' => 'Students (approx.)',
+        'sort_help' => 'Lower numbers appear first on the scholarship home page and the universities list.',
+        'published_help' => 'Unpublished universities are hidden from the public site and the application form.',
+        'about' => 'About',
+        'about_help' => 'The short description on the university’s scholarship page.',
+        'departments' => 'Departments & seats',
+        'departments_help' => 'Seats are held per department, not pooled. Drag to reorder. This is what students see under “Where the seats are”.',
+        'add_department' => 'Add a department',
+        'department_name' => 'Department',
+        'seats' => 'Seats',
+    ],
+
     'resources' => [
         'scholarship' => 'Scholarship applications',
+        'scholarship_universities' => 'Scholarship universities',
         'home' => 'Home page',
         'brand_images' => 'Logos & brand marks',
         'opportunities' => 'Opportunities',
@@ -338,6 +360,7 @@ return [
         'sort' => 'Order',
         'published' => 'Published',
         'updated_at' => 'Last updated',
+        'slug' => 'Web address',
     ],
 
     'actions' => [

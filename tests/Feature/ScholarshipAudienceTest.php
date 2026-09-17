@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Registration;
+use App\Models\ScholarshipUniversity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -107,7 +108,7 @@ class ScholarshipAudienceTest extends TestCase
     {
         $parent = $this->parent();
         $region = array_key_first(config('scholarship.regions'));
-        $university = config('scholarship.universities')[0]['slug'];
+        $university = ScholarshipUniversity::query()->ordered()->value('slug');
 
         foreach ([
             '/en/scholarship',

@@ -13,8 +13,10 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "endroid/qr-code": "^6.1",
         "filament/filament": "^4.0",
+        "khaled.alshamaa/ar-php": "^7.0",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
+        "spatie/browsershot": "^5.4",
         "spatie/laravel-permission": "^8.3",
         "spatie/laravel-sitemap": "^8.2",
         "spatie/laravel-translatable": "^6.14"

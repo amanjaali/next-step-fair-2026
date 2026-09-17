@@ -9,8 +9,11 @@
  * after submission.
  *
  * The rules live here rather than in the database because they are the programme:
- * changing a seat count or an eligibility question is a decision the committee
- * takes between cycles, not an edit somebody makes on a Tuesday.
+ * changing a seat count on a region or an eligibility question is a decision the
+ * committee takes between cycles, not an edit somebody makes on a Tuesday.
+ *
+ * Participating universities and their department seat pledges are the exception:
+ * those are edited from the dashboard (scholarship_universities).
  */
 return [
 
@@ -112,104 +115,6 @@ return [
     'statement_words' => ['min' => 400, 'max' => 600],
 
     'proposal_words' => ['min' => 500, 'max' => 800],
-
-    /*
-    |---------------------------------------------------------------------------
-    | Participating universities
-    |---------------------------------------------------------------------------
-    |
-    | Seats are pledged per department, so a student knows before applying whether
-    | the subject they want is actually funded anywhere.
-    */
-    'universities' => [
-        [
-            'slug' => 'auis', 'name' => 'American University of Iraq, Sulaimani',
-            'city' => 'Sulaimani', 'language' => 'English', 'tier' => 'founding',
-            'founded' => 2007, 'students' => 1600, 'housing' => 'contribution',
-            'departments' => [
-                ['name' => 'Computer Science', 'seats' => 2],
-                ['name' => 'Business Administration', 'seats' => 2],
-                ['name' => 'International Studies', 'seats' => 1],
-                ['name' => 'Engineering', 'seats' => 1],
-            ],
-        ],
-        [
-            'slug' => 'ukh', 'name' => 'University of Kurdistan Hewlêr',
-            'city' => 'Erbil', 'language' => 'English', 'tier' => 'founding',
-            'founded' => 2006, 'students' => 1300, 'housing' => 'none',
-            'departments' => [
-                ['name' => 'Medicine', 'seats' => 2],
-                ['name' => 'Computer Science & AI', 'seats' => 2],
-                ['name' => 'Natural Resources', 'seats' => 1],
-                ['name' => 'Law', 'seats' => 1],
-            ],
-        ],
-        [
-            'slug' => 'komar', 'name' => 'Komar University of Science and Technology',
-            'city' => 'Sulaimani', 'language' => 'English', 'tier' => 'donor',
-            'founded' => 2013, 'students' => 2100, 'housing' => 'contribution',
-            'departments' => [
-                ['name' => 'Pharmacy', 'seats' => 2],
-                ['name' => 'Dentistry', 'seats' => 1],
-                ['name' => 'Architecture', 'seats' => 1],
-                ['name' => 'Computer Engineering', 'seats' => 1],
-            ],
-        ],
-        [
-            'slug' => 'tishk', 'name' => 'Tishk International University',
-            'city' => 'Erbil', 'language' => 'English', 'tier' => 'donor',
-            'founded' => 2008, 'students' => 5400, 'housing' => 'none',
-            'departments' => [
-                ['name' => 'Medicine', 'seats' => 2],
-                ['name' => 'Civil Engineering', 'seats' => 1],
-                ['name' => 'Education', 'seats' => 1],
-                ['name' => 'Business', 'seats' => 1],
-            ],
-        ],
-        [
-            'slug' => 'uhd', 'name' => 'University of Human Development',
-            'city' => 'Sulaimani', 'language' => 'English & Kurdish', 'tier' => 'donor',
-            'founded' => 2008, 'students' => 4800, 'housing' => 'none',
-            'departments' => [
-                ['name' => 'Law', 'seats' => 2],
-                ['name' => 'Accounting', 'seats' => 1],
-                ['name' => 'English Language', 'seats' => 1],
-                ['name' => 'Computer Science', 'seats' => 1],
-            ],
-        ],
-        [
-            'slug' => 'lfu', 'name' => 'Lebanese French University',
-            'city' => 'Erbil', 'language' => 'English', 'tier' => 'donor',
-            'founded' => 2007, 'students' => 3600, 'housing' => 'contribution',
-            'departments' => [
-                ['name' => 'Dentistry', 'seats' => 2],
-                ['name' => 'Medical Laboratory', 'seats' => 1],
-                ['name' => 'Interior Design', 'seats' => 1],
-                ['name' => 'IT', 'seats' => 1],
-            ],
-        ],
-        [
-            'slug' => 'qiu', 'name' => 'Qaiwan International University',
-            'city' => 'Sulaimani', 'language' => 'English', 'tier' => 'donor',
-            'founded' => 2018, 'students' => 1200, 'housing' => 'included',
-            'departments' => [
-                ['name' => 'Mechanical Engineering', 'seats' => 1],
-                ['name' => 'Software Engineering', 'seats' => 2],
-                ['name' => 'Business', 'seats' => 1],
-            ],
-        ],
-        [
-            'slug' => 'cue', 'name' => 'Catholic University in Erbil',
-            'city' => 'Erbil', 'language' => 'English', 'tier' => 'donor',
-            'founded' => 2015, 'students' => 900, 'housing' => 'included',
-            'departments' => [
-                ['name' => 'Medicine', 'seats' => 1],
-                ['name' => 'Pharmacy', 'seats' => 1],
-                ['name' => 'International Relations', 'seats' => 1],
-                ['name' => 'Accounting', 'seats' => 1],
-            ],
-        ],
-    ],
 
     /*
     |---------------------------------------------------------------------------

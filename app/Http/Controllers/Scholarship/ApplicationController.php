@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Scholarship;
 use App\Http\Controllers\Controller;
 use App\Models\Registration;
 use App\Models\ScholarshipApplication;
+use App\Models\ScholarshipUniversity;
+use App\Models\ScholarshipUniversityRequirement;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -114,7 +116,7 @@ class ApplicationController extends Controller
             'cycle' => config('scholarship.cycle'),
             'step' => $step,
             'regions' => config('scholarship.regions'),
-            'universities' => ns_scholarship_universities(),
+            'universities' => ScholarshipUniversity::catalog(),
         ]);
     }
 
@@ -272,20 +274,21 @@ class ApplicationController extends Controller
             return null;
         }
 
-        $university = collect(ns_scholarship_universities())->firstWhere('name', $universityName);
+        $university = ScholarshipUniversity::query()
+            ->published()
+            ->where('name', $universityName)
+            ->first();
 
         if ($university === null) {
             return null;
         }
 
-        $department = collect($university['departments'] ?? [])->firstWhere('name', $departmentName);
+        $text = ScholarshipUniversityRequirement::query()
+            ->where('university_slug', $university->slug)
+            ->first()
+            ?->t('requirements');
 
-        $parts = array_filter([
-            $university['requirements'] ?? null,
-            $department['requirements'] ?? null,
-        ], fn ($text) => filled($text));
-
-        return $parts === [] ? null : implode("\n\n", $parts);
+        return filled($text) ? $text : null;
     }
 
     private function attendee(): ?Registration

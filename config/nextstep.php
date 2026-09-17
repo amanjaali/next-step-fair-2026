@@ -250,4 +250,19 @@ return [
         'registrations_months' => 24,
         'checkin_logs_months' => 12,
     ],
+
+    /*
+    |---------------------------------------------------------------------------
+    | Badge PNG rendering
+    |---------------------------------------------------------------------------
+    |
+    | WhatsApp badges are rendered from the same Blade view as the printed PDF.
+    | When headless Chrome (via spatie/browsershot + puppeteer) is available, that
+    | view is screenshot — proper RTL and Kurdish shaping. Otherwise the GD
+    | fallback shapes Arabic-script text with ar-php before drawing it.
+    */
+    'badge' => [
+        'node_binary' => env('BADGE_NODE_BINARY'),
+        'npm_binary' => env('BADGE_NPM_BINARY'),
+    ],
 ];

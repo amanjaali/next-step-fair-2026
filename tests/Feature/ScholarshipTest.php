@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Registration;
 use App\Models\ScholarshipApplication;
+use App\Models\ScholarshipUniversity;
 use App\Models\ScholarshipUniversityRequirement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -370,14 +371,9 @@ class ScholarshipTest extends TestCase
 
     public function test_every_pledged_department_belongs_to_a_university(): void
     {
-        foreach (config('scholarship.universities') as $university) {
+        foreach (ScholarshipUniversity::catalog() as $university) {
             $this->assertNotEmpty($university['departments'], "{$university['name']} pledges no seats.");
-            $this->assertNotEmpty(__("scholarship.university_about.{$university['slug']}"));
-            $this->assertStringNotContainsString(
-                'scholarship.university_about',
-                __("scholarship.university_about.{$university['slug']}"),
-                "{$university['slug']} has no description, so its page would print the lookup key."
-            );
+            $this->assertNotEmpty($university['about'], "{$university['slug']} has no description.");
         }
     }
 }

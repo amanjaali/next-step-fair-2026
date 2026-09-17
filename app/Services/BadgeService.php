@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Registration;
 use App\Support\Svg;
+use ArPHP\I18N\Arabic;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Browsershot\Browsershot;
@@ -27,9 +28,11 @@ class BadgeService
     {
         $verifyUrl = $this->tickets->verifyUrl($registration);
 
+        $locale = $registration->locale;
+
         return [
             'registration' => $registration,
-            'locale' => $registration->locale,
+            'locale' => $locale,
             'accent' => $registration->accent(),
             'isConference' => $registration->isConference(),
             'qr' => $this->qr->pngDataUri($verifyUrl, 600),
@@ -39,6 +42,9 @@ class BadgeService
                 ? __('site.common.day', ['n' => 1]).' · '.ns_day_date(1)
                 : $registration->daysLabel(),
             'marks' => $this->partnerMarks(),
+            'fontCss' => $this->fontCss($locale),
+            'bodyFont' => config("nextstep.locales.$locale.body_font", 'DejaVu Sans'),
+            'displayFont' => config("nextstep.locales.$locale.display_font", 'DejaVu Sans'),
         ];
     }
 
@@ -98,11 +104,23 @@ class BadgeService
         // Chrome to get a pixel-accurate render of the same Blade view.
         if (class_exists(Browsershot::class)) {
             try {
-                return Browsershot::html($html)
+                $shot = Browsershot::html($html)
                     ->windowSize(760, 1080)
                     ->deviceScaleFactor(2)
                     ->setScreenshotType('png')
-                    ->screenshot();
+                    ->noSandbox()
+                    ->dismissDialogs()
+                    ->setDelay(150);
+
+                if ($node = config('nextstep.badge.node_binary')) {
+                    $shot->setNodeBinary($node);
+                }
+
+                if ($npm = config('nextstep.badge.npm_binary')) {
+                    $shot->setNpmBinary($npm);
+                }
+
+                return $shot->screenshot();
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -135,16 +153,11 @@ class BadgeService
      * Deliberately plain — it exists so a badge is always issuable, even with no
      * headless browser on the box.
      *
-     * KNOWN LIMIT, and it matters here more than most places: GD draws a string
-     * as a run of code points, left to right, with no Arabic shaping and no
-     * bidi. A Kurdish or Arabic name therefore comes out unjoined and reversed.
-     * Latin names, the ticket, the dates and the QR are all correct, and the QR
-     * is what the gate actually reads — but a person whose own name is printed
-     * backwards on their badge will not care about that.
-     *
-     * The fix is not in this method: it is to install spatie/browsershot and a
-     * headless Chrome on the server, after which png() renders the same Blade
-     * view the printed PDF uses, and the browser does the shaping properly.
+     * KNOWN LIMIT on the GD path: Latin labels, the ticket, the dates and the QR
+     * are all correct, and the QR is what the gate actually reads. Arabic-script
+     * names are shaped with ar-php before drawing; for pixel-perfect parity with
+     * the printed PDF, install spatie/browsershot and puppeteer so png() renders
+     * the same Blade view in headless Chrome.
      */
     private function fallbackPng(Registration $registration): string
     {
@@ -160,13 +173,22 @@ class BadgeService
 
         $regular = $this->fontPath('DejaVuSans.ttf');
         $bold = $this->fontPath('DejaVuSans-Bold.ttf');
+        $shapeForGd = fn (string $text): string => $this->shapeForGd($text);
 
-        $write = function (string $text, int $size, int $x, int $y, bool $strong = false, ?int $colour = null) use ($image, $white, $regular, $bold) {
+        // Flat colour blocks first. GD + FreeType stop joining Arabic glyphs after
+        // imagecopyresampled, so every line of text is drawn before marks and QR.
+        $chip = strtoupper($registration->type);
+        imagefilledrectangle($image, 56, 214, 56 + (int) (strlen($chip) * 13) + 32, 258, $white);
+        imagefilledrectangle($image, 56, 404, 596, 944, $white);
+
+        $write = function (string $text, int $size, int $x, int $y, bool $strong = false, ?int $colour = null) use ($image, $white, $regular, $bold, $shapeForGd) {
+            $text = $shapeForGd($text);
+
             if ($regular) {
                 imagettftext($image, $size, 0, $x, $y, $colour ?? $white, $strong ? $bold : $regular, $text);
             } else {
                 // No TTF available: the bitmap font is ASCII-only, so transliterate.
-                imagestring($image, 5, $x, $y - 14, $this->toAscii($text), $colour ?? $white);
+                imagestring($image, 5, $x, $y - 14, preg_replace('/[^\x20-\x7E]/', '-', $text), $colour ?? $white);
             }
         };
 
@@ -175,26 +197,8 @@ class BadgeService
             ? 'Conference '.config('nextstep.event.year')
             : (string) config('nextstep.event.year'), 20, 56, 116, true);
 
-        /*
-         * The partnership, in the top corner opposite the event name — the same
-         * arrangement as the printed badge and the card, so somebody holding
-         * one and looking at the other sees the same thing.
-         */
-        /*
-         * English here even on a Kurdish badge. GD draws code points in the
-         * order it is given them and does no Arabic shaping or bidi, so a
-         * Kurdish label comes out unjoined and back to front. Better one honest
-         * English line than a mangled Kurdish one — and see the note on this
-         * method about the same problem with names.
-         */
-        $this->writeRight($image, 'IN PARTNERSHIP WITH', 11, 704, 78, $regular, $white);
-        $this->drawMarks($image, 704, 96, 72);
-
-        // Type chip, knocked out of the accent ground.
-        $chip = strtoupper($registration->type);
-        imagefilledrectangle($image, 56, 214, 56 + (int) (strlen($chip) * 13) + 32, 258, $white);
-        $write($chip, 13, 72, 245, true, $ink);
-
+        // Arabic-script lines must be drawn before writeRight(): a right-aligned
+        // Latin pass through imagettftext breaks subsequent shaped Kurdish glyphs.
         $write($registration->full_name, mb_strlen($registration->full_name) > 26 ? 24 : 30, 56, 316, true);
 
         if ($registration->isConference()) {
@@ -206,14 +210,16 @@ class BadgeService
             $write(trim($registration->city.' · '.$registration->daysLabel(), ' ·'), 14, 56, 352);
         }
 
-        // White quiet zone behind the QR, as scan reliability requires.
-        $qrPng = $this->qr->png($this->tickets->verifyUrl($registration), 460);
-        $qrImage = imagecreatefromstring($qrPng);
-        imagefilledrectangle($image, 56, 404, 596, 944, $white);
-        imagecopyresampled($image, $qrImage, 86, 434, 0, 0, 480, 480, imagesx($qrImage), imagesy($qrImage));
-
+        $this->writeRight($image, 'IN PARTNERSHIP WITH', 11, 704, 78, $regular, $white);
+        $write($chip, 13, 72, 245, true, $ink);
         $write('TICKET '.$registration->ticket_ref, 13, 56, 1004, true);
         $write(ns_event_dates().' · '.config('nextstep.event.venue.name').', '.config('nextstep.event.venue.city'), 11, 56, 1034);
+
+        $this->drawMarks($image, 704, 96, 72);
+
+        $qrPng = $this->qr->png($this->tickets->verifyUrl($registration), 460);
+        $qrImage = imagecreatefromstring($qrPng);
+        imagecopyresampled($image, $qrImage, 86, 434, 0, 0, 480, 480, imagesx($qrImage), imagesy($qrImage));
 
         ob_start();
         imagepng($image);
@@ -331,6 +337,62 @@ class BadgeService
             $cursor += $widths[$index] + $gap;
             imagedestroy($source);
         }
+    }
+
+    /**
+     * Arabic-script text for GD: join glyphs and reorder for left-to-right renderers.
+     *
+     * GD has no bidi and no shaping, so Kurdish and Arabic names otherwise appear as
+     * a row of disconnected letters — exactly what shows up on WhatsApp badges when
+     * headless Chrome is not installed.
+     */
+    public function shapeForGd(string $text): string
+    {
+        if (! preg_match('/\p{Arabic}/u', $text)) {
+            return $text;
+        }
+
+        try {
+            return (new Arabic)->utf8Glyphs($text);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return $text;
+        }
+    }
+
+    /** @font-face rules for the badge PNG renderer (Browsershot). DomPDF keeps DejaVu. */
+    private function fontCss(string $locale): string
+    {
+        if (! in_array($locale, ['ku', 'ar'], true)) {
+            return '';
+        }
+
+        $rules = [];
+
+        foreach ([
+            "'Noto Sans Arabic'" => [
+                400 => 'noto-sans-arabic-400.woff2',
+                700 => 'noto-sans-arabic-700.woff2',
+            ],
+            "'Noto Kufi Arabic'" => [
+                700 => 'noto-kufi-arabic-700.woff2',
+            ],
+        ] as $family => $weights) {
+            foreach ($weights as $weight => $file) {
+                $path = resource_path('fonts/badge/'.$file);
+
+                if (! is_readable($path)) {
+                    continue;
+                }
+
+                $data = base64_encode((string) file_get_contents($path));
+
+                $rules[] = "@font-face{font-family:{$family};font-style:normal;font-weight:{$weight};src:url(data:font/woff2;base64,{$data}) format('woff2');}";
+            }
+        }
+
+        return implode('', $rules);
     }
 
     /** DomPDF ships DejaVu; fall back to the system copy, then to no TTF at all. */

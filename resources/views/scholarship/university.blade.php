@@ -5,7 +5,7 @@
 
         <div class="ns-eyebrow !text-magenta mb-3">{{ __("scholarship.tiers.{$university['tier']}") }}</div>
         <h1 class="ns-h1 !text-[clamp(28px,3.8vw,42px)] mb-3">{{ $university['name'] }}</h1>
-        <p class="ns-body max-w-[58ch] mb-8">{{ $university['about'] ?? __("scholarship.university_about.{$university['slug']}") }}</p>
+        <p class="ns-body max-w-[58ch] mb-8">{{ $university['about'] ?: __("scholarship.university_about.{$university['slug']}") }}</p>
 
         <div class="grid gap-px bg-[rgba(5,7,8,0.14)] border border-[rgba(5,7,8,0.14)] sm:grid-cols-4 mb-10">
             @foreach ([

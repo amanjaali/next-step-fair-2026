@@ -222,17 +222,6 @@ return [
         'seats_lead' => 'Seats are held per department, not pooled. A seat in Pharmacy cannot be moved to Law.',
     ],
 
-    'university_about' => [
-        'auis' => 'A liberal arts university teaching entirely in English, with a core curriculum every student takes before specialising. It has funded scholarship seats since the programme\'s first cycle.',
-        'ukh' => 'A public university with English instruction and a research focus on natural resources and computing.',
-        'komar' => 'A science and technology university in Sulaimani with strong pharmacy and dentistry faculties and a working teaching clinic.',
-        'tishk' => 'A large private university in Erbil with faculties across medicine, engineering and education, and a well-established international exchange programme.',
-        'uhd' => 'A Sulaimani university teaching in English and Kurdish, known for its law faculty and its evening programmes for working students.',
-        'lfu' => 'A private university in Erbil with health science and design faculties and a French academic partnership.',
-        'qiu' => 'A Sulaimani university delivering UTM Malaysia degrees locally, with engineering and software programmes.',
-        'cue' => 'A small university with a low staff to student ratio, teaching in English across medicine, pharmacy and international relations.',
-    ],
-
     /* ----------------------------------------------------------- region -- */
 
     'region' => [
