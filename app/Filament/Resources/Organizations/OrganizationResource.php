@@ -8,7 +8,9 @@ use App\Filament\Resources\Organizations\Pages\ListOrganizations;
 use App\Filament\Support\Translatable;
 use App\Models\Hall;
 use App\Models\Organization;
+use App\Services\QrCodeService;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -96,6 +98,7 @@ class OrganizationResource extends Resource
                 TextColumn::make('kind')->badge(),
                 TextColumn::make('tier')->badge()->color('warning')->placeholder('—'),
                 TextColumn::make('booth')->placeholder('—'),
+                TextColumn::make('qr_scan_count')->label('Booth scans')->numeric()->sortable(),
                 TextColumn::make('year')->sortable(),
                 TextColumn::make('published')->badge()
                     ->formatStateUsing(fn ($state) => $state ? 'Published' : 'Hidden')
@@ -113,7 +116,21 @@ class OrganizationResource extends Resource
                 ]),
                 SelectFilter::make('year')->options(fn () => Organization::distinct()->pluck('year', 'year')->all()),
             ])
-            ->recordActions([EditAction::make()])
+            ->recordActions([
+                Action::make('qr')
+                    ->label('Download QR (SVG)')
+                    ->icon('heroicon-m-arrow-down-tray')
+                    ->action(function (Organization $record) {
+                        $svg = app(QrCodeService::class)->svg($record->shortUrl(), 1024);
+
+                        return response()->streamDownload(
+                            fn () => print ($svg),
+                            'ns-booth-qr-'.$record->slug.'.svg',
+                            ['Content-Type' => 'image/svg+xml'],
+                        );
+                    }),
+                EditAction::make(),
+            ])
             ->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
     }
 

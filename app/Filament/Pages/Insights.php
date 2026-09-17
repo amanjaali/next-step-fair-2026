@@ -2,10 +2,13 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\BoothScanLeaderboardWidget;
+use App\Filament\Widgets\BoothScanStatsWidget;
 use App\Filament\Widgets\DemandByCountryWidget;
 use App\Filament\Widgets\DemandByFieldWidget;
 use App\Filament\Widgets\EngagementLeaderboardWidget;
 use App\Filament\Widgets\MatchQualityWidget;
+use App\Filament\Widgets\RecentBoothScansWidget;
 use App\Filament\Widgets\SupplyGapWidget;
 use BackedEnum;
 use Filament\Pages\Page;
@@ -54,6 +57,9 @@ class Insights extends Page
             SupplyGapWidget::class,
             DemandByCountryWidget::class,
             EngagementLeaderboardWidget::class,
+            BoothScanStatsWidget::class,
+            BoothScanLeaderboardWidget::class,
+            RecentBoothScansWidget::class,
         ];
     }
 

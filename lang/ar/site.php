@@ -152,6 +152,7 @@ return [
     ],
 
     'home' => [
+        'booth_checked_in' => 'تم تسجيل زيارتك لـ :org.',
         'signed_in' => [
             'kicker' => 'مسجّل الدخول',
             'welcome' => 'أهلاً بعودتك، :name',

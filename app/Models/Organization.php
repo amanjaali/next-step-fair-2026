@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * Universities, institutes, exhibitors, partners and sponsors.
@@ -38,6 +39,13 @@ class Organization extends Model
     public const PROFILED_KINDS = [self::KIND_STRATEGIC, self::KIND_SUPPORTER];
 
     protected $guarded = ['id'];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $organization) {
+            $organization->qr_code = $organization->qr_code ?: strtolower(Str::random(7));
+        });
+    }
 
     protected function casts(): array
     {
@@ -150,6 +158,17 @@ class Organization extends Model
     public function matches(): HasMany
     {
         return $this->hasMany(MatchScore::class)->orderByDesc('score');
+    }
+
+    public function boothScans(): HasMany
+    {
+        return $this->hasMany(BoothScan::class);
+    }
+
+    /** The desk QR's short link — every scan is counted, signed in or not. */
+    public function shortUrl(): string
+    {
+        return url('/v/'.$this->qr_code);
     }
 
     /**

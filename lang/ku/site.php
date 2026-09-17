@@ -153,6 +153,7 @@ return [
     ],
 
     'home' => [
+        'booth_checked_in' => 'چوونەژوورەوەت لای :org تۆمارکرا.',
         'signed_in' => [
             'kicker' => 'چوویتە ژوورەوە',
             'welcome' => 'بەخێربێیتەوە، :name',

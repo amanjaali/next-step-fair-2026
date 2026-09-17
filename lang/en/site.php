@@ -150,6 +150,7 @@ return [
     ],
 
     'home' => [
+        'booth_checked_in' => 'You checked in at :org.',
         'signed_in' => [
             'kicker' => 'Signed in',
             'welcome' => 'Welcome back, :name',

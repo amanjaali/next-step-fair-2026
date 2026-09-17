@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BadgeLinkController;
+use App\Http\Controllers\BoothScanController;
 use App\Http\Controllers\CaptchaController;
 use App\Http\Controllers\Checkin\CheckinController;
 use App\Http\Controllers\LocaleController;
@@ -52,6 +53,11 @@ Route::post('rsvp/{ticket}/cancel', [TicketController::class, 'cancel'])
 
 // Campaign QR codes: /q/{code} redirects to the target and records the scan.
 Route::get('q/{code}', [QrCampaignController::class, 'redirect'])->name('qr.redirect');
+
+// An exhibitor's desk QR: /v/{code} counts the visit and sends the visitor home.
+Route::get('v/{code}', BoothScanController::class)
+    ->middleware('throttle:60,1')
+    ->name('booth.scan');
 
 /*
  * The badge link sent on WhatsApp. Short, because a URL button is approved with

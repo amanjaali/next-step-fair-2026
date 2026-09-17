@@ -74,6 +74,12 @@
         </div>
     </section>
 
+    @if (session('status'))
+        <div class="ns-wrap pt-8">
+            <div class="bg-bone-200 p-5 font-[family-name:var(--ns-body)] text-[15px]">{{ session('status') }}</div>
+        </div>
+    @endif
+
     @if ($attendee)
         {{-- ------------------------------------------- what to do next -- --}}
         <section class="bg-bone-200 border-b border-[rgba(5,7,8,0.14)]">
