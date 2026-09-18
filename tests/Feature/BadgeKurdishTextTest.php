@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Registration;
 use App\Services\BadgeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class BadgeKurdishTextTest extends TestCase
@@ -120,6 +122,48 @@ class BadgeKurdishTextTest extends TestCase
         $this->assertSame("\x89PNG\r\n\x1a\n", substr($png, 0, 8));
     }
 
+    /**
+     * ticket/{id}/badge.png must redraw a badge cached before the rendering
+     * fix instead of serving it — this is the exact bug reported from
+     * production: the WhatsApp/download link kept serving a PNG rendered
+     * with the old, broken shaping and font.
+     */
+    public function test_ticket_png_route_redraws_a_badge_cached_before_the_rendering_fix(): void
+    {
+        Storage::fake(config('filesystems.default'));
+
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_VISITOR,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'ku',
+            'full_name' => 'دەستەشعار',
+            'phone' => '7701115502',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+        ]);
+
+        $disk = Storage::disk(config('filesystems.default'));
+        $stalePath = 'badges/'.$registration->ticket_id.'.png';
+        $disk->put($stalePath, 'stale-broken-render');
+
+        $registration->forceFill([
+            'badge_png_path' => $stalePath,
+            'badge_generated_at' => Carbon::parse(config('nextstep.badge.rendering_version_at'))->subDay(),
+        ])->save();
+
+        $response = $this->get('/ticket/'.$registration->ticket_id.'/badge.png');
+
+        $response->assertOk();
+        $this->assertNotSame('stale-broken-render', $response->streamedContent() ?: $response->getContent());
+        $this->assertSame("\x89PNG\r\n\x1a\n", substr($response->getContent(), 0, 8));
+        $this->assertTrue($registration->refresh()->badge_generated_at->gt(
+            Carbon::parse(config('nextstep.badge.rendering_version_at'))
+        ));
+    }
+
     public function test_rtl_badge_view_includes_noto_font_rules(): void
     {
         $registration = Registration::create([
@@ -147,6 +191,26 @@ class BadgeKurdishTextTest extends TestCase
      * colour (the conference cobalt) so it reads apart from the magenta
      * student/parent badges at the gate — see config('nextstep.type_accents').
      */
+    /**
+     * A badge issued before the current rendering pipeline shipped — the
+     * broken-Kurdish-letters/wrong-font badges reported from production —
+     * must be treated as stale so ticket/{id}/badge.png redraws it instead
+     * of serving the cached, broken file forever.
+     */
+    public function test_a_badge_generated_before_the_rendering_version_cutoff_is_stale(): void
+    {
+        $cutoff = Carbon::parse(config('nextstep.badge.rendering_version_at'));
+
+        $neverGenerated = Registration::make(['badge_generated_at' => null]);
+        $this->assertTrue($neverGenerated->hasStaleBadge());
+
+        $renderedBeforeTheFix = Registration::make(['badge_generated_at' => $cutoff->clone()->subDay()]);
+        $this->assertTrue($renderedBeforeTheFix->hasStaleBadge());
+
+        $renderedAfterTheFix = Registration::make(['badge_generated_at' => $cutoff->clone()->addDay()]);
+        $this->assertFalse($renderedAfterTheFix->hasStaleBadge());
+    }
+
     public function test_visitor_pass_keeps_its_own_accent_apart_from_student_and_parent(): void
     {
         $visitor = Registration::make(['track' => Registration::TRACK_FAIR, 'type' => Registration::TYPE_VISITOR]);

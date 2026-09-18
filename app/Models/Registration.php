@@ -529,6 +529,26 @@ class Registration extends Model implements AuthenticatableContract
         return in_array($this->status, [self::STATUS_CONFIRMED, self::STATUS_CHECKED_IN], true);
     }
 
+    /**
+     * Whether the PNG cached on disk pre-dates the current rendering pipeline.
+     *
+     * A badge is drawn once, at confirmation, and served from disk after that
+     * for speed — a shaping or font fix does nothing for tickets already
+     * issued unless something notices the cached file is older than the fix.
+     * This is that check; see config('nextstep.badge.rendering_version_at')
+     * and TicketController::png().
+     */
+    public function hasStaleBadge(): bool
+    {
+        $cutoff = config('nextstep.badge.rendering_version_at');
+
+        if (! $cutoff || ! $this->badge_generated_at) {
+            return $this->badge_generated_at === null;
+        }
+
+        return $this->badge_generated_at->lt(Carbon::parse($cutoff));
+    }
+
     public function consentGiven(string $key): bool
     {
         return (bool) data_get($this->consents, $key.'.given', false);

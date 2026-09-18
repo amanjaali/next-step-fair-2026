@@ -59,17 +59,28 @@ class TicketController extends Controller
             // Meta fetches the header image before delivery — attachment makes some
             // crawlers treat it as a download and the whole template is dropped.
             'Content-Disposition' => 'inline; filename="'.$filename.'"',
-            'Cache-Control' => 'public, max-age=31536000, immutable',
+            // Not "immutable": the file this URL serves genuinely does change —
+            // a badge is redrawn in place whenever the rendering pipeline is
+            // fixed (see hasStaleBadge()) — so a year-long immutable cache on
+            // a WhatsApp/Meta CDN or a browser can pin a broken render for as
+            // long as the ticket exists. A day is enough to keep this route
+            // cheap without that risk.
+            'Cache-Control' => 'public, max-age=86400, must-revalidate',
         ];
 
         $path = $registration->badge_png_path;
         $disk = Storage::disk(config('filesystems.default'));
 
-        if (is_string($path) && $path !== '' && $disk->exists($path)) {
+        if (is_string($path) && $path !== '' && $disk->exists($path) && ! $registration->hasStaleBadge()) {
             return response($disk->get($path), 200, $headers);
         }
 
-        return response($this->badges->png($registration), 200, $headers);
+        // Stale, or never rendered: redraw and persist both artefacts so the
+        // next request — and any resend of the WhatsApp confirmation — reads
+        // the fixed version, not this one-off render.
+        $this->badges->generate($registration);
+
+        return response($disk->get($registration->badge_png_path), 200, $headers);
     }
 
     public function pdf(string $ticket): Response

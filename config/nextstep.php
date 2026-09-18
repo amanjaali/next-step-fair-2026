@@ -192,11 +192,6 @@ return [
         'secret_key' => env('SECRET_ROUTE_SCANNER_KEY'),
     ],
 
-    'badge' => [
-        'page_size' => 'A6',
-        'download_link_ttl' => 60 * 24 * 7, // minutes a signed badge URL stays valid
-    ],
-
     /*
     |---------------------------------------------------------------------------
     | Registration
@@ -281,7 +276,19 @@ return [
     | fallback shapes Arabic-script text with ar-php before drawing it.
     */
     'badge' => [
+        'page_size' => 'A6',
+        'download_link_ttl' => 60 * 24 * 7, // minutes a signed badge URL stays valid
         'node_binary' => env('BADGE_NODE_BINARY'),
         'npm_binary' => env('BADGE_NPM_BINARY'),
+
+        // Bump this to the current time whenever the badge template, fonts,
+        // or shaping change in a way that makes previously-rendered artwork
+        // wrong. ticket/{id}/badge.png serves the file cached on disk for
+        // speed, but a rendering-pipeline fix does nothing for a ticket
+        // already issued unless the stale cache is invalidated — this is
+        // that switch. Anything generated before this moment is redrawn on
+        // next request instead of served stale; see TicketController::png()
+        // and Registration::hasStaleBadge().
+        'rendering_version_at' => '2026-09-18 00:00:00',
     ],
 ];
