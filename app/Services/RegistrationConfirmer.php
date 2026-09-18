@@ -6,6 +6,7 @@ use App\Models\Message;
 use App\Models\Registration;
 use App\Services\Messaging\MessageDispatcher;
 use App\Support\WhatsAppLog;
+use Throwable;
 
 /**
  * Turning a filled-in form into a badge in somebody's hand.
@@ -31,7 +32,7 @@ class RegistrationConfirmer
             'confirmed_at' => $registration->confirmed_at ?? now(),
         ])->save();
 
-        $this->badges->generate($registration);
+        $this->generateBadge($registration);
 
         WhatsAppLog::info('registration.confirmed', [
             'registration_id' => $registration->id,
@@ -107,5 +108,36 @@ class RegistrationConfirmer
             Registration::TYPE_VISITOR => 'registration_confirmed_visitor',
             default => null,
         };
+    }
+
+    /**
+     * The slow part of confirming a registration is Chrome, not the database.
+     * pdf()/png() launch a real (if headless) browser to shape and screenshot
+     * the badge, which routinely costs 1-3+ seconds — dead time a registrant
+     * would otherwise spend staring at a spinner on the confirmation page.
+     *
+     * Deferring the render to run after the HTTP response is flushed (the
+     * same app()->terminating() trick MessageDispatcher already uses for the
+     * WhatsApp send, for the same reason: no persistent queue worker) makes
+     * the page feel instant without changing what gets generated. This runs
+     * before sendFairConfirmationWhatsApp() is called so the badge PNG exists
+     * on disk by the time that job's assertBadgeImageReachable() fetches it —
+     * terminating() callbacks fire in registration order, not concurrently.
+     */
+    private function generateBadge(Registration $registration): void
+    {
+        if (app()->runningUnitTests() || app()->runningInConsole() || config('queue.default') === 'sync') {
+            $this->badges->generate($registration);
+
+            return;
+        }
+
+        app()->terminating(function () use ($registration) {
+            try {
+                $this->badges->generate($registration->fresh());
+            } catch (Throwable $e) {
+                report($e);
+            }
+        });
     }
 }
