@@ -18,6 +18,11 @@ use Spatie\Browsershot\Browsershot;
  */
 class BadgeService
 {
+    /** A6 portrait at 96 CSS px/in — must match @page size in badge.blade.php. */
+    private const PNG_CSS_WIDTH = 397;
+
+    private const PNG_CSS_HEIGHT = 559;
+
     /** ar-php with Kurdish-specific glyphs registered once — see arabicGlyphs(). */
     private ?Arabic $arabicGlyphs = null;
 
@@ -229,7 +234,7 @@ class BadgeService
             // nothing but ~1-2s of dead time on every single badge; removing
             // them roughly halves per-badge render time with no visual change.
             $shot = Browsershot::html($html)
-                ->windowSize(760, 1080)
+                ->windowSize(self::PNG_CSS_WIDTH, self::PNG_CSS_HEIGHT)
                 ->deviceScaleFactor(2)
                 ->setScreenshotType('png')
                 ->noSandbox()

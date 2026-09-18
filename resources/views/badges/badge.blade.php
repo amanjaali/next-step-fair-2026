@@ -1,8 +1,18 @@
 {{-- A6 badge, print-ready, rendered by DomPDF for the PDF and by the headless
      browser (or the GD fallback) for the PNG. Layout is table-based on purpose:
      DomPDF has no flexbox or grid. --}}
+@php
+    $textDir = $scriptDir ?? config("nextstep.locales.$locale.dir", 'ltr');
+    // Headless-Chrome PNGs must keep the physical badge layout (brand left,
+    // partners right) even when the name is Kurdish. dir="rtl" on <html>
+    // mirrors the whole page and squeezes everything into a corner of the
+    // oversized viewport Browsershot used to capture — the "tiny badge" bug.
+    // Arabic-script lines still get dir="rtl" on their own elements so
+    // HarfBuzz joins glyphs; DomPDF keeps the page-level dir it always had.
+    $pageDir = ($forPng ?? false) ? 'ltr' : $textDir;
+@endphp
 <!DOCTYPE html>
-<html lang="{{ $htmlLang ?? config("nextstep.locales.$locale.html_lang", $locale) }}" dir="{{ $scriptDir ?? config("nextstep.locales.$locale.dir", 'ltr') }}">
+<html lang="{{ $htmlLang ?? config("nextstep.locales.$locale.html_lang", $locale) }}" dir="{{ $pageDir }}">
 <head>
     <meta charset="utf-8">
     <title>{{ $registration->full_name }} — {{ $registration->ticket_ref }}</title>
@@ -16,6 +26,30 @@
             color: #ffffff;
             background: {{ $accent }};
         }
+        @if ($forPng ?? false)
+        html, body {
+            width: 105mm;
+            height: 148mm;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .badge {
+            width: 105mm;
+            height: 148mm;
+            min-height: 148mm;
+        }
+        .name[dir="rtl"],
+        .meta[dir="rtl"],
+        .institution[dir="rtl"],
+        .position[dir="rtl"],
+        .edition[dir="rtl"] {
+            direction: rtl;
+            unicode-bidi: isolate;
+            width: fit-content;
+            max-width: 100%;
+        }
+        @endif
         .badge { width: 100%; padding: 9mm 8mm 7mm; }
         .brand {
             font-family: {!! $displayFont ?? 'DejaVu Sans' !!}, DejaVu Sans, sans-serif;
@@ -78,7 +112,7 @@
                     {{ $isConference ? 'Next Step' : 'Next Step Fair' }}<br>
                     {{ $isConference ? 'Conference '.config('nextstep.event.year') : config('nextstep.event.year') }}
                 </div>
-                <div class="edition">
+                <div class="edition" @if ($textDir === 'rtl') dir="rtl" @endif>
                     {{ $isConference ? __('site.common.day', ['n' => 1], $locale).' · '.ns_day_date(1) : __('site.common.edition_4', [], $locale) }}
                 </div>
             </td>
@@ -102,16 +136,16 @@
 
     <div style="margin-top: 5mm;"><span class="chip">{{ $typeChip }}</span></div>
 
-    <div class="name">{{ $registration->full_name }}</div>
+    <div class="name" @if ($textDir === 'rtl') dir="rtl" @endif>{{ $registration->full_name }}</div>
 
     @if ($isConference)
         {{-- Institution is an explicit requirement on the conference badge. --}}
-        <div class="institution">{{ $registration->organization }}</div>
+        <div class="institution" @if ($textDir === 'rtl') dir="rtl" @endif>{{ $registration->organization }}</div>
         @if ($registration->position)
-            <div class="position">{{ $registration->position }}</div>
+            <div class="position" @if ($textDir === 'rtl') dir="rtl" @endif>{{ $registration->position }}</div>
         @endif
     @else
-        <div class="meta">{{ $registration->city }} · {{ $daysLabel }}</div>
+        <div class="meta" @if ($textDir === 'rtl') dir="rtl" @endif>{{ $registration->city }} · {{ $daysLabel }}</div>
     @endif
 
     <div class="qr-wrap">

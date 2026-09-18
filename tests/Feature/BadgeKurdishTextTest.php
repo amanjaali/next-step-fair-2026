@@ -93,8 +93,8 @@ class BadgeKurdishTextTest extends TestCase
 
         $html = $method->invoke(app(BadgeService::class), $registration, true, true);
 
-        $this->assertStringContainsString('dir="rtl"', $html);
-        $this->assertStringNotContainsString('dir="ltr"', $html);
+        $this->assertStringContainsString('<html lang="ku" dir="ltr">', $html);
+        $this->assertStringContainsString('class="name" dir="rtl"', $html);
         $this->assertStringContainsString('دەستەشعار', $html);
         $this->assertStringContainsString("'UniSirwan Ping Heavy'", $html);
         $this->assertStringContainsString("@font-face{font-family:'UniSirwan Ping Heavy'", $html);
@@ -119,8 +119,8 @@ class BadgeKurdishTextTest extends TestCase
 
         $html = $method->invoke(app(BadgeService::class), $registration, true, true);
 
-        $this->assertStringContainsString('dir="rtl"', $html);
-        $this->assertStringNotContainsString('dir="ltr"', $html);
+        $this->assertStringContainsString('<html lang="ckb" dir="ltr">', $html);
+        $this->assertStringContainsString('class="name" dir="rtl"', $html);
         $this->assertStringContainsString('lang="ckb"', $html);
     }
 
