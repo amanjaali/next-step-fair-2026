@@ -61,7 +61,7 @@ ok "Cleared"
 # package is configured.
 mkdir -p storage/framework/views storage/framework/cache/data \
          storage/framework/sessions storage/framework/testing \
-         storage/app/public storage/logs bootstrap/cache
+         storage/app/public storage/app/private storage/logs bootstrap/cache
 
 # ---------------------------------------------------------------- dependencies
 step "Installing dependencies (a few minutes the first time)"
