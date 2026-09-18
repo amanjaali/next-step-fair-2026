@@ -32,8 +32,6 @@ class BadgeService
         $verifyUrl = $this->tickets->verifyUrl($registration);
 
         $locale = $registration->locale;
-        $useUniSirwan = $locale === 'ku'
-            || (bool) preg_match('/\p{Arabic}/u', (string) $registration->full_name);
 
         return [
             'registration' => $registration,
@@ -47,13 +45,13 @@ class BadgeService
                 ? __('site.common.day', ['n' => 1], $locale).' · '.ns_day_date(1)
                 : $registration->daysLabel(),
             'marks' => $this->partnerMarks(),
-            'fontCss' => ($useUniSirwan && $locale !== 'ku' ? $this->uniSirwanFontCss() : '').$this->fontCss($locale),
-            'bodyFont' => $useUniSirwan
-                ? "'UniSirwan Ping Heavy'"
-                : config("nextstep.locales.$locale.body_font", 'DejaVu Sans'),
-            'displayFont' => $useUniSirwan
-                ? "'UniSirwan Ping Heavy'"
-                : config("nextstep.locales.$locale.display_font", 'DejaVu Sans'),
+            // DomPDF only: Noto Sans Arabic + ar-php shaping. UniSirwan is for
+            // Browsershot and the GD PNG fallback — DomPDF must parse and cache
+            // custom TTFs under storage/fonts/, which breaks on a fresh deploy
+            // when that directory does not exist yet.
+            'fontCss' => $this->fontCss($locale),
+            'bodyFont' => config("nextstep.locales.$locale.body_font", 'DejaVu Sans'),
+            'displayFont' => config("nextstep.locales.$locale.display_font", 'DejaVu Sans'),
         ];
     }
 
@@ -112,6 +110,8 @@ class BadgeService
     {
         $html = view('badges.badge', $this->payload($registration))->render();
         $html = $this->shapeArabicScriptRuns($html);
+
+        $this->ensureDompdfFontDirectory();
 
         return Pdf::loadHTML($html)->setPaper('a6', 'portrait')->output();
     }
@@ -590,10 +590,6 @@ class BadgeService
 
         $rules = [];
 
-        if ($locale === 'ku') {
-            $rules[] = $this->uniSirwanFontCss();
-        }
-
         $faces = [
             "'Noto Sans Arabic'" => [
                 400 => 'NotoSansArabic-Regular.ttf',
@@ -642,6 +638,20 @@ class BadgeService
         $path = resource_path('fonts/badge/'.$file);
 
         return is_readable($path) ? $path : null;
+    }
+
+    /**
+     * DomPDF writes parsed font metrics (.ufm) here the first time it sees a
+     * custom @font-face. A fresh server has no storage/fonts/ yet — create it
+     * before loadHTML() or AdobeFontMetrics.php throws on fopen().
+     */
+    private function ensureDompdfFontDirectory(): void
+    {
+        $path = storage_path('fonts');
+
+        if (! is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
     }
 
     /** DomPDF ships DejaVu; fall back to the system copy, then to no TTF at all. */
