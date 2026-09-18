@@ -33,7 +33,19 @@ if (shell) {
         historyList: shell.querySelector('[data-history-list]'),
         phoneCountrySelect: shell.querySelector('[data-field="phone_country"]'),
         typeSelect: shell.querySelector('[data-field="type"]'),
+        phoneInput: shell.querySelector('[data-field="phone"]'),
+        membersFeature: shell.querySelector('[data-members-feature]'),
+        membersToggle: shell.querySelector('[data-add-members-toggle]'),
+        membersContainer: shell.querySelector('[data-members]'),
+        memberRows: shell.querySelector('[data-member-rows]'),
+        addMemberBtn: shell.querySelector('[data-add-member]'),
     };
+
+    const TYPE_OPTIONS = [
+        ['visitor', t('type_visitor', 'Visitor')],
+        ['parent', t('type_parent', 'Parent')],
+        ['student', t('type_student', 'Student')],
+    ];
 
     phoneCountries.forEach((code) => {
         const opt = document.createElement('option');
@@ -42,6 +54,72 @@ if (shell) {
         el.phoneCountrySelect.appendChild(opt);
     });
     el.phoneCountrySelect.value = defaultPhoneCountry;
+
+    // Digits only, and never more than an 11-digit Iraqi number (a leading 0
+    // plus the 10-digit mobile) can hold — pasted spaces/dashes get stripped
+    // too, so "7XX XXX XXXX" and "07XX XXX XXXX" both come out clean.
+    el.phoneInput?.addEventListener('input', () => {
+        const digitsOnly = el.phoneInput.value.replace(/\D/g, '').slice(0, 11);
+        if (digitsOnly !== el.phoneInput.value) el.phoneInput.value = digitsOnly;
+    });
+
+    /* ------------------------------------------------------ family members -- */
+
+    function createMemberRow() {
+        const row = document.createElement('div');
+        row.className = 'rg-member';
+        row.setAttribute('data-member-row', '');
+
+        const typeOptionsHtml = TYPE_OPTIONS
+            .map(([value, label]) => `<option value="${value}">${escapeHtml(label)}</option>`)
+            .join('');
+
+        row.innerHTML = `
+            <label class="rg-field">
+                <span class="rg-label">${escapeHtml(t('field_name', 'Full name'))}</span>
+                <input type="text" class="rg-input" data-member-field="full_name" data-required maxlength="120"
+                       placeholder="${escapeHtml(t('member_name_placeholder', 'Full name'))}">
+            </label>
+            <label class="rg-field">
+                <span class="rg-label">${escapeHtml(t('field_type', 'Type'))}</span>
+                <select class="rg-select" data-member-field="type" data-required>${typeOptionsHtml}</select>
+            </label>
+            <button type="button" class="rg-member__remove" data-remove-member>${escapeHtml(t('remove_member', 'Remove'))}</button>
+        `;
+
+        return row;
+    }
+
+    function addMemberRow() {
+        el.memberRows?.appendChild(createMemberRow());
+    }
+
+    function clearMemberRows() {
+        if (el.memberRows) el.memberRows.innerHTML = '';
+    }
+
+    function collectMembers() {
+        if (!el.membersContainer || el.membersContainer.hidden) return [];
+        return Array.from(el.memberRows.querySelectorAll('[data-member-row]')).map((row) => ({
+            full_name: row.querySelector('[data-member-field="full_name"]').value.trim(),
+            type: row.querySelector('[data-member-field="type"]').value,
+        }));
+    }
+
+    el.membersToggle?.addEventListener('change', () => {
+        const on = el.membersToggle.checked;
+        el.membersContainer.hidden = !on;
+        if (on && !el.memberRows.querySelector('[data-member-row]')) addMemberRow();
+        if (!on) clearMemberRows();
+    });
+
+    el.addMemberBtn?.addEventListener('click', addMemberRow);
+
+    el.memberRows?.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-remove-member]');
+        if (!button) return;
+        button.closest('[data-member-row]')?.remove();
+    });
 
     let currentId = null;
     let currentPage = 1;
@@ -174,6 +252,9 @@ if (shell) {
         el.deleteHint.textContent = '';
         el.history.hidden = true;
         el.historyList.innerHTML = '';
+        if (el.membersToggle) el.membersToggle.checked = false;
+        if (el.membersContainer) el.membersContainer.hidden = true;
+        clearMemberRows();
     }
 
     function fillForm(record) {
@@ -196,6 +277,7 @@ if (shell) {
         currentId = null;
         el.panelTitle.textContent = t('form_title_new', 'New walk-in');
         resetForm();
+        if (el.membersFeature) el.membersFeature.hidden = false;
         openPanel();
     });
 
@@ -218,6 +300,9 @@ if (shell) {
         currentId = id;
         el.panelTitle.textContent = t('form_title_edit', 'Edit registration');
         resetForm();
+        // A family sharing one phone is something the desk creates once, at
+        // walk-in — not something to graft onto an existing record.
+        if (el.membersFeature) el.membersFeature.hidden = true;
         fillForm(record);
 
         el.del.hidden = false;
@@ -267,6 +352,10 @@ if (shell) {
             const key = input.dataset.field;
             if (input.value !== '') payload[key] = input.value;
         });
+
+        const members = collectMembers();
+        if (members.length) payload.members = members;
+
         return payload;
     }
 
@@ -275,11 +364,21 @@ if (shell) {
     function clearFieldErrors() {
         const form = el.panel.querySelector('[data-form]');
         fieldsOf(form).forEach((input) => input.classList.remove('rg-input--error'));
+        form.querySelectorAll('[data-member-field]').forEach((input) => input.classList.remove('rg-input--error'));
+    }
+
+    // Iraqi mobiles: ten digits starting with 7, an optional leading 0 — same
+    // shape the server enforces. Every other country code keeps the old,
+    // looser check; this desk has no business policing a UK or Turkish number.
+    function phoneMatchesShape(value, countryCode) {
+        const pattern = countryCode === '+964' ? /^0?7[0-9]{9}$/ : /^0?[0-9]{9,12}$/;
+        return pattern.test(value.trim());
     }
 
     function validateForm() {
         const form = el.panel.querySelector('[data-form]');
         const invalid = [];
+        let phoneInvalid = false;
 
         fieldsOf(form).forEach((input) => {
             if (!input.hasAttribute('data-required')) return;
@@ -289,13 +388,31 @@ if (shell) {
             if (missing) invalid.push(input);
         });
 
-        return invalid;
+        if (el.membersContainer && !el.membersContainer.hidden) {
+            form.querySelectorAll('[data-member-field="full_name"]').forEach((input) => {
+                const missing = input.value.trim() === '';
+                input.classList.toggle('rg-input--error', missing);
+                if (missing) invalid.push(input);
+            });
+        }
+
+        if (el.phoneInput && !invalid.includes(el.phoneInput) && el.phoneInput.value.trim() !== ''
+            && !phoneMatchesShape(el.phoneInput.value, el.phoneCountrySelect.value)) {
+            el.phoneInput.classList.add('rg-input--error');
+            invalid.push(el.phoneInput);
+            phoneInvalid = true;
+        }
+
+        return { invalid, phoneInvalid };
     }
 
     async function save() {
-        const invalid = validateForm();
+        const { invalid, phoneInvalid } = validateForm();
         if (invalid.length) {
-            toast(t('fill_required', 'Please fill in the required fields.'), 'error');
+            toast(
+                phoneInvalid ? t('phone_invalid', 'Enter a valid phone number, e.g. 7XX XXX XXXX.') : t('fill_required', 'Please fill in the required fields.'),
+                'error',
+            );
             invalid[0].scrollIntoView?.({ block: 'center' });
             invalid[0].focus?.();
             return;
@@ -321,7 +438,15 @@ if (shell) {
                 return;
             }
 
-            toast(currentId ? t('saved', 'Saved.') : t('created_walk_in', 'Account created. They still check in at the gate.'));
+            // A new walk-in with family members comes back as one registration
+            // per person — everything else still returns (and expects) one.
+            const created = currentId ? null : await response.json().catch(() => null);
+            const createdCount = Array.isArray(created) ? created.length : 1;
+            const createdMessage = createdCount > 1
+                ? t('created_walk_ins', 'Accounts created. They still check in at the gate.')
+                : t('created_walk_in', 'Account created. They still check in at the gate.');
+
+            toast(currentId ? t('saved', 'Saved.') : createdMessage);
             closePanel();
             runSearch();
         } catch (e) {

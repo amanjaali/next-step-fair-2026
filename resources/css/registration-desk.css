@@ -154,6 +154,37 @@ textarea.rg-input { resize: vertical; }
 
 .rg-hint { margin: 0; font-size: 12px; line-height: 1.5; color: rgba(255, 255, 255, 0.55); }
 
+.rg-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+}
+.rg-checkbox input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--rg-magenta); }
+
+.rg-members { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.rg-members[hidden] { display: none; }
+.rg-member {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+}
+.rg-member .rg-field { flex: 1; }
+.rg-member__remove {
+    background: transparent;
+    color: var(--rg-crimson);
+    border: 1px solid var(--rg-crimson);
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
 .rg-btn {
     font-family: inherit;
     font-size: 14.5px;

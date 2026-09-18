@@ -122,35 +122,53 @@ class RegistrationDeskController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $this->validated($request);
+        $members = $this->validatedMembers($request);
 
         // One phone number, one registration, one badge — same rule the public
         // quick-pass form enforces, so the desk can't accidentally duplicate
-        // someone who already has a pass.
-        if (Registration::fair()->active()->wherePhone($data['phone'])->exists()) {
+        // someone who already has a pass. A family sharing one phone is the
+        // one deliberate exception: when the volunteer has added members
+        // alongside the first person, the number is expected to repeat.
+        if ($members === [] && Registration::fair()->active()->wherePhone($data['phone'])->exists()) {
             return response()->json(['message' => __('registration_desk.phone_already_registered')], 422);
         }
 
-        $registration = new Registration($data);
-        $registration->track = Registration::TRACK_FAIR;
-        $registration->locale = app()->getLocale();
-        $registration->is_walk_in = true;
-        $registration->created_by = auth()->id();
-        // Same-shape record as a quick pass: valid for the whole run, nothing
-        // to choose.
-        $registration->days = array_keys(config('nextstep.event.days'));
-        $registration->status = Registration::STATUS_DRAFT;
-        $registration->consented_at = now();
-        $registration->consent_ip = $request->ip();
-        $registration->consents = ['terms' => true, 'whatsapp' => true];
-        $registration->save();
+        $people = [['full_name' => $data['full_name'], 'type' => $data['type']], ...$members];
 
-        // Same confirmation the public quick-pass and full form use: badge
-        // generated, WhatsApp confirmation queued. Deliberately not checked
-        // in — that only happens at the gate, so a walk-in a volunteer made
-        // up can never quietly count as someone who actually attended.
-        app(RegistrationConfirmer::class)->confirm($registration);
+        $registrations = collect($people)->map(function (array $person) use ($data, $request) {
+            $registration = new Registration([
+                'full_name' => $person['full_name'],
+                'type' => $person['type'],
+                'phone_country' => $data['phone_country'],
+                'phone' => $data['phone'],
+            ]);
+            $registration->track = Registration::TRACK_FAIR;
+            $registration->locale = app()->getLocale();
+            $registration->is_walk_in = true;
+            $registration->created_by = auth()->id();
+            // Same-shape record as a quick pass: valid for the whole run, nothing
+            // to choose.
+            $registration->days = array_keys(config('nextstep.event.days'));
+            $registration->status = Registration::STATUS_DRAFT;
+            $registration->consented_at = now();
+            $registration->consent_ip = $request->ip();
+            $registration->consents = ['terms' => true, 'whatsapp' => true];
+            $registration->save();
 
-        return response()->json($this->present($registration->fresh('checkIns'), full: true), 201);
+            // Same confirmation the public quick-pass and full form use: badge
+            // generated, WhatsApp confirmation queued. Deliberately not checked
+            // in — that only happens at the gate, so a walk-in a volunteer made
+            // up can never quietly count as someone who actually attended. Each
+            // family member gets their own badge and their own check-in later.
+            app(RegistrationConfirmer::class)->confirm($registration);
+
+            return $registration->fresh('checkIns');
+        });
+
+        return response()->json(
+            $registrations->map(fn (Registration $r) => $this->present($r, full: true))->all(),
+            201,
+        );
     }
 
     /** Edits are unrestricted — but every change that lands is logged. */
@@ -216,7 +234,7 @@ class RegistrationDeskController extends Controller
             'full_name' => ['required', 'string', 'min:3', 'max:120'],
             'type' => ['required', 'in:'.implode(',', self::TYPES)],
             'phone_country' => ['required', 'string', 'max:8', 'in:'.implode(',', array_keys(config('nextstep.phone.countries')))],
-            'phone' => ['required', 'string', 'regex:/^0?[0-9]{9,12}$/'],
+            'phone' => ['required', 'string', $this->phoneRule($request->input('phone_country'))],
         ]);
 
         // Strip a leading zero before it's stored — left in, it survives into the
@@ -225,6 +243,37 @@ class RegistrationDeskController extends Controller
         $data['phone'] = ltrim(preg_replace('/\D/', '', $data['phone']), '0');
 
         return $data;
+    }
+
+    /**
+     * Extra people walking up on the same phone as the first — a family, most
+     * often. Just a name and a type each; the phone and country come from the
+     * primary submission, since that's the number all of them share.
+     *
+     * @return array<int, array{full_name: string, type: string}>
+     */
+    private function validatedMembers(Request $request): array
+    {
+        $validated = $request->validate([
+            'members' => ['sometimes', 'array'],
+            'members.*.full_name' => ['required', 'string', 'min:3', 'max:120'],
+            'members.*.type' => ['required', 'in:'.implode(',', self::TYPES)],
+        ]);
+
+        return $validated['members'] ?? [];
+    }
+
+    /**
+     * Iraqi mobiles are ten digits starting with 7, with an optional leading
+     * zero — tight enough to catch a mistyped number at the desk. Every other
+     * country code on the form keeps the old, looser shape: this desk has no
+     * business policing what a Turkish or UK mobile number looks like.
+     */
+    private function phoneRule(?string $country): string
+    {
+        return $country === '+964'
+            ? 'regex:/^0?7[0-9]{9}$/'
+            : 'regex:/^0?[0-9]{9,12}$/';
     }
 
     /**

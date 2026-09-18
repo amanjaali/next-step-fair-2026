@@ -17,15 +17,23 @@
           data-label-delete-window-expired-hint="{{ __('registration_desk.delete_window_expired_hint') }}"
           data-label-saved="{{ __('registration_desk.saved') }}"
           data-label-created-walk-in="{{ __('registration_desk.created_walk_in') }}"
+          data-label-created-walk-ins="{{ __('registration_desk.created_walk_ins') }}"
           data-label-deleted="{{ __('registration_desk.deleted') }}"
           data-label-showing-count="{{ __('registration_desk.showing_count', ['shown' => ':shown', 'total' => ':total']) }}"
           data-label-fill-required="{{ __('registration_desk.fill_required') }}"
+          data-label-phone-invalid="{{ __('registration_desk.phone_invalid') }}"
+          data-label-add-member="{{ __('registration_desk.add_member') }}"
+          data-label-remove-member="{{ __('registration_desk.remove_member') }}"
+          data-label-member-name-placeholder="{{ __('registration_desk.member_name_placeholder') }}"
           data-label-history-by="{{ __('registration_desk.history_by', ['user' => ':user', 'field' => ':field', 'old' => ':old', 'new' => ':new']) }}"
           data-label-history-empty="{{ __('registration_desk.history_empty') }}"
           data-label-field-name="{{ __('registration_desk.field_name') }}"
           data-label-field-phone-country="{{ __('registration_desk.field_phone_country') }}"
           data-label-field-phone="{{ __('registration_desk.field_phone') }}"
-          data-label-field-type="{{ __('registration_desk.field_type') }}">
+          data-label-field-type="{{ __('registration_desk.field_type') }}"
+          data-label-type-visitor="{{ __('registration_desk.type_visitor') }}"
+          data-label-type-student="{{ __('registration_desk.type_student') }}"
+          data-label-type-parent="{{ __('registration_desk.type_parent') }}">
 
         <header class="rg-top">
             <strong class="rg-top__title">{{ __('registration_desk.title') }}</strong>
@@ -84,8 +92,22 @@
                         </label>
                         <label class="rg-field">
                             <span class="rg-label">{{ __('registration_desk.field_phone') }} *</span>
-                            <input type="tel" class="rg-input" data-field="phone" data-required>
+                            <input type="tel" class="rg-input" data-field="phone" data-required inputmode="numeric" maxlength="11">
                         </label>
+                    </div>
+
+                    <div data-members-feature>
+                        <label class="rg-checkbox">
+                            <input type="checkbox" data-add-members-toggle>
+                            {{ __('registration_desk.add_members_toggle') }}
+                        </label>
+
+                        <div class="rg-members" data-members hidden>
+                            <div data-member-rows></div>
+                            <button type="button" class="rg-btn rg-btn--ghost" data-add-member>
+                                {{ __('registration_desk.add_member') }}
+                            </button>
+                        </div>
                     </div>
 
                     <p class="rg-hint" data-delete-hint></p>
