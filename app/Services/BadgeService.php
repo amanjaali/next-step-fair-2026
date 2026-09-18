@@ -667,13 +667,13 @@ class BadgeService
         return ($code === 0 && isset($output[0]) && $output[0] !== '') ? trim($output[0]) : null;
     }
 
-    /** Chrome/Chromium for Puppeteer — env override, then puppeteer.executablePath(). */
+    /** Chrome/Chromium for Browsershot — env, system paths, Puppeteer cache, then puppeteer v24. */
     public function puppeteerChromePath(): ?string
     {
-        $configured = config('nextstep.badge.chrome_path');
-
-        if (is_string($configured) && $configured !== '' && is_readable($configured)) {
-            return $configured;
+        foreach ($this->candidateChromePaths() as $path) {
+            if (is_executable($path)) {
+                return $path;
+            }
         }
 
         $node = $this->resolveNodeBinary();
@@ -694,7 +694,54 @@ class BadgeService
 
         $path = trim($output[0]);
 
-        return is_readable($path) ? $path : null;
+        return is_executable($path) ? $path : null;
+    }
+
+    /** @return list<string> */
+    private function candidateChromePaths(): array
+    {
+        $paths = [];
+
+        $configured = config('nextstep.badge.chrome_path');
+
+        if (is_string($configured) && $configured !== '') {
+            $paths[] = $configured;
+        }
+
+        $paths = array_merge($paths, [
+            '/usr/bin/chromium-browser',
+            '/usr/bin/chromium',
+            '/snap/bin/chromium',
+            '/usr/bin/google-chrome-stable',
+            '/usr/bin/google-chrome',
+        ]);
+
+        foreach ($this->puppeteerCacheRoots() as $root) {
+            $matches = glob($root.'/chrome/*/chrome-linux64/chrome') ?: [];
+            $paths = array_merge($paths, $matches);
+        }
+
+        return array_values(array_unique($paths));
+    }
+
+    /** @return list<string> */
+    private function puppeteerCacheRoots(): array
+    {
+        $roots = [];
+
+        $cacheDir = getenv('PUPPETEER_CACHE_DIR');
+
+        if (is_string($cacheDir) && $cacheDir !== '') {
+            $roots[] = $cacheDir;
+        }
+
+        $home = getenv('HOME');
+
+        if (is_string($home) && $home !== '') {
+            $roots[] = $home.'/.cache/puppeteer';
+        }
+
+        return array_values(array_unique($roots));
     }
 
     /**
