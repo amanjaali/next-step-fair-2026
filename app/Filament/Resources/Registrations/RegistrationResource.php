@@ -16,6 +16,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Fair registrations — students and parents.
@@ -93,5 +94,31 @@ class RegistrationResource extends Resource
     public static function canAccess(): bool
     {
         return auth()->user()?->can('view-registrations') ?? false;
+    }
+
+    /**
+     * A monitor can see the queue but never add to it, change it, or remove
+     * from it — by hand or by URL. The table already hides every button that
+     * would take these actions; this is what stops someone who knows (or
+     * guesses) the edit/delete URL from reaching them anyway.
+     */
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->can('edit-registrations') ?? false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()?->can('edit-registrations') ?? false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()?->can('edit-registrations') ?? false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()?->can('edit-registrations') ?? false;
     }
 }

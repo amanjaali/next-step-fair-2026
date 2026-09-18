@@ -24,6 +24,18 @@ use Throwable;
  */
 class RegistrationActions
 {
+    /**
+     * Everything below is a mutation — approve, cancel, delete, resend, download
+     * or regenerate a badge — never just a read. A role that only has
+     * view-registrations (Registration Monitor, for instance) gets the table and
+     * the View action and nothing that touches a record; Registration Manager
+     * already holds both permissions, so none of this changes for them.
+     */
+    private static function canEdit(): bool
+    {
+        return auth()->user()?->can('edit-registrations') ?? false;
+    }
+
     /** Approves pending conference RSVPs and issues their badges. */
     public static function approve(): Action
     {
@@ -31,7 +43,7 @@ class RegistrationActions
             ->label(__('admin.actions.approve'))
             ->icon('heroicon-m-check-badge')
             ->color('success')
-            ->visible(fn (Registration $record) => $record->status === Registration::STATUS_PENDING)
+            ->visible(fn (Registration $record) => static::canEdit() && $record->status === Registration::STATUS_PENDING)
             ->requiresConfirmation()
             ->action(fn (Registration $record) => static::applyApproval(collect([$record])));
     }
@@ -42,6 +54,7 @@ class RegistrationActions
             ->label(__('admin.actions.approve'))
             ->icon('heroicon-m-check-badge')
             ->color('success')
+            ->visible(fn () => static::canEdit())
             ->requiresConfirmation()
             ->deselectRecordsAfterCompletion()
             ->action(fn (Collection $records) => static::applyApproval($records));
@@ -53,6 +66,7 @@ class RegistrationActions
             ->label(__('admin.actions.cancel'))
             ->icon('heroicon-m-x-circle')
             ->color('danger')
+            ->visible(fn () => static::canEdit())
             ->requiresConfirmation()
             ->schema([
                 TextInput::make('reason')
@@ -76,6 +90,7 @@ class RegistrationActions
             ->label(__('admin.actions.cancel'))
             ->icon('heroicon-m-x-circle')
             ->color('danger')
+            ->visible(fn () => static::canEdit())
             ->requiresConfirmation()
             ->deselectRecordsAfterCompletion()
             ->action(function (Collection $records) {
@@ -99,6 +114,7 @@ class RegistrationActions
         return DeleteAction::make()
             ->label(__('admin.actions.delete'))
             ->icon('heroicon-m-trash')
+            ->visible(fn () => static::canEdit())
             ->modalHeading(__('admin.actions.delete'))
             ->modalDescription(__('admin.actions.delete_help'))
             ->successNotificationTitle(__('admin.notify.deleted'));
@@ -108,6 +124,7 @@ class RegistrationActions
     {
         return DeleteBulkAction::make()
             ->label(__('admin.actions.delete'))
+            ->visible(fn () => static::canEdit())
             ->modalHeading(__('admin.actions.delete'))
             ->modalDescription(__('admin.actions.delete_help'))
             ->successNotificationTitle(__('admin.notify.deleted'));
@@ -120,7 +137,7 @@ class RegistrationActions
             ->label(__('admin.actions.resend_whatsapp'))
             ->icon('heroicon-m-paper-airplane')
             ->color('info')
-            ->visible(fn (Registration $record) => $record->badgeIssued() && $record->msisdn())
+            ->visible(fn (Registration $record) => static::canEdit() && $record->badgeIssued() && $record->msisdn())
             ->requiresConfirmation()
             ->action(fn (Registration $record) => static::applyResend(collect([$record])));
     }
@@ -131,6 +148,7 @@ class RegistrationActions
             ->label(__('admin.actions.resend_whatsapp'))
             ->icon('heroicon-m-paper-airplane')
             ->color('info')
+            ->visible(fn () => static::canEdit())
             ->requiresConfirmation()
             ->deselectRecordsAfterCompletion()
             ->action(fn (Collection $records) => static::applyResend($records));
@@ -141,6 +159,7 @@ class RegistrationActions
         return Action::make('regenerate')
             ->label(__('admin.actions.regenerate_badge'))
             ->icon('heroicon-m-arrow-path')
+            ->visible(fn () => static::canEdit())
             ->requiresConfirmation()
             ->action(fn (Registration $record) => static::applyRegenerate(collect([$record])));
     }
@@ -150,6 +169,7 @@ class RegistrationActions
         return BulkAction::make('regenerate')
             ->label(__('admin.actions.regenerate_badge'))
             ->icon('heroicon-m-arrow-path')
+            ->visible(fn () => static::canEdit())
             ->requiresConfirmation()
             ->deselectRecordsAfterCompletion()
             ->action(fn (Collection $records) => static::applyRegenerate($records));
@@ -160,7 +180,7 @@ class RegistrationActions
         return Action::make('badge')
             ->label(__('admin.actions.download_badge'))
             ->icon('heroicon-m-identification')
-            ->visible(fn (Registration $record) => $record->badgeIssued())
+            ->visible(fn (Registration $record) => static::canEdit() && $record->badgeIssued())
             ->url(fn (Registration $record) => route('ticket.pdf', $record->ticket_id))
             ->openUrlInNewTab();
     }

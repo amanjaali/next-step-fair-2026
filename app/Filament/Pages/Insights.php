@@ -50,6 +50,11 @@ class Insights extends Page
         return __('admin.insights.subtitle');
     }
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('view-analytics') ?? false;
+    }
+
     public function getWidgets(): array
     {
         return [

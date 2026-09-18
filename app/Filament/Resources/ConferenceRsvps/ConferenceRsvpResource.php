@@ -15,6 +15,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Conference RSVPs — government and official delegates.
@@ -97,5 +98,15 @@ class ConferenceRsvpResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()?->can('edit-registrations') ?? false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()?->can('edit-registrations') ?? false;
     }
 }

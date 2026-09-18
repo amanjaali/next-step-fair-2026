@@ -20,9 +20,11 @@ class ListRegistrations extends ListRecords
         return [
             ExportAction::make()
                 ->label(__('admin.actions.export'))
-                ->exporter(RegistrationExporter::class),
+                ->exporter(RegistrationExporter::class)
+                ->visible(fn () => auth()->user()?->can('edit-registrations') ?? false),
             CreateAction::make()
                 ->label(__('admin.actions.walk_in'))
+                ->visible(fn () => auth()->user()?->can('edit-registrations') ?? false)
                 ->mutateDataUsing(function (array $data) {
                     // Walk-ins are entered by staff at the door and are confirmed
                     // on the spot: there is no OTP round-trip at the desk.

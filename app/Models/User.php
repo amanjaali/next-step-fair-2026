@@ -43,7 +43,7 @@ class User extends Authenticatable implements FilamentUser
 
         return $this->hasAnyRole([
             'Super Admin', 'Registration Manager', 'Content Editor', 'Sponsor Manager',
-            'Scholarship Committee',
+            'Scholarship Committee', 'Registration Monitor',
         ]);
     }
 

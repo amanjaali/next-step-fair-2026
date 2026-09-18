@@ -17,8 +17,17 @@ use Filament\Pages\Dashboard as BaseDashboard;
  */
 class Dashboard extends BaseDashboard
 {
+    /**
+     * A role that can only view a couple of resources — Registration Monitor,
+     * for instance — has no business seeing aggregate stats across the whole
+     * fair on the panel's own home page.
+     */
     public function getWidgets(): array
     {
+        if (! (auth()->user()?->can('view-analytics') ?? false)) {
+            return [];
+        }
+
         return [
             RegistrationStatsWidget::class,
             RegistrationsChartWidget::class,

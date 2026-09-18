@@ -17,6 +17,10 @@ use Spatie\Permission\Models\Role;
  * Manager: it gets only the lightweight /registration desk, never the
  * Filament admin panel — a volunteer working a shift at the door shouldn't
  * also inherit edit/cancel/export access to every registration in the system.
+ *
+ * Registration Monitor is the opposite trade: the Filament admin panel, but
+ * strictly read-only — Fair registrations and Conference RSVPs, nothing to
+ * click but View.
  */
 class RoleSeeder extends Seeder
 {
@@ -50,6 +54,16 @@ class RoleSeeder extends Seeder
         ],
         'Registration Volunteer' => [
             'access-registration-desk',
+        ],
+        /*
+         * Read-only: sees Fair registrations and Conference RSVPs in the admin
+         * panel, can open a record to view it, and nothing else — no create,
+         * edit, cancel, resend, regenerate, delete or export. Every other
+         * resource in the admin stays invisible, the same way it already is
+         * for every role below that doesn't hold its permission.
+         */
+        'Registration Monitor' => [
+            'view-registrations',
         ],
         'Content Editor' => [
             'manage-content', 'publish-content', 'manage-media', 'view-analytics',

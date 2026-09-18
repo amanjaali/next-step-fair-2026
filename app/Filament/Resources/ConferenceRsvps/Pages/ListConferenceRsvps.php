@@ -17,7 +17,10 @@ class ListConferenceRsvps extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            ExportAction::make()->label(__('admin.actions.export'))->exporter(RegistrationExporter::class),
+            ExportAction::make()
+                ->label(__('admin.actions.export'))
+                ->exporter(RegistrationExporter::class)
+                ->visible(fn () => auth()->user()?->can('edit-registrations') ?? false),
         ];
     }
 

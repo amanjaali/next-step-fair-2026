@@ -183,7 +183,9 @@ class RegistrationsTable
                     RegistrationActions::regenerateBadgeBulk(),
                     RegistrationActions::cancelBulk(),
                     RegistrationActions::deleteBulk(),
-                    ExportBulkAction::make()->exporter(RegistrationExporter::class),
+                    ExportBulkAction::make()
+                        ->exporter(RegistrationExporter::class)
+                        ->visible(fn () => auth()->user()?->can('edit-registrations') ?? false),
                 ]),
             ]);
     }
