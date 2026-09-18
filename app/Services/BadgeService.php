@@ -83,13 +83,49 @@ class BadgeService
         return $uris;
     }
 
-    /** A6 PDF, the format printed at the registration desk. */
+    /**
+     * A6 PDF, the format printed at the registration desk.
+     *
+     * DomPDF — like GD — has no Arabic text shaping: it draws whatever
+     * codepoints the view produces, one isolated letter at a time, whether or
+     * not `dir="rtl"` is set. Without pre-shaping, a Kurdish or Arabic name
+     * prints as disconnected letters — confirmed by rendering this exact view
+     * through DomPDF with and without shaping and comparing the two rasters.
+     * ar-php's glyph joiner exists for precisely this: renderers, GD and
+     * DomPDF alike, that only draw isolated forms.
+     *
+     * So every Arabic-script run in the rendered HTML is shaped in place
+     * before DomPDF ever sees it. This only touches text nodes — a run is
+     * "Arabic-block characters, optionally with single spaces between Arabic
+     * words", which cannot appear inside a tag or attribute.
+     */
     public function pdf(Registration $registration): string
     {
-        $pdf = Pdf::loadView('badges.badge', $this->payload($registration))
-            ->setPaper('a6', 'portrait');
+        $html = view('badges.badge', $this->payload($registration))->render();
+        $html = $this->shapeArabicScriptRuns($html);
 
-        return $pdf->output();
+        return Pdf::loadHTML($html)->setPaper('a6', 'portrait')->output();
+    }
+
+    /**
+     * Shape every Arabic-script run in already-rendered HTML, for renderers
+     * (DomPDF, GD) that cannot join Arabic letters themselves.
+     *
+     * Deliberately operates on the rendered string rather than on individual
+     * model fields: the badge draws localised strings from several places —
+     * the name, the institution, the day label, translated UI text — and a
+     * regex over the Arabic Unicode ranges catches all of them in one pass
+     * without a shaping call at every call site that might print one.
+     */
+    private function shapeArabicScriptRuns(string $html): string
+    {
+        $arabicChar = '[\x{0600}-\x{06FF}\x{0750}-\x{077F}\x{08A0}-\x{08FF}\x{FB50}-\x{FDFF}\x{FE70}-\x{FEFF}]';
+
+        return preg_replace_callback(
+            "/{$arabicChar}+(?:[ \x{00A0}]{$arabicChar}+)*/u",
+            fn (array $m) => $this->shapeForGd($m[0]),
+            $html
+        ) ?? $html;
     }
 
     /**

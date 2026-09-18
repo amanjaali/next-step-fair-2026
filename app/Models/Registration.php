@@ -436,7 +436,7 @@ class Registration extends Model implements AuthenticatableContract
 
     public function accent(): string
     {
-        return ns_track_accent($this->track);
+        return ns_track_accent($this->track, $this->type);
     }
 
     public function firstName(): string

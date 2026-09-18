@@ -123,11 +123,13 @@ return [
     | Registration tracks
     |---------------------------------------------------------------------------
     | Two flows, one table, one discriminator. The accent colour is the wayfinding
-    | system: magenta is the fair, cobalt is the conference, everywhere.
+    | system: magenta is the fair, cobalt is the conference, everywhere — except
+    | the per-type overrides below, for a type that needs its own colour without
+    | being its own track (a desk-issued visitor pass is still a "fair" record).
     */
     'tracks' => [
         'fair' => [
-            'types' => ['student', 'parent'],
+            'types' => ['student', 'parent', 'visitor'],
             'accent' => '#B64698',
             'channel' => 'whatsapp',
             'auto_confirm' => true,
@@ -141,6 +143,16 @@ return [
             'auto_confirm' => false,
             'duplicate_key' => 'email',
         ],
+    ],
+
+    /*
+    | A visitor pass is a fair-track record, but it keeps its own wayfinding
+    | colour (the same cobalt as the conference badge) so it reads apart from
+    | the magenta student/parent badges at the gate. Keyed by `type`, checked
+    | before the track accent — see ns_track_accent().
+    */
+    'type_accents' => [
+        'visitor' => '#2C4BE0',
     ],
 
     // Free-mail domains that push a conference RSVP into manual protocol review.

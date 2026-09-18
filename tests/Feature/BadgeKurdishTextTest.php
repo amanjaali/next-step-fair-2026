@@ -22,6 +22,55 @@ class BadgeKurdishTextTest extends TestCase
         $this->assertSame('Zardasht Aziz', $service->shapeForGd('Zardasht Aziz'));
     }
 
+    /**
+     * DomPDF has no Arabic shaping of its own — confirmed by rendering the
+     * same view through DomPDF with and without shaping and comparing the
+     * rasters: unshaped is a row of disconnected letters even with
+     * dir="rtl" set. So the PDF path must shape every Arabic-script run in
+     * the rendered HTML before handing it to DomPDF, the same way the GD
+     * fallback already shapes text before drawing it.
+     */
+    public function test_arabic_script_runs_are_shaped_before_reaching_dompdf(): void
+    {
+        $service = app(BadgeService::class);
+        $shapeMethod = new \ReflectionMethod($service, 'shapeArabicScriptRuns');
+        $shapeMethod->setAccessible(true);
+
+        $html = '<div class="name">دەستەشعار</div><div class="meta">Sulaimani</div>';
+        $shaped = $shapeMethod->invoke($service, $html);
+
+        $this->assertStringContainsString($service->shapeForGd('دەستەشعار'), $shaped);
+        // Markup and Latin text are untouched — only the Arabic-script run changed.
+        $this->assertStringContainsString('<div class="name">', $shaped);
+        $this->assertStringContainsString('<div class="meta">Sulaimani</div>', $shaped);
+    }
+
+    /**
+     * A PDF badge for a Kurdish name should render without error, and the
+     * shaped name (not the raw, disconnected-letter form) should end up in
+     * the document.
+     */
+    public function test_kurdish_badge_pdf_is_shaped_and_generated_without_error(): void
+    {
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_VISITOR,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'ku',
+            'full_name' => 'دەستەشعار',
+            'phone' => '7701115599',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+        ]);
+
+        $pdf = app(BadgeService::class)->pdf($registration);
+
+        $this->assertNotSame('', $pdf);
+        $this->assertSame('%PDF', substr($pdf, 0, 4));
+    }
+
     public function test_kurdish_badge_png_is_generated_without_error(): void
     {
         $registration = Registration::create([
@@ -64,5 +113,22 @@ class BadgeKurdishTextTest extends TestCase
         $this->assertStringContainsString("@font-face{font-family:'Noto Sans Arabic'", $html);
         $this->assertStringContainsString("font-family: 'Noto Sans Arabic'", $html);
         $this->assertStringContainsString('dir="rtl"', $html);
+    }
+
+    /**
+     * A visitor pass is a fair-track record, but it keeps its own accent
+     * colour (the conference cobalt) so it reads apart from the magenta
+     * student/parent badges at the gate — see config('nextstep.type_accents').
+     */
+    public function test_visitor_pass_keeps_its_own_accent_apart_from_student_and_parent(): void
+    {
+        $visitor = Registration::make(['track' => Registration::TRACK_FAIR, 'type' => Registration::TYPE_VISITOR]);
+        $student = Registration::make(['track' => Registration::TRACK_FAIR, 'type' => Registration::TYPE_STUDENT]);
+        $parent = Registration::make(['track' => Registration::TRACK_FAIR, 'type' => Registration::TYPE_PARENT]);
+
+        $this->assertSame(config('nextstep.tracks.conference.accent'), $visitor->accent());
+        $this->assertSame(config('nextstep.tracks.fair.accent'), $student->accent());
+        $this->assertSame(config('nextstep.tracks.fair.accent'), $parent->accent());
+        $this->assertNotSame($visitor->accent(), $student->accent());
     }
 }

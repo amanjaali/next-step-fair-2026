@@ -152,11 +152,22 @@ if (! function_exists('ns_days_until')) {
 
 if (! function_exists('ns_track_accent')) {
     /**
-     * The wayfinding colour for a track: magenta for the fair, cobalt for the
-     * conference. Used on badges, chips and section rules.
+     * The wayfinding colour for a registration: magenta for the fair, cobalt
+     * for the conference — unless `$type` has its own override in
+     * `nextstep.type_accents` (a visitor pass is a fair-track record that
+     * still needs to read apart from student/parent badges at the gate).
+     * Used on badges, chips and section rules.
      */
-    function ns_track_accent(?string $track): string
+    function ns_track_accent(?string $track, ?string $type = null): string
     {
+        if ($type !== null) {
+            $override = config("nextstep.type_accents.$type");
+
+            if ($override) {
+                return $override;
+            }
+        }
+
         return $track === 'conference'
             ? config('nextstep.tracks.conference.accent')
             : config('nextstep.tracks.fair.accent');
