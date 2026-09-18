@@ -281,6 +281,8 @@ return [
         'node_binary' => env('BADGE_NODE_BINARY'),
         'npm_binary' => env('BADGE_NPM_BINARY'),
         'chrome_path' => env('BADGE_CHROME_PATH'),
+        // Puppeteer-downloaded Chrome for www-data (not Ubuntu snap chromium).
+        'puppeteer_cache_dir' => env('PUPPETEER_CACHE_DIR', base_path('.puppeteer-cache')),
 
         // Bump this to the current time whenever the badge template, fonts,
         // or shaping change in a way that makes previously-rendered artwork

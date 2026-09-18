@@ -14,6 +14,7 @@
 /.zed
 /auth.json
 /node_modules
+/.puppeteer-cache
 /docs/system-map/_source/node_modules
 /docs/system-map/_source/__pycache__
 # /public/build — committed so the server needs no Node

@@ -639,6 +639,32 @@ class BadgeService
 
     private function configureBrowsershot(Browsershot $shot): void
     {
+        $profileRoot = storage_path('app/browsershot');
+        $home = $profileRoot.'/home';
+
+        foreach ([
+            $profileRoot,
+            $home,
+            $home.'/.config',
+            $profileRoot.'/cache',
+            $profileRoot.'/chrome-profile',
+        ] as $dir) {
+            if (! is_dir($dir)) {
+                mkdir($dir, 0775, true);
+            }
+        }
+
+        $shot->setUserDataDir($profileRoot.'/chrome-profile')
+            ->addChromiumArguments([
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+            ])
+            ->setEnvironmentOptions([
+                'HOME' => $home,
+                'XDG_CONFIG_HOME' => $home.'/.config',
+                'XDG_CACHE_HOME' => $profileRoot.'/cache',
+            ]);
+
         if ($node = $this->resolveNodeBinary()) {
             $shot->setNodeBinary($node);
         }
@@ -708,26 +734,40 @@ class BadgeService
             $paths[] = $configured;
         }
 
+        foreach ($this->puppeteerCacheRoots() as $root) {
+            $paths = array_merge($paths, $this->puppeteerCacheMatches($root));
+        }
+
+        // Deb-packaged Chrome only — Ubuntu's chromium-browser is a snap wrapper
+        // that fails under www-data (cannot mkdir /var/www/snap).
         $paths = array_merge($paths, [
-            '/usr/bin/chromium-browser',
-            '/usr/bin/chromium',
-            '/snap/bin/chromium',
             '/usr/bin/google-chrome-stable',
             '/usr/bin/google-chrome',
         ]);
 
-        foreach ($this->puppeteerCacheRoots() as $root) {
-            $matches = glob($root.'/chrome/*/chrome-linux64/chrome') ?: [];
-            $paths = array_merge($paths, $matches);
+        return array_values(array_unique($paths));
+    }
+
+    /** @return list<string> */
+    private function puppeteerCacheMatches(string $root): array
+    {
+        if (! is_dir($root)) {
+            return [];
         }
 
-        return array_values(array_unique($paths));
+        return glob($root.'/chrome/*/chrome-linux64/chrome') ?: [];
     }
 
     /** @return list<string> */
     private function puppeteerCacheRoots(): array
     {
         $roots = [];
+
+        $configured = config('nextstep.badge.puppeteer_cache_dir');
+
+        if (is_string($configured) && $configured !== '') {
+            $roots[] = $configured;
+        }
 
         $cacheDir = getenv('PUPPETEER_CACHE_DIR');
 
@@ -744,6 +784,21 @@ class BadgeService
         return array_values(array_unique($roots));
     }
 
+    public function chromeLooksLikeSnap(string $path): bool
+    {
+        return str_contains($path, '/snap/')
+            || str_ends_with($path, 'chromium-browser')
+            || str_ends_with($path, 'chromium');
+    }
+
+    public function chromeOutsideProject(string $path): bool
+    {
+        $project = rtrim(base_path(), '/');
+
+        return str_starts_with($path, '/home/')
+            && ! str_starts_with($path, $project.'/');
+    }
+
     /**
      * Browsershot needs Node and a Chromium build (from puppeteer). Skip it
      * when either is missing so Kurdish badges fall straight to the GD path.
@@ -755,12 +810,16 @@ class BadgeService
             && $this->puppeteerChromePath() !== null;
     }
 
-    /** @return array{node: ?string, chrome: ?string, puppeteer: bool, freetype: bool} */
+    /** @return array{node: ?string, chrome: ?string, chrome_snap: bool, chrome_outside_project: bool, puppeteer: bool, freetype: bool} */
     public function renderingDiagnostics(): array
     {
+        $chrome = $this->puppeteerChromePath();
+
         return [
             'node' => $this->resolveNodeBinary(),
-            'chrome' => $this->puppeteerChromePath(),
+            'chrome' => $chrome,
+            'chrome_snap' => is_string($chrome) && $this->chromeLooksLikeSnap($chrome),
+            'chrome_outside_project' => is_string($chrome) && $this->chromeOutsideProject($chrome),
             'puppeteer' => is_dir(base_path('node_modules/puppeteer')),
             'freetype' => extension_loaded('gd') && (gd_info()['FreeType Support'] ?? false),
         ];
