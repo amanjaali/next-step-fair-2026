@@ -45,6 +45,10 @@ class Organization extends Model
         static::creating(function (self $organization) {
             $organization->qr_code = $organization->qr_code ?: strtolower(Str::random(7));
         });
+
+        static::saving(function (self $organization) {
+            $organization->slug = $organization->slug ?: Str::slug($organization->getTranslation('name', 'en', false) ?: Str::random(8));
+        });
     }
 
     protected function casts(): array
