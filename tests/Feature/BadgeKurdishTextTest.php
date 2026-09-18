@@ -71,6 +71,33 @@ class BadgeKurdishTextTest extends TestCase
         $this->assertSame('%PDF', substr($pdf, 0, 4));
     }
 
+    /**
+     * WhatsApp PNGs are screenshot by headless Chrome, which shapes and
+     * reorders Arabic script itself (real HarfBuzz + bidi) — so unlike
+     * DomPDF/GD it gets the raw name, natural dir="rtl", and UniSirwan Ping
+     * Heavy, the Kurdish font with proper `init`/`medi`/`fina`/`isol` tables.
+     */
+    public function test_png_badge_html_uses_native_chrome_shaping_with_unisirwan(): void
+    {
+        $registration = Registration::make([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_VISITOR,
+            'locale' => 'ku',
+            'full_name' => 'دەستەشعار',
+        ]);
+
+        $method = new \ReflectionMethod(BadgeService::class, 'badgeHtml');
+        $method->setAccessible(true);
+
+        $html = $method->invoke(app(BadgeService::class), $registration, true, true);
+
+        $this->assertStringContainsString('dir="rtl"', $html);
+        $this->assertStringNotContainsString('dir="ltr"', $html);
+        $this->assertStringContainsString('دەستەشعار', $html);
+        $this->assertStringContainsString("'UniSirwan Ping Heavy'", $html);
+        $this->assertStringContainsString("@font-face{font-family:'UniSirwan Ping Heavy'", $html);
+    }
+
     public function test_kurdish_badge_png_is_generated_without_error(): void
     {
         $registration = Registration::create([

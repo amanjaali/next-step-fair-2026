@@ -21,7 +21,8 @@
             font-family: {!! $displayFont ?? 'DejaVu Sans' !!}, DejaVu Sans, sans-serif;
             font-size: 13pt; font-weight: bold; line-height: 1.1; letter-spacing: -0.2pt;
         }
-        .edition { font-size: 6.5pt; letter-spacing: 1.6pt; text-transform: uppercase; opacity: 0.78; margin-top: 2mm; }
+        .edition { font-size: 6.5pt; opacity: 0.78; margin-top: 2mm; }
+        html[dir="ltr"] .edition { letter-spacing: 1.6pt; text-transform: uppercase; }
         .chip {
             background: #ffffff; color: {{ $accent }}; font-size: 7pt; font-weight: bold;
             letter-spacing: 1.2pt; padding: 1.6mm 2.4mm; white-space: nowrap;
@@ -38,7 +39,9 @@
         .partners { background: #ffffff; padding: 2.4mm 3mm; }
         .partners img { height: 13mm; width: auto; vertical-align: middle; }
         .partners .rule { display: inline-block; width: 0.4mm; height: 10mm; background: rgba(5, 7, 8, 0.18); vertical-align: middle; margin: 0 2.5mm; }
-        .partnership-label { font-size: 5.5pt; letter-spacing: 1.2pt; text-transform: uppercase; opacity: 0.8; margin-bottom: 1.4mm; }
+        /* letter-spacing breaks Arabic-script joining — keep tracking on Latin only */
+        .partnership-label { font-size: 5.5pt; opacity: 0.8; margin-bottom: 1.4mm; }
+        html[dir="ltr"] .partnership-label { letter-spacing: 1.2pt; text-transform: uppercase; }
 
         .name {
             font-family: {!! $displayFont ?? 'DejaVu Sans' !!}, DejaVu Sans, sans-serif;

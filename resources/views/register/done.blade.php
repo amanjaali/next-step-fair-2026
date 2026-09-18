@@ -1,10 +1,13 @@
-@php session()->flash('conversion', $conversion); @endphp
+@php
+    session()->flash('conversion', $conversion);
+    $accent = $registration->accent();
+@endphp
 <x-layouts.site :title="$title" :navKey="$navKey">
     <div class="ns-wrap max-w-[1080px] pt-[clamp(28px,4vw,56px)] pb-[clamp(72px,10vw,140px)]">
 
         <div class="flex items-center gap-3 mb-3">
-            <span class="w-[26px] h-2 bg-magenta"></span>
-            <span class="ns-eyebrow !text-magenta">{{ __('register.done.kicker') }}</span>
+            <span class="w-[26px] h-2" style="background:{{ $accent }}"></span>
+            <span class="ns-eyebrow" style="color:{{ $accent }}">{{ __('register.done.kicker') }}</span>
         </div>
 
         <h1 class="ns-h1 !text-[clamp(30px,4.4vw,46px)] mb-3">
@@ -18,8 +21,8 @@
 
         <div class="grid gap-8 lg:grid-cols-[1fr_1.05fr] items-start">
 
-            {{-- The badge as the registrant sees it, magenta for the fair track. --}}
-            <div class="bg-magenta text-white px-8 pt-[34px] pb-[30px]">
+            {{-- The badge as the registrant sees it — same accent as the printed PNG/PDF. --}}
+            <div class="text-white px-8 pt-[34px] pb-[30px]" style="background:{{ $accent }}">
                 {{-- The same arrangement as the badge that is printed and sent:
                      the event on one side, the partnership on the other, and the
                      type below. Somebody holding one and looking at this should
@@ -36,7 +39,7 @@
                 </div>
 
                 <div class="mb-[22px]">
-                    <span class="bg-white text-magenta font-[family-name:var(--ns-display)] text-[10.5px] font-bold tracking-[0.18em] px-[10px] py-[6px]">
+                    <span class="bg-white font-[family-name:var(--ns-display)] text-[10.5px] font-bold tracking-[0.18em] px-[10px] py-[6px]" style="color:{{ $accent }}">
                         {{ $registration->typeChip() }}
                     </span>
                 </div>
@@ -74,7 +77,7 @@
                     <div class="flex flex-col gap-3">
                         @foreach ($registration->messages()->latest()->take(3)->get() as $message)
                             <div class="flex gap-3 items-center">
-                                <span class="w-[9px] h-[9px] shrink-0 {{ $message->isFailed() ? 'bg-crimson' : 'bg-magenta' }}"></span>
+                                <span class="w-[9px] h-[9px] shrink-0 {{ $message->isFailed() ? 'bg-crimson' : '' }}" @unless($message->isFailed()) style="background:{{ $accent }}" @endunless></span>
                                 <span class="font-[family-name:var(--ns-body)] text-sm">
                                     {{ __('register.done.delivered_to', [
                                         'phone' => $registration->phone_country.' '.$registration->maskedPhone(),
@@ -103,7 +106,7 @@
                 </div>
 
                 <div class="mt-6 flex gap-[14px] flex-wrap">
-                    <a href="{{ route('agenda') }}" class="ns-btn ns-btn-ghost !text-magenta !border-[rgba(182,70,152,0.5)]">{{ __('site.cta.build_agenda') }}</a>
+                    <a href="{{ route('agenda') }}" class="ns-btn ns-btn-ghost" style="color:{{ $accent }};border-color:{{ $accent }}80">{{ __('site.cta.build_agenda') }}</a>
                     <a href="{{ route('home') }}" class="ns-btn ns-btn-ghost">{{ __('site.cta.back_home') }}</a>
                 </div>
             </div>

@@ -104,7 +104,14 @@ return [
             'code' => 'KU',
             'dir' => 'rtl',
             'html_lang' => 'ckb',
-            'display_font' => "'Noto Kufi Arabic'",
+            // Noto Kufi Arabic has no glyphs at the Presentation-Forms
+            // codepoints ar-php shapes Kurdish text into (confirmed via
+            // fonttools: FEE1, FBAA, FBD9, FBFC, … all missing) — every
+            // shaped name fell back to tofu boxes wherever a Kurdish-only
+            // letter (ھ ۆ ێ) landed in a bold run. Noto Sans Arabic has full
+            // coverage of the same codepoints, so DomPDF/GD (which can only
+            // draw pre-shaped, non-contextual glyphs) use it for both weights.
+            'display_font' => "'Noto Sans Arabic'",
             'body_font' => "'Noto Sans Arabic'",
         ],
         'ar' => [
@@ -113,7 +120,7 @@ return [
             'code' => 'AR',
             'dir' => 'rtl',
             'html_lang' => 'ar',
-            'display_font' => "'Noto Kufi Arabic'",
+            'display_font' => "'Noto Sans Arabic'",
             'body_font' => "'Noto Sans Arabic'",
         ],
     ],

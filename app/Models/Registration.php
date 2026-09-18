@@ -493,10 +493,18 @@ class Registration extends Model implements AuthenticatableContract
         return collect($this->days ?? [])->map(fn ($d) => (int) $d)->sort()->values()->all();
     }
 
+    /**
+     * "Day 1, Day 2, Day 3" in the registrant's own language.
+     *
+     * Without an explicit locale here, `__()` falls back to the app's
+     * current locale (the CLI/queue-worker default, not the registrant's) —
+     * which is how a Kurdish badge ended up with an English "Day 1, Day 2,
+     * Day 3" line while the name above it was in Kurdish.
+     */
     public function daysLabel(): string
     {
         return collect($this->dayList())
-            ->map(fn ($d) => __('site.common.day', ['n' => $d]))
+            ->map(fn ($d) => __('site.common.day', ['n' => $d], $this->locale))
             ->implode(', ');
     }
 

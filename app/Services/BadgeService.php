@@ -18,6 +18,9 @@ use Spatie\Browsershot\Browsershot;
  */
 class BadgeService
 {
+    /** ar-php with Kurdish-specific glyphs registered once — see arabicGlyphs(). */
+    private ?Arabic $arabicGlyphs = null;
+
     public function __construct(
         private readonly TicketService $tickets,
         private readonly QrCodeService $qr,
@@ -39,7 +42,7 @@ class BadgeService
             'verifyUrl' => $verifyUrl,
             'typeChip' => strtoupper($registration->type),
             'daysLabel' => $registration->isConference()
-                ? __('site.common.day', ['n' => 1]).' · '.ns_day_date(1)
+                ? __('site.common.day', ['n' => 1], $locale).' · '.ns_day_date(1)
                 : $registration->daysLabel(),
             'marks' => $this->partnerMarks(),
             'fontCss' => $this->fontCss($locale),
@@ -130,11 +133,27 @@ class BadgeService
 
     /**
      * PNG for WhatsApp delivery and the "download badge" button.
-     * Browsershot gives a pixel-accurate render; GD is the fallback.
+     *
+     * The shaped A6 PDF is rasterised first when Imagick is available — same
+     * artwork as print, no headless-Chrome font-load race. Browsershot
+     * screenshots the same Blade view natively: headless Chrome has real
+     * HarfBuzz shaping and bidi, so — unlike DomPDF/GD — it is handed raw,
+     * unshaped text set in UniSirwan Ping Heavy, a Kurdish font with proper
+     * `init`/`medi`/`fina`/`isol` OpenType substitution tables (verified with
+     * fonttools), and it joins and reorders the script correctly on its own.
+     * GD is last.
      */
     public function png(Registration $registration): string
     {
-        $html = view('badges.badge', $this->payload($registration) + ['forPng' => true])->render();
+        if (extension_loaded('imagick')) {
+            try {
+                return $this->pngFromPdf($this->pdf($registration));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $html = $this->badgeHtml($registration, forPng: true, nativeShaping: true);
 
         // Browsershot is optional: install spatie/browsershot plus a headless
         // Chrome to get a pixel-accurate render of the same Blade view.
@@ -146,7 +165,8 @@ class BadgeService
                     ->setScreenshotType('png')
                     ->noSandbox()
                     ->dismissDialogs()
-                    ->setDelay(150);
+                    ->waitUntilNetworkIdle()
+                    ->setDelay(300);
 
                 if ($node = config('nextstep.badge.node_binary')) {
                     $shot->setNodeBinary($node);
@@ -163,6 +183,47 @@ class BadgeService
         }
 
         return $this->fallbackPng($registration);
+    }
+
+    /**
+     * Rendered badge HTML for a renderer that shapes Arabic script itself.
+     *
+     * `nativeShaping` swaps in UniSirwan Ping Heavy — embedded as a TTF data
+     * URI, since headless Chrome cannot be trusted to have finished loading a
+     * woff2 `@font-face` before the screenshot fires — and leaves the text and
+     * `dir` attribute exactly as the view produced them. No ar-php shaping
+     * pass runs here: pre-shaped presentation-form glyphs would fight
+     * Chrome's own substitution instead of helping it.
+     */
+    private function badgeHtml(Registration $registration, bool $forPng = false, bool $nativeShaping = false): string
+    {
+        $payload = $this->payload($registration) + ['forPng' => $forPng];
+
+        if ($nativeShaping && in_array($registration->locale, ['ku', 'ar'], true)) {
+            $payload['fontCss'] = $this->uniSirwanFontCss();
+            $payload['displayFont'] = "'UniSirwan Ping Heavy'";
+            $payload['bodyFont'] = "'UniSirwan Ping Heavy'";
+        }
+
+        return view('badges.badge', $payload)->render();
+    }
+
+    /** Rasterise page one of a shaped A6 PDF to a PNG. */
+    private function pngFromPdf(string $pdf): string
+    {
+        $imagick = new \Imagick;
+        $imagick->setResolution(300, 300);
+        $imagick->readImageBlob($pdf);
+        $imagick->setIteratorIndex(0);
+        $imagick->setImageFormat('png');
+        $imagick->setImageBackgroundColor('white');
+        $imagick->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
+        $imagick->mergeImageLayers(\Imagick::LAYERMETHOD_FLATTEN);
+
+        $bytes = $imagick->getImageBlob();
+        $imagick->clear();
+
+        return $bytes;
     }
 
     /** Stores both artefacts and records them against the registration. */
@@ -209,6 +270,11 @@ class BadgeService
 
         $regular = $this->fontPath('DejaVuSans.ttf');
         $bold = $this->fontPath('DejaVuSans-Bold.ttf');
+        $arabicRegular = $this->badgeFontPath('NotoSansArabic-Regular.ttf');
+        // Noto Kufi Arabic has no glyphs at the Presentation-Forms codepoints
+        // ar-php shapes Kurdish letters into — Noto Sans Arabic does, for
+        // both weights, so it covers bold runs (the name) too. See fontCss().
+        $arabicBold = $this->badgeFontPath('NotoSansArabic-Bold.ttf');
         $shapeForGd = fn (string $text): string => $this->shapeForGd($text);
 
         // Flat colour blocks first. GD + FreeType stop joining Arabic glyphs after
@@ -217,14 +283,45 @@ class BadgeService
         imagefilledrectangle($image, 56, 214, 56 + (int) (strlen($chip) * 13) + 32, 258, $white);
         imagefilledrectangle($image, 56, 404, 596, 944, $white);
 
-        $write = function (string $text, int $size, int $x, int $y, bool $strong = false, ?int $colour = null) use ($image, $white, $regular, $bold, $shapeForGd) {
-            $text = $shapeForGd($text);
+        // A run is Arabic-block characters, optionally with single spaces
+        // between Arabic words — the same definition shapeArabicScriptRuns()
+        // uses for the DomPDF path.
+        $arabicChar = '[\x{0600}-\x{06FF}\x{0750}-\x{077F}\x{08A0}-\x{08FF}\x{FB50}-\x{FDFF}\x{FE70}-\x{FEFF}]';
+        $arabicRunPattern = "/({$arabicChar}+(?:[ \x{00A0}]{$arabicChar}+)*)|([^\x{0600}-\x{06FF}\x{0750}-\x{077F}\x{08A0}-\x{08FF}\x{FB50}-\x{FDFF}\x{FE70}-\x{FEFF}]+)/u";
 
-            if ($regular) {
-                imagettftext($image, $size, 0, $x, $y, $colour ?? $white, $strong ? $bold : $regular, $text);
-            } else {
+        $write = function (string $text, int $size, int $x, int $y, bool $strong = false, ?int $colour = null) use ($image, $white, $regular, $bold, $arabicRegular, $arabicBold, $shapeForGd, $arabicRunPattern) {
+            $latinFont = $strong ? $bold : $regular;
+            $arabicFont = $strong ? ($arabicBold ?? $arabicRegular ?? $latinFont) : ($arabicRegular ?? $latinFont);
+
+            if (! $latinFont && ! $arabicFont) {
                 // No TTF available: the bitmap font is ASCII-only, so transliterate.
                 imagestring($image, 5, $x, $y - 14, preg_replace('/[^\x20-\x7E]/', '-', $text), $colour ?? $white);
+
+                return;
+            }
+
+            // Drawn run by run, not as one string in one font: a Latin label
+            // can end up sharing a line with Kurdish text (a translation
+            // falling back to English, say), and the Arabic face has no
+            // Latin glyphs — one font for the whole line means that label
+            // draws as tofu instead of drawing at all. Each run gets its own
+            // font and shaping, left to right, one after another.
+            preg_match_all($arabicRunPattern, $text, $matches, PREG_SET_ORDER);
+            $cursor = $x;
+
+            foreach ($matches as $match) {
+                $arabicRun = $match[1] ?? '';
+                $isArabic = $arabicRun !== '';
+                $run = $isArabic ? $shapeForGd($arabicRun) : ($match[2] ?? '');
+                $font = $isArabic ? $arabicFont : $latinFont;
+
+                if (! $font) {
+                    continue;
+                }
+
+                imagettftext($image, $size, 0, $cursor, $y, $colour ?? $white, $font, $run);
+                $box = imagettfbbox($size, 0, $font, $run);
+                $cursor += (int) abs($box[2] - $box[0]);
             }
         };
 
@@ -389,7 +486,7 @@ class BadgeService
         }
 
         try {
-            return (new Arabic)->utf8Glyphs($text);
+            return $this->arabicGlyphs()->utf8Glyphs($text);
         } catch (\Throwable $e) {
             report($e);
 
@@ -397,7 +494,29 @@ class BadgeService
         }
     }
 
-    /** @font-face rules for the badge PNG renderer (Browsershot). DomPDF keeps DejaVu. */
+    /**
+     * ar-php knows Arabic and Persian out of the box; Kurdish Sorani adds a
+     * handful of letters (ھ ۆ ێ …) that are not in the default glyph table.
+     * Register them once so every GD / DomPDF / Browsershot path shares the
+     * same shaping.
+     */
+    private function arabicGlyphs(): Arabic
+    {
+        if ($this->arabicGlyphs !== null) {
+            return $this->arabicGlyphs;
+        }
+
+        $arabic = new Arabic;
+
+        // Presentation Forms-A codepoints from the Unicode charts.
+        $arabic->addGlyphs('ھ', 'FBAAFBABFBACFBAD', true, true); // heh doachashmee
+        $arabic->addGlyphs('ۆ', 'FBD9FBDAFBD9FBDA', false, true); // oe (right-joining)
+        $arabic->addGlyphs('ێ', 'FBFCFBFDFBFEFBFF', true, true); // yeh with small v
+
+        return $this->arabicGlyphs = $arabic;
+    }
+
+    /** @font-face rules for DomPDF/the Imagick-rasterised PDF path. Browsershot uses uniSirwanFontCss(). */
     private function fontCss(string $locale): string
     {
         if (! in_array($locale, ['ku', 'ar'], true)) {
@@ -406,16 +525,15 @@ class BadgeService
 
         $rules = [];
 
-        foreach ([
+        $faces = [
             "'Noto Sans Arabic'" => [
-                400 => 'noto-sans-arabic-400.woff2',
-                700 => 'noto-sans-arabic-700.woff2',
+                400 => ['noto-sans-arabic-400.woff2', 'font/woff2', 'woff2'],
+                700 => ['noto-sans-arabic-700.woff2', 'font/woff2', 'woff2'],
             ],
-            "'Noto Kufi Arabic'" => [
-                700 => 'noto-kufi-arabic-700.woff2',
-            ],
-        ] as $family => $weights) {
-            foreach ($weights as $weight => $file) {
+        ];
+
+        foreach ($faces as $family => $weights) {
+            foreach ($weights as $weight => [$file, $mime, $format]) {
                 $path = resource_path('fonts/badge/'.$file);
 
                 if (! is_readable($path)) {
@@ -424,11 +542,37 @@ class BadgeService
 
                 $data = base64_encode((string) file_get_contents($path));
 
-                $rules[] = "@font-face{font-family:{$family};font-style:normal;font-weight:{$weight};src:url(data:font/woff2;base64,{$data}) format('woff2');}";
+                $rules[] = "@font-face{font-family:{$family};font-style:normal;font-weight:{$weight};src:url(data:{$mime};base64,{$data}) format('{$format}');}";
             }
         }
 
         return implode('', $rules);
+    }
+
+    /**
+     * UniSirwan Ping Heavy, embedded as a TTF data URI, for renderers with
+     * real shaping (headless Chrome). One weight covers both the display and
+     * body roles on the badge — see `badgeHtml()`.
+     */
+    private function uniSirwanFontCss(): string
+    {
+        $path = resource_path('fonts/badge/UniSirwanPingHeavy.ttf');
+
+        if (! is_readable($path)) {
+            return '';
+        }
+
+        $data = base64_encode((string) file_get_contents($path));
+
+        return "@font-face{font-family:'UniSirwan Ping Heavy';font-style:normal;font-weight:400 700;src:url(data:font/ttf;base64,{$data}) format('truetype');}";
+    }
+
+    /** Noto faces committed under resources/fonts/badge for GD Arabic-script lines. */
+    private function badgeFontPath(string $file): ?string
+    {
+        $path = resource_path('fonts/badge/'.$file);
+
+        return is_readable($path) ? $path : null;
     }
 
     /** DomPDF ships DejaVu; fall back to the system copy, then to no TTF at all. */
