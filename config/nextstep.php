@@ -289,6 +289,6 @@ return [
         // that switch. Anything generated before this moment is redrawn on
         // next request instead of served stale; see TicketController::png()
         // and Registration::hasStaleBadge().
-        'rendering_version_at' => '2026-09-18 00:00:00',
+        'rendering_version_at' => '2026-09-19 01:05:00',
     ],
 ];

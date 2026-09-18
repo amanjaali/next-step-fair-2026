@@ -32,6 +32,8 @@ class BadgeService
         $verifyUrl = $this->tickets->verifyUrl($registration);
 
         $locale = $registration->locale;
+        $useUniSirwan = $locale === 'ku'
+            || (bool) preg_match('/\p{Arabic}/u', (string) $registration->full_name);
 
         return [
             'registration' => $registration,
@@ -45,9 +47,13 @@ class BadgeService
                 ? __('site.common.day', ['n' => 1], $locale).' · '.ns_day_date(1)
                 : $registration->daysLabel(),
             'marks' => $this->partnerMarks(),
-            'fontCss' => $this->fontCss($locale),
-            'bodyFont' => config("nextstep.locales.$locale.body_font", 'DejaVu Sans'),
-            'displayFont' => config("nextstep.locales.$locale.display_font", 'DejaVu Sans'),
+            'fontCss' => ($useUniSirwan && $locale !== 'ku' ? $this->uniSirwanFontCss() : '').$this->fontCss($locale),
+            'bodyFont' => $useUniSirwan
+                ? "'UniSirwan Ping Heavy'"
+                : config("nextstep.locales.$locale.body_font", 'DejaVu Sans'),
+            'displayFont' => $useUniSirwan
+                ? "'UniSirwan Ping Heavy'"
+                : config("nextstep.locales.$locale.display_font", 'DejaVu Sans'),
         ];
     }
 
@@ -145,6 +151,19 @@ class BadgeService
      */
     public function png(Registration $registration): string
     {
+        // Locale is the usual signal, but fair registrations are sometimes
+        // confirmed in English with a Kurdish name — those still need the
+        // shaping-aware PNG path or DomPDF/Imagick prints isolated letters.
+        if ($this->needsShapedPng($registration)) {
+            $png = $this->pngViaBrowsershot($registration);
+
+            if ($png !== null) {
+                return $png;
+            }
+
+            return $this->fallbackPng($registration);
+        }
+
         if (extension_loaded('imagick')) {
             try {
                 return $this->pngFromPdf($this->pdf($registration));
@@ -153,36 +172,71 @@ class BadgeService
             }
         }
 
-        $html = $this->badgeHtml($registration, forPng: true, nativeShaping: true);
+        $png = $this->pngViaBrowsershot($registration);
 
-        // Browsershot is optional: install spatie/browsershot plus a headless
-        // Chrome to get a pixel-accurate render of the same Blade view.
-        if (class_exists(Browsershot::class)) {
-            try {
-                $shot = Browsershot::html($html)
-                    ->windowSize(760, 1080)
-                    ->deviceScaleFactor(2)
-                    ->setScreenshotType('png')
-                    ->noSandbox()
-                    ->dismissDialogs()
-                    ->waitUntilNetworkIdle()
-                    ->setDelay(300);
-
-                if ($node = config('nextstep.badge.node_binary')) {
-                    $shot->setNodeBinary($node);
-                }
-
-                if ($npm = config('nextstep.badge.npm_binary')) {
-                    $shot->setNpmBinary($npm);
-                }
-
-                return $shot->screenshot();
-            } catch (\Throwable $e) {
-                report($e);
-            }
+        if ($png !== null) {
+            return $png;
         }
 
         return $this->fallbackPng($registration);
+    }
+
+    /**
+     * Whether this badge must avoid the DomPDF/Imagick PNG path.
+     *
+     * DomPDF cannot join Arabic-script letters even after ar-php shapes them —
+     * the disconnected Kurdish glyphs on live badge.png URLs are exactly that
+     * rasterisation path on a box where Imagick is installed.
+     */
+    private function needsShapedPng(Registration $registration): bool
+    {
+        if (in_array($registration->locale, ['ku', 'ar'], true)) {
+            return true;
+        }
+
+        $text = implode(' ', array_filter([
+            $registration->full_name,
+            $registration->organization,
+            $registration->position,
+            $registration->city,
+        ]));
+
+        return (bool) preg_match('/\p{Arabic}/u', $text);
+    }
+
+    /** Headless-Chrome screenshot of the badge view, or null when unavailable. */
+    private function pngViaBrowsershot(Registration $registration): ?string
+    {
+        if (! class_exists(Browsershot::class)) {
+            return null;
+        }
+
+        $html = $this->badgeHtml($registration, forPng: true, nativeShaping: true);
+
+        try {
+            $shot = Browsershot::html($html)
+                ->windowSize(760, 1080)
+                ->deviceScaleFactor(2)
+                ->setScreenshotType('png')
+                ->noSandbox()
+                ->dismissDialogs()
+                ->waitUntilNetworkIdle()
+                ->setDelay(300);
+
+            if ($node = config('nextstep.badge.node_binary')) {
+                $shot->setNodeBinary($node);
+            }
+
+            if ($npm = config('nextstep.badge.npm_binary')) {
+                $shot->setNpmBinary($npm);
+            }
+
+            return $shot->screenshot();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
+        }
     }
 
     /**
@@ -199,8 +253,8 @@ class BadgeService
     {
         $payload = $this->payload($registration) + ['forPng' => $forPng];
 
-        if ($nativeShaping && in_array($registration->locale, ['ku', 'ar'], true)) {
-            $payload['fontCss'] = $this->uniSirwanFontCss();
+        if ($nativeShaping && $this->needsShapedPng($registration)) {
+            $payload['fontCss'] = $this->uniSirwanFontCss().$this->fontCss($registration->locale);
             $payload['displayFont'] = "'UniSirwan Ping Heavy'";
             $payload['bodyFont'] = "'UniSirwan Ping Heavy'";
         }
@@ -270,11 +324,17 @@ class BadgeService
 
         $regular = $this->fontPath('DejaVuSans.ttf');
         $bold = $this->fontPath('DejaVuSans-Bold.ttf');
-        $arabicRegular = $this->badgeFontPath('NotoSansArabic-Regular.ttf');
+        $preferUniSirwan = $registration->locale === 'ku'
+            || (bool) preg_match('/\p{Arabic}/u', (string) $registration->full_name);
+        $arabicRegular = $preferUniSirwan
+            ? ($this->badgeFontPath('UniSirwanPingHeavy.ttf') ?? $this->badgeFontPath('NotoSansArabic-Regular.ttf'))
+            : $this->badgeFontPath('NotoSansArabic-Regular.ttf');
         // Noto Kufi Arabic has no glyphs at the Presentation-Forms codepoints
         // ar-php shapes Kurdish letters into — Noto Sans Arabic does, for
         // both weights, so it covers bold runs (the name) too. See fontCss().
-        $arabicBold = $this->badgeFontPath('NotoSansArabic-Bold.ttf');
+        $arabicBold = $preferUniSirwan
+            ? ($this->badgeFontPath('UniSirwanPingHeavy.ttf') ?? $this->badgeFontPath('NotoSansArabic-Bold.ttf'))
+            : $this->badgeFontPath('NotoSansArabic-Bold.ttf');
         $shapeForGd = fn (string $text): string => $this->shapeForGd($text);
 
         // Flat colour blocks first. GD + FreeType stop joining Arabic glyphs after
@@ -516,7 +576,12 @@ class BadgeService
         return $this->arabicGlyphs = $arabic;
     }
 
-    /** @font-face rules for DomPDF/the Imagick-rasterised PDF path. Browsershot uses uniSirwanFontCss(). */
+    /**
+     * @font-face rules for DomPDF and the Imagick-rasterised PDF path.
+     *
+     * DomPDF does not load woff2 reliably — only TTF data URIs are embedded
+     * here. Browsershot uses uniSirwanFontCss() instead.
+     */
     private function fontCss(string $locale): string
     {
         if (! in_array($locale, ['ku', 'ar'], true)) {
@@ -525,15 +590,19 @@ class BadgeService
 
         $rules = [];
 
+        if ($locale === 'ku') {
+            $rules[] = $this->uniSirwanFontCss();
+        }
+
         $faces = [
             "'Noto Sans Arabic'" => [
-                400 => ['noto-sans-arabic-400.woff2', 'font/woff2', 'woff2'],
-                700 => ['noto-sans-arabic-700.woff2', 'font/woff2', 'woff2'],
+                400 => 'NotoSansArabic-Regular.ttf',
+                700 => 'NotoSansArabic-Bold.ttf',
             ],
         ];
 
         foreach ($faces as $family => $weights) {
-            foreach ($weights as $weight => [$file, $mime, $format]) {
+            foreach ($weights as $weight => $file) {
                 $path = resource_path('fonts/badge/'.$file);
 
                 if (! is_readable($path)) {
@@ -542,7 +611,7 @@ class BadgeService
 
                 $data = base64_encode((string) file_get_contents($path));
 
-                $rules[] = "@font-face{font-family:{$family};font-style:normal;font-weight:{$weight};src:url(data:{$mime};base64,{$data}) format('{$format}');}";
+                $rules[] = "@font-face{font-family:{$family};font-style:normal;font-weight:{$weight};src:url(data:font/truetype;base64,{$data}) format('truetype');}";
             }
         }
 

@@ -181,8 +181,9 @@ class BadgeKurdishTextTest extends TestCase
 
         $html = view('badges.badge', app(BadgeService::class)->payload($registration))->render();
 
+        $this->assertStringContainsString("@font-face{font-family:'UniSirwan Ping Heavy'", $html);
         $this->assertStringContainsString("@font-face{font-family:'Noto Sans Arabic'", $html);
-        $this->assertStringContainsString("font-family: 'Noto Sans Arabic'", $html);
+        $this->assertStringContainsString("font-family: 'UniSirwan Ping Heavy'", $html);
         $this->assertStringContainsString('dir="rtl"', $html);
     }
 
