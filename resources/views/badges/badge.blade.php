@@ -2,7 +2,7 @@
      browser (or the GD fallback) for the PNG. Layout is table-based on purpose:
      DomPDF has no flexbox or grid. --}}
 <!DOCTYPE html>
-<html lang="{{ $locale }}" dir="{{ config("nextstep.locales.$locale.dir", 'ltr') }}">
+<html lang="{{ $htmlLang ?? config("nextstep.locales.$locale.html_lang", $locale) }}" dir="{{ $scriptDir ?? config("nextstep.locales.$locale.dir", 'ltr') }}">
 <head>
     <meta charset="utf-8">
     <title>{{ $registration->full_name }} — {{ $registration->ticket_ref }}</title>

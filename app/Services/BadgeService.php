@@ -32,10 +32,18 @@ class BadgeService
         $verifyUrl = $this->tickets->verifyUrl($registration);
 
         $locale = $registration->locale;
+        $rtlScript = $this->needsShapedPng($registration);
 
         return [
             'registration' => $registration,
             'locale' => $locale,
+            // Fair registrations are often confirmed in English with a Kurdish
+            // name. Chrome and DomPDF still need dir="rtl" for that script —
+            // ltr + Arabic letters is the disconnected-glyphs bug on badges.
+            'scriptDir' => $rtlScript ? 'rtl' : config("nextstep.locales.$locale.dir", 'ltr'),
+            'htmlLang' => $rtlScript && $locale === 'en'
+                ? 'ckb'
+                : config("nextstep.locales.$locale.html_lang", $locale),
             'accent' => $registration->accent(),
             'isConference' => $registration->isConference(),
             'qr' => $this->qr->pngDataUri($verifyUrl, 600),
@@ -207,7 +215,7 @@ class BadgeService
     /** Headless-Chrome screenshot of the badge view, or null when unavailable. */
     private function pngViaBrowsershot(Registration $registration): ?string
     {
-        if (! class_exists(Browsershot::class)) {
+        if (! class_exists(Browsershot::class) || ! $this->browsershotAvailable()) {
             return null;
         }
 
@@ -223,13 +231,7 @@ class BadgeService
                 ->waitUntilNetworkIdle()
                 ->setDelay(300);
 
-            if ($node = config('nextstep.badge.node_binary')) {
-                $shot->setNodeBinary($node);
-            }
-
-            if ($npm = config('nextstep.badge.npm_binary')) {
-                $shot->setNpmBinary($npm);
-            }
+            $this->configureBrowsershot($shot);
 
             return $shot->screenshot();
         } catch (\Throwable $e) {
@@ -324,17 +326,12 @@ class BadgeService
 
         $regular = $this->fontPath('DejaVuSans.ttf');
         $bold = $this->fontPath('DejaVuSans-Bold.ttf');
-        $preferUniSirwan = $registration->locale === 'ku'
-            || (bool) preg_match('/\p{Arabic}/u', (string) $registration->full_name);
-        $arabicRegular = $preferUniSirwan
-            ? ($this->badgeFontPath('UniSirwanPingHeavy.ttf') ?? $this->badgeFontPath('NotoSansArabic-Regular.ttf'))
-            : $this->badgeFontPath('NotoSansArabic-Regular.ttf');
-        // Noto Kufi Arabic has no glyphs at the Presentation-Forms codepoints
-        // ar-php shapes Kurdish letters into — Noto Sans Arabic does, for
-        // both weights, so it covers bold runs (the name) too. See fontCss().
-        $arabicBold = $preferUniSirwan
-            ? ($this->badgeFontPath('UniSirwanPingHeavy.ttf') ?? $this->badgeFontPath('NotoSansArabic-Bold.ttf'))
-            : $this->badgeFontPath('NotoSansArabic-Bold.ttf');
+        // ar-php shapes into Arabic Presentation Forms; only Noto Sans Arabic
+        // has those glyphs. UniSirwan is for Browsershot's native HarfBuzz
+        // path (raw Unicode + GSUB) — pairing it with ar-php output draws
+        // isolated letters, which is exactly what production badges showed.
+        $arabicRegular = $this->badgeFontPath('NotoSansArabic-Regular.ttf');
+        $arabicBold = $this->badgeFontPath('NotoSansArabic-Bold.ttf');
         $shapeForGd = fn (string $text): string => $this->shapeForGd($text);
 
         // Flat colour blocks first. GD + FreeType stop joining Arabic glyphs after
@@ -638,6 +635,88 @@ class BadgeService
         $path = resource_path('fonts/badge/'.$file);
 
         return is_readable($path) ? $path : null;
+    }
+
+    private function configureBrowsershot(Browsershot $shot): void
+    {
+        if ($node = $this->resolveNodeBinary()) {
+            $shot->setNodeBinary($node);
+        }
+
+        if ($npm = config('nextstep.badge.npm_binary')) {
+            $shot->setNpmBinary($npm);
+        }
+
+        if ($chrome = $this->puppeteerChromePath()) {
+            $shot->setChromePath($chrome);
+        }
+    }
+
+    /** @return ?string Absolute path to the Node binary Browsershot should use. */
+    public function resolveNodeBinary(): ?string
+    {
+        $configured = config('nextstep.badge.node_binary');
+
+        if (is_string($configured) && $configured !== '' && is_executable($configured)) {
+            return $configured;
+        }
+
+        $which = stripos(PHP_OS, 'WIN') === 0 ? 'where' : 'which';
+        exec("{$which} node 2>/dev/null", $output, $code);
+
+        return ($code === 0 && isset($output[0]) && $output[0] !== '') ? trim($output[0]) : null;
+    }
+
+    /** Chrome/Chromium for Puppeteer — env override, then puppeteer.executablePath(). */
+    public function puppeteerChromePath(): ?string
+    {
+        $configured = config('nextstep.badge.chrome_path');
+
+        if (is_string($configured) && $configured !== '' && is_readable($configured)) {
+            return $configured;
+        }
+
+        $node = $this->resolveNodeBinary();
+
+        if (! $node) {
+            return null;
+        }
+
+        $root = base_path();
+        $script = 'try{console.log(require("puppeteer").executablePath())}catch(e){process.exit(1)}';
+        $command = 'cd '.escapeshellarg($root).' && '.escapeshellarg($node).' -e '.escapeshellarg($script).' 2>/dev/null';
+
+        exec($command, $output, $code);
+
+        if ($code !== 0 || ! isset($output[0]) || $output[0] === '') {
+            return null;
+        }
+
+        $path = trim($output[0]);
+
+        return is_readable($path) ? $path : null;
+    }
+
+    /**
+     * Browsershot needs Node and a Chromium build (from puppeteer). Skip it
+     * when either is missing so Kurdish badges fall straight to the GD path.
+     */
+    private function browsershotAvailable(): bool
+    {
+        return $this->resolveNodeBinary() !== null
+            && is_dir(base_path('node_modules/puppeteer'))
+            && $this->puppeteerChromePath() !== null;
+    }
+
+    /** @return array{node: ?string, chrome: ?string, puppeteer: bool, freetype: bool} */
+    public function renderingDiagnostics(): array
+    {
+        return [
+            'node' => $this->resolveNodeBinary(),
+            'chrome' => $this->puppeteerChromePath(),
+            'puppeteer' => is_dir(base_path('node_modules/puppeteer')),
+            'freetype' => extension_loaded('gd') && (gd_info()['FreeType Support'] ?? false),
+        ];
     }
 
     /**

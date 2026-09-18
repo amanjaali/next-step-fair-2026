@@ -100,6 +100,61 @@ class BadgeKurdishTextTest extends TestCase
         $this->assertStringContainsString("@font-face{font-family:'UniSirwan Ping Heavy'", $html);
     }
 
+    /**
+     * English locale + Kurdish name is common on the fair desk. Chrome still
+     * needs dir="rtl" or HarfBuzz draws isolated letters — the production bug
+     * on registration 975 (locale=en, name=محمد کامەران کێشە).
+     */
+    public function test_english_locale_with_kurdish_name_uses_rtl_in_browsershot_html(): void
+    {
+        $registration = Registration::make([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_VISITOR,
+            'locale' => 'en',
+            'full_name' => 'محمد کامەران کێشە',
+        ]);
+
+        $method = new \ReflectionMethod(BadgeService::class, 'badgeHtml');
+        $method->setAccessible(true);
+
+        $html = $method->invoke(app(BadgeService::class), $registration, true, true);
+
+        $this->assertStringContainsString('dir="rtl"', $html);
+        $this->assertStringNotContainsString('dir="ltr"', $html);
+        $this->assertStringContainsString('lang="ckb"', $html);
+    }
+
+    /**
+     * ar-php shapes into Presentation Forms; UniSirwan only has GSUB for raw
+     * Unicode — using it on the GD path drew isolated letters on production
+     * for names like محمد کامەران کێشە (locale en, Kurdish name).
+     */
+    public function test_english_locale_with_kurdish_name_png_is_shaped_via_gd_path(): void
+    {
+        $registration = Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_VISITOR,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'محمد کامەران کێشە',
+            'phone' => '7701115599',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'days' => [1, 2, 3],
+            'confirmed_at' => now(),
+        ]);
+
+        $shaped = app(BadgeService::class)->shapeForGd($registration->full_name);
+
+        $this->assertNotSame($registration->full_name, $shaped);
+        $this->assertMatchesRegularExpression('/[\x{FB50}-\x{FDFF}]/u', $shaped);
+
+        $png = app(BadgeService::class)->png($registration);
+
+        $this->assertNotSame('', $png);
+        $this->assertSame("\x89PNG\r\n\x1a\n", substr($png, 0, 8));
+    }
+
     public function test_kurdish_badge_png_is_generated_without_error(): void
     {
         $registration = Registration::create([

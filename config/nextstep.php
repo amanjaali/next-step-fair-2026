@@ -280,6 +280,7 @@ return [
         'download_link_ttl' => 60 * 24 * 7, // minutes a signed badge URL stays valid
         'node_binary' => env('BADGE_NODE_BINARY'),
         'npm_binary' => env('BADGE_NPM_BINARY'),
+        'chrome_path' => env('BADGE_CHROME_PATH'),
 
         // Bump this to the current time whenever the badge template, fonts,
         // or shaping change in a way that makes previously-rendered artwork
@@ -289,6 +290,6 @@ return [
         // that switch. Anything generated before this moment is redrawn on
         // next request instead of served stale; see TicketController::png()
         // and Registration::hasStaleBadge().
-        'rendering_version_at' => '2026-09-19 01:05:00',
+        'rendering_version_at' => '2026-09-19 02:00:00',
     ],
 ];
