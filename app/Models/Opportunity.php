@@ -223,6 +223,7 @@ class Opportunity extends Model
                     'name' => $d['name'] ?? '',
                     'seats' => (int) ($d['seats'] ?? 0),
                     'requirements' => self::translatedDepartmentText($d['requirements'] ?? null),
+                    'requires_form' => (bool) ($d['requires_form'] ?? false),
                 ])
                 ->values()->all(),
         ];

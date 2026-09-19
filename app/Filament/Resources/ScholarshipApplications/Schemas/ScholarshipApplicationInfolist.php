@@ -7,6 +7,7 @@ use App\Models\ScholarshipApplication;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * One application, entire, as the committee needs to read it.
@@ -119,6 +120,13 @@ class ScholarshipApplicationInfolist
                         ->state(fn (ScholarshipApplication $record) => self::documents($record))
                         ->listWithLineBreaks()
                         ->columnSpanFull(),
+                    TextEntry::make('choice_forms')
+                        ->label(__('admin.scholarship.choice_forms'))
+                        ->state(fn (ScholarshipApplication $record) => self::choiceForms($record))
+                        ->placeholder('—')
+                        ->listWithLineBreaks()
+                        ->html()
+                        ->columnSpanFull(),
                 ]),
 
             Section::make(__('admin.scholarship.review_so_far'))
@@ -181,6 +189,34 @@ class ScholarshipApplicationInfolist
         return collect(config('scholarship.documents'))
             ->map(fn (string $key) => __('scholarship.documents.'.$key.'.name')
                 .' — '.(isset($held[$key]) ? __('admin.scholarship.received') : __('admin.scholarship.missing')))
+            ->all();
+    }
+
+    /**
+     * The department's own form, where one was asked for.
+     *
+     * Linked rather than listed: it is a photograph of paperwork, and the only
+     * way to judge it is to look at it. The link is signed and expires — the
+     * file sits on the private disk precisely so it is not loose on the web.
+     *
+     * @return list<string>
+     */
+    private static function choiceForms(ScholarshipApplication $record): array
+    {
+        $held = $record->documents ?? [];
+
+        return collect(['first', 'second'])
+            ->filter(fn (string $slot) => filled($held[$slot.'_choice_form'] ?? null))
+            ->map(function (string $slot) use ($held) {
+                $url = Storage::disk('local')->temporaryUrl(
+                    $held[$slot.'_choice_form'],
+                    now()->addMinutes(10),
+                );
+
+                return '<a class="fi-link" target="_blank" rel="noopener" href="'.e($url).'">'
+                    .e(__('admin.scholarship.'.$slot.'_choice')).'</a>';
+            })
+            ->values()
             ->all();
     }
 }

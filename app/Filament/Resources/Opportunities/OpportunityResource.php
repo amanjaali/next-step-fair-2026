@@ -138,6 +138,10 @@ class OpportunityResource extends Resource
                                 ->label(__('admin.opportunities.department_seats'))
                                 ->numeric()
                                 ->required(),
+                            Toggle::make('requires_form')
+                                ->label(__('admin.opportunities.department_requires_form'))
+                                ->helperText(__('admin.opportunities.department_requires_form_help'))
+                                ->columnSpan(2),
                             self::translatableTabsCompact(
                                 'requirements',
                                 __('admin.opportunities.department_requirements'),

@@ -361,6 +361,8 @@ return [
         'requirements_title' => 'Before you choose this one',
         'requirements_none' => 'Nothing has been added for this university yet.',
         'requirements_ack' => 'I have read all of the above and understand it applies to this choice.',
+        'choice_form_hint' => 'Photograph or scan the form the department gave you and attach it here. JPG, PNG or PDF, up to 8 MB.',
+        'choice_form_uploaded' => 'A form is already attached. Choosing a file replaces it.',
 
         'statement_title' => 'Your statement and proposal',
         'statement_lead' => 'These are what the committee actually reads. Write them yourself, in your own words.',
@@ -390,6 +392,9 @@ return [
             'confirm' => 'Confirm that the information is true before submitting.',
             'first_choice_ack' => 'Read the requirements for your first choice, then check the box to confirm.',
             'second_choice_ack' => 'Read the requirements for your second choice, then check the box to confirm.',
+            'choice_form' => 'Attach the filled form for this choice.',
+            'choice_form_type' => 'The form must be a JPG, PNG, WEBP or PDF file.',
+            'choice_form_size' => 'The form must be smaller than 8 MB.',
         ],
 
         'f' => [
@@ -403,6 +408,7 @@ return [
             'first_university' => 'First choice university',
             'second_university' => 'Second choice university',
             'department' => 'Department',
+            'choice_form' => 'Filled form from the department',
             'first_choice' => 'First choice',
             'statement' => 'Personal statement',
             'proposal' => 'Problem-solving proposal',

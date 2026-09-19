@@ -142,7 +142,10 @@ class ScholarshipApplication extends Model
             filled($this->region_code) && filled($this->district),
             filled($this->exam_average) || $this->exam_status === 'pending',
             filled($this->statement) && filled($this->proposal),
-            count($this->documents ?? []) >= count(config('scholarship.documents')),
+            // By name, not by count: a university's own form is kept alongside
+            // these and would otherwise stand in for one of them.
+            collect(config('scholarship.documents'))
+                ->every(fn (string $key) => filled(($this->documents ?? [])[$key] ?? null)),
         ])->filter()->count();
 
         return (int) round($done / 4 * 100);

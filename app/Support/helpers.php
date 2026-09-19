@@ -2,6 +2,7 @@
 
 use App\Models\HomeTrackPoint;
 use App\Models\Opportunity;
+use App\Models\ScholarshipUniversity;
 use App\Models\ScholarshipUniversityRequirement;
 use App\Models\Setting;
 use App\Support\Html;
@@ -592,23 +593,25 @@ if (! function_exists('ns_scholarship_universities')) {
     /**
      * Every university with National Scholarship Program seats.
      *
-     * Two sources, merged: the hand-curated founding/donor partners in
-     * config('scholarship.universities'), plus any Scholarship-kind Opportunity
-     * that has a linked partner and a department/seats breakdown filled in.
-     * Adding a new one is then just publishing an Opportunity in the dashboard —
-     * no code change and no deploy needed for a new partner university to show
-     * up in the application form.
+     * Two sources, merged: the catalogue edited under Scholarship universities,
+     * plus any Scholarship-kind Opportunity that has a linked partner and a
+     * department/seats breakdown filled in. A partner can therefore be added
+     * either way and still reach the application form — which matters, because
+     * the seats a partner pledges are often entered as the Opportunity that
+     * announces them, and a university students cannot pick is a pledge that
+     * may as well not exist.
+     *
+     * This is the one list. Reading either source on its own is how universities
+     * ended up visible on one page and missing from the form.
      */
     function ns_scholarship_universities(): array
     {
-        $configured = config('scholarship.universities', []);
-
         $fromOpportunities = Opportunity::scholarshipUniversities()
             ->get()
             ->map(fn (Opportunity $o) => $o->toScholarshipUniversityArray())
             ->all();
 
-        $universities = array_merge($configured, $fromOpportunities);
+        $universities = array_merge(ScholarshipUniversity::catalog(), $fromOpportunities);
 
         // What a student must read before picking each one — dashboard-managed,
         // keyed by the same slug either source already carries. A university

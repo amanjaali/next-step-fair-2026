@@ -99,7 +99,8 @@
                     <p class="ns-meta text-[12.5px] mt-4 max-w-[54ch]">{{ __('scholarship.apply.submit_note') }}</p>
                 </form>
             @else
-                <form method="POST" action="{{ route('scholarship.apply.save') }}" x-data="nsScholarshipChoice()">
+                <form method="POST" action="{{ route('scholarship.apply.save') }}" enctype="multipart/form-data"
+                      x-data="nsScholarshipChoice()">
                     @csrf
                     <input type="hidden" name="step" value="{{ $step }}">
 
@@ -210,6 +211,7 @@
                                                     <option value="{{ $department['name'] }}"
                                                             data-university="{{ $university['name'] }}"
                                                             data-requirements="{{ $department['requirements'] ?? '' }}"
+                                                            data-requires-form="{{ ($department['requires_form'] ?? false) ? '1' : '' }}"
                                                             @selected($application->{$slot.'_choice_department'} === $department['name'])>
                                                         {{ $department['name'] }} · {{ $department['seats'] }}
                                                     </option>
@@ -218,6 +220,21 @@
                                         @endforeach
                                     </select>
                                 </label>
+                            </div>
+
+                            {{-- A department that hands out its own paper form: it has to come
+                                 back with the application, photographed or scanned. --}}
+                            <div x-show="slots.{{ $slot }}.requiresForm" x-cloak class="mb-5">
+                                <span class="ns-label">
+                                    {{ __('scholarship.apply.f.choice_form') }}
+                                    @if ($required)<span class="ns-req">*</span>@endif
+                                </span>
+                                <span class="ns-hint block mb-2">{{ __('scholarship.apply.choice_form_hint') }}</span>
+                                @if (filled($application->documents[$slot.'_choice_form'] ?? null))
+                                    <p class="ns-meta mb-2">{{ __('scholarship.apply.choice_form_uploaded') }}</p>
+                                @endif
+                                <input type="file" name="{{ $slot }}_choice_form"
+                                       accept="image/*,application/pdf" class="ns-input">
                             </div>
 
                             <div x-show="slots.{{ $slot }}.hasRequirements" x-cloak

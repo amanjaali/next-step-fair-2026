@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Scholarship;
 use App\Http\Controllers\Controller;
 use App\Models\Registration;
 use App\Models\ScholarshipApplication;
-use App\Models\ScholarshipUniversity;
-use App\Models\ScholarshipUniversityRequirement;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -116,7 +115,7 @@ class ApplicationController extends Controller
             'cycle' => config('scholarship.cycle'),
             'step' => $step,
             'regions' => config('scholarship.regions'),
-            'universities' => ScholarshipUniversity::catalog(),
+            'universities' => ns_scholarship_universities(),
         ]);
     }
 
@@ -174,6 +173,20 @@ class ApplicationController extends Controller
                 && $this->requirementsFor($request->input('second_choice_university'), $request->input('second_choice_department')) !== null) {
                 $rules['second_choice_ack'] = ['accepted'];
             }
+
+            // A department that hands out its own paper form cannot be applied
+            // to without it. One already on file still counts: they are coming
+            // back to a saved step, not starting the application again.
+            foreach (['first', 'second'] as $slot) {
+                if (! $this->requiresForm($request->input("{$slot}_choice_university"), $request->input("{$slot}_choice_department"))) {
+                    continue;
+                }
+
+                $rules["{$slot}_choice_form"] = [
+                    Rule::requiredIf(blank($application->documents["{$slot}_choice_form"] ?? null)),
+                    'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:8192',
+                ];
+            }
         }
 
         $data = $request->validate($rules, [
@@ -186,6 +199,12 @@ class ApplicationController extends Controller
             'proposal.min' => __('scholarship.apply.errors.proposal_short'),
             'first_choice_ack.accepted' => __('scholarship.apply.errors.first_choice_ack'),
             'second_choice_ack.accepted' => __('scholarship.apply.errors.second_choice_ack'),
+            'first_choice_form.required' => __('scholarship.apply.errors.choice_form'),
+            'second_choice_form.required' => __('scholarship.apply.errors.choice_form'),
+            'first_choice_form.mimes' => __('scholarship.apply.errors.choice_form_type'),
+            'second_choice_form.mimes' => __('scholarship.apply.errors.choice_form_type'),
+            'first_choice_form.max' => __('scholarship.apply.errors.choice_form_size'),
+            'second_choice_form.max' => __('scholarship.apply.errors.choice_form_size'),
         ]);
 
         if ($step === 2) {
@@ -194,11 +213,30 @@ class ApplicationController extends Controller
             // so a requirements text edited later cannot rewrite history.
             unset($data['first_choice_ack'], $data['second_choice_ack']);
 
+            $documents = $application->documents ?? [];
+
             foreach (['first', 'second'] as $slot) {
                 $text = $this->requirementsFor($data["{$slot}_choice_university"] ?? null, $data["{$slot}_choice_department"] ?? null);
                 $data["{$slot}_choice_requirements_ack_at"] = $text !== null ? now() : null;
                 $data["{$slot}_choice_requirements_snapshot"] = $text;
+
+                // Somebody's paperwork, so it goes on the private disk and only
+                // its path is kept. Replacing one drops the old file rather than
+                // leaving a student's document lying about unreferenced.
+                if ($file = $request->file("{$slot}_choice_form")) {
+                    $key = "{$slot}_choice_form";
+
+                    if (filled($documents[$key] ?? null)) {
+                        Storage::disk('local')->delete($documents[$key]);
+                    }
+
+                    $documents[$key] = $file->store('scholarship/forms', 'local');
+                }
+
+                unset($data["{$slot}_choice_form"]);
             }
+
+            $data['documents'] = $documents;
         }
 
         $application->fill($data);
@@ -274,21 +312,54 @@ class ApplicationController extends Controller
             return null;
         }
 
-        $university = ScholarshipUniversity::query()
-            ->published()
-            ->where('name', $universityName)
-            ->first();
+        [$university, $department] = $this->choice($universityName, $departmentName);
 
         if ($university === null) {
             return null;
         }
 
-        $text = ScholarshipUniversityRequirement::query()
-            ->where('university_slug', $university->slug)
-            ->first()
-            ?->t('requirements');
+        // Both halves of what the form put in front of them: the university's
+        // own text and the chosen department's. Snapshotting one would record
+        // an acknowledgement of something they were only shown half of.
+        $text = collect([$university['requirements'] ?? null, $department['requirements'] ?? null])
+            ->filter(fn (?string $part) => filled($part))
+            ->implode("\n\n");
 
         return filled($text) ? $text : null;
+    }
+
+    /** Whether this department hands out a paper form that has to come back. */
+    private function requiresForm(?string $universityName, ?string $departmentName): bool
+    {
+        [, $department] = $this->choice($universityName, $departmentName);
+
+        return (bool) ($department['requires_form'] ?? false);
+    }
+
+    /**
+     * The chosen university and department, exactly as the form listed them.
+     *
+     * @return array{0: array<string, mixed>|null, 1: array<string, mixed>|null}
+     */
+    private function choice(?string $universityName, ?string $departmentName): array
+    {
+        if (blank($universityName)) {
+            return [null, null];
+        }
+
+        // Looked up several times while saving one step; the list behind it
+        // does not change in between.
+        $university = collect(once(fn () => ns_scholarship_universities()))
+            ->firstWhere('name', $universityName);
+
+        if ($university === null) {
+            return [null, null];
+        }
+
+        return [
+            $university,
+            collect($university['departments'] ?? [])->firstWhere('name', $departmentName),
+        ];
     }
 
     private function attendee(): ?Registration

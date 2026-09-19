@@ -379,8 +379,8 @@ Alpine.data('nsEligibility', (total) => ({
  */
 Alpine.data('nsScholarshipChoice', () => ({
     slots: {
-        first: { requirements: '', hasRequirements: false, ack: false },
-        second: { requirements: '', hasRequirements: false, ack: false },
+        first: { requirements: '', hasRequirements: false, ack: false, requiresForm: false },
+        second: { requirements: '', hasRequirements: false, ack: false, requiresForm: false },
     },
 
     init() {
@@ -411,6 +411,7 @@ Alpine.data('nsScholarshipChoice', () => ({
 
         this.slots[slot].requirements = [uniHtml, deptHtml].filter(Boolean).join('<hr class="my-3 border-0 border-t border-[rgba(5,7,8,0.14)]">');
         this.slots[slot].hasRequirements = this.slots[slot].requirements.length > 0;
+        this.slots[slot].requiresForm = Boolean(deptBelongsToUni && deptOption.dataset.requiresForm);
         this.slots[slot].ack = false;
     },
 

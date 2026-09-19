@@ -99,7 +99,7 @@ class ScholarshipUniversity extends Model
      *     students: int|null,
      *     housing: string,
      *     about: string,
-     *     departments: list<array{name: string, seats: int}>
+     *     departments: list<array{name: string, seats: int, requirements: string|null, requires_form: bool}>
      * }
      */
     public function toCatalogArray(): array
@@ -118,6 +118,11 @@ class ScholarshipUniversity extends Model
                 ->map(fn (ScholarshipUniversityDepartment $d) => [
                     'name' => $d->name,
                     'seats' => (int) $d->seats,
+                    // Only an Opportunity's departments carry their own text or
+                    // ask for a form. The keys are still present so both sources
+                    // hand the views the same shape, which is the contract here.
+                    'requirements' => null,
+                    'requires_form' => false,
                 ])
                 ->values()
                 ->all(),
@@ -138,14 +143,5 @@ class ScholarshipUniversity extends Model
             ->get()
             ->map->toCatalogArray()
             ->all();
-    }
-
-    public static function findBySlug(string $slug): ?self
-    {
-        return static::query()
-            ->published()
-            ->where('slug', $slug)
-            ->with('departments')
-            ->first();
     }
 }
