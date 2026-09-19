@@ -1,4 +1,4 @@
-@props(['title' => null, 'secret' => false])
+@props(['title' => null, 'secret' => false, 'offline' => false])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -16,14 +16,19 @@
 </head>
 <body>
 {{ $slot }}
-@unless ($secret)
+@if (! $secret && $offline)
 <script>
     // Registers the offline shell. Scope is /checkin only: the public site is
     // never served from cache.
+    //
+    // Only from the scanner itself, never from the login page. Installing while
+    // signed out means the worker fetches the scanner, follows the redirect back
+    // to this form, and stores that as the scanner — which is how staff ended up
+    // meeting a login page every time the venue Wi-Fi dropped.
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('{{ route('checkin.sw') }}', { scope: '/checkin' });
     }
 </script>
-@endunless
+@endif
 </body>
 </html>

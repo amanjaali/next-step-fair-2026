@@ -1,4 +1,4 @@
-<x-checkin.layout :secret="$secret ?? false">
+<x-checkin.layout :secret="$secret ?? false" :offline="true">
     <main class="ck-shell"
           data-scan-url="{{ $urls['scan'] }}"
           data-search-url="{{ $urls['search'] }}"

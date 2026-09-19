@@ -175,15 +175,19 @@ class ApplicationController extends Controller
             }
 
             // A department that hands out its own paper form cannot be applied
-            // to without it. One already on file still counts: they are coming
-            // back to a saved step, not starting the application again.
+            // to without it. One already on file counts — they are coming back
+            // to a saved step, not starting again — but only while the choice
+            // is the one it was uploaded for: a form belongs to the department
+            // that issued it, and must not follow a student to another.
             foreach (['first', 'second'] as $slot) {
                 if (! $this->requiresForm($request->input("{$slot}_choice_university"), $request->input("{$slot}_choice_department"))) {
                     continue;
                 }
 
+                $held = $application->documents["{$slot}_choice_form"] ?? null;
+
                 $rules["{$slot}_choice_form"] = [
-                    Rule::requiredIf(blank($application->documents["{$slot}_choice_form"] ?? null)),
+                    Rule::requiredIf(blank($held) || $this->choiceChanged($application, $request, $slot)),
                     'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:8192',
                 ];
             }
@@ -216,6 +220,13 @@ class ApplicationController extends Controller
             $documents = $application->documents ?? [];
 
             foreach (['first', 'second'] as $slot) {
+                // Moving to another department leaves the old department's form
+                // behind rather than passing it off as this one's.
+                if ($this->choiceChanged($application, $request, $slot) && filled($documents["{$slot}_choice_form"] ?? null)) {
+                    Storage::disk('local')->delete($documents["{$slot}_choice_form"]);
+                    unset($documents["{$slot}_choice_form"]);
+                }
+
                 $text = $this->requirementsFor($data["{$slot}_choice_university"] ?? null, $data["{$slot}_choice_department"] ?? null);
                 $data["{$slot}_choice_requirements_ack_at"] = $text !== null ? now() : null;
                 $data["{$slot}_choice_requirements_snapshot"] = $text;
@@ -326,6 +337,13 @@ class ApplicationController extends Controller
             ->implode("\n\n");
 
         return filled($text) ? $text : null;
+    }
+
+    /** Whether this slot now points at a different university or department. */
+    private function choiceChanged(ScholarshipApplication $application, Request $request, string $slot): bool
+    {
+        return $application->{"{$slot}_choice_university"} !== $request->input("{$slot}_choice_university")
+            || $application->{"{$slot}_choice_department"} !== $request->input("{$slot}_choice_department");
     }
 
     /** Whether this department hands out a paper form that has to come back. */

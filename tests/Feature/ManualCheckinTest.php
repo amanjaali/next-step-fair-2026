@@ -92,6 +92,26 @@ class ManualCheckinTest extends TestCase
         $this->assertSame(3, CheckIn::whereIn('registration_id', $family->pluck('id'))->count());
     }
 
+    /**
+     * The offline shell is installed from the scanner and nowhere else.
+     *
+     * Registering it from the login page means the worker fetches the scanner
+     * while signed out, follows the redirect back to that login page, and
+     * stores it as the scanner — so the next dropped connection serves a login
+     * form, with a dead token, instead of the gate screen.
+     */
+    public function test_the_offline_shell_is_not_installed_from_the_login_page(): void
+    {
+        $this->get('/checkin/login')
+            ->assertOk()
+            ->assertDontSee('serviceWorker.register', false);
+
+        $this->actingAs($this->staff())
+            ->get('/checkin')
+            ->assertOk()
+            ->assertSee('serviceWorker.register', false);
+    }
+
     private function staff(): User
     {
         return User::where('email', 'gate@nextstepfair.com')->firstOrFail();

@@ -4,8 +4,13 @@
 const CACHE = 'ns-checkin-v2';
 const INDEX = '{{ route('checkin.index') }}';
 const INDEX_PATH = new URL(INDEX).pathname;
+/*
+ * Assets only. The scanner page itself is stored on the way past, by the fetch
+ * handler below, which can tell a real scanner from a redirect to the login
+ * form — installing it here cannot, and a worker that installs seconds after a
+ * session lapses would pin that login form in place of the scanner.
+ */
 const SHELL = [
-    INDEX,
     '{{ Vite::asset('resources/css/checkin.css') }}',
     '{{ Vite::asset('resources/js/checkin.js') }}',
     '{{ asset('assets/brand/nextstep-white-sm.png') }}',
