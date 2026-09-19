@@ -136,7 +136,7 @@ Route::prefix('s/{key}')
         Route::get('/', [CheckinController::class, 'index'])->name('index');
         Route::post('scan', [CheckinController::class, 'scan'])->name('scan');
         Route::get('search', [CheckinController::class, 'search'])->name('search');
-        Route::post('manual/{registration}', [CheckinController::class, 'manual'])->name('manual');
+        Route::post('manual/{registration}', [CheckinController::class, 'manualByKey'])->name('manual');
         Route::get('offline-manifest', [CheckinController::class, 'offlineManifest'])->name('offline');
         Route::post('sync', [CheckinController::class, 'sync'])->name('sync');
     });

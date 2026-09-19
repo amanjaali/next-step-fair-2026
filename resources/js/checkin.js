@@ -380,9 +380,13 @@ if (shell) {
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
                 body: JSON.stringify({ day, gate }),
             });
+
+            if (!response.ok) throw new Error(`check-in failed: ${response.status}`);
+
             result = await response.json();
         } catch (error) {
-            // A dropped connection must not leave a row that can never be tapped again.
+            // A dropped connection or a refusal must not leave a row that can
+            // never be tapped again.
             button.disabled = false;
             return;
         }

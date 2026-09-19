@@ -161,6 +161,16 @@ class CheckinController extends Controller
         return response()->json(['results' => $results]);
     }
 
+    /**
+     * The same thing from the key-gated scanner, whose URL carries the key
+     * first — so the router hands that along before the registration, and a
+     * method expecting only the registration is given the key instead.
+     */
+    public function manualByKey(Request $request, string $key, Registration $registration): JsonResponse
+    {
+        return $this->manual($request, $registration);
+    }
+
     public function manual(Request $request, Registration $registration): JsonResponse
     {
         $data = $request->validate([
