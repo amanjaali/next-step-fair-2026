@@ -225,6 +225,9 @@ body {
     color: #fff;
 }
 
+.ck-hit--done { opacity: 0.5; cursor: default; }
+.ck-hit--done .ck-hit__action { background: rgba(255, 255, 255, 0.18); }
+
 .ck-foot {
     margin-top: auto;
     display: flex;

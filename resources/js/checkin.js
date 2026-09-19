@@ -364,17 +364,47 @@ if (shell) {
 
     el.searchResults?.addEventListener('click', async (event) => {
         const button = event.target.closest('[data-id]');
-        if (!button) return;
+        if (!button || button.disabled) return;
 
-        const response = await fetch(`${urls.manual}/${button.dataset.id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
-            body: JSON.stringify({ day, gate }),
-        });
-        show(await response.json());
-        el.search.hidden = true;
-        el.searchInput.value = '';
-        el.searchResults.innerHTML = '';
+        // A family shares one phone number, so a single search can hold several
+        // people. Closing it after the first would make the volunteer type that
+        // number again for every other member.
+        const family = el.searchResults.querySelectorAll('[data-id]').length > 1;
+
+        button.disabled = true;
+
+        let result;
+        try {
+            const response = await fetch(`${urls.manual}/${button.dataset.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
+                body: JSON.stringify({ day, gate }),
+            });
+            result = await response.json();
+        } catch (error) {
+            // A dropped connection must not leave a row that can never be tapped again.
+            button.disabled = false;
+            return;
+        }
+
+        show(result);
+
+        if (!family) {
+            el.search.hidden = true;
+            el.searchInput.value = '';
+            el.searchResults.innerHTML = '';
+            return;
+        }
+
+        // Whoever just went through stays on the list, greyed out: the next
+        // member is one tap away, and nobody gets checked in twice.
+        if (result.state.startsWith('valid')) {
+            button.classList.add('ck-hit--done');
+            const action = button.querySelector('.ck-hit__action');
+            if (action) action.textContent = STATE_LABEL.already;
+        } else {
+            button.disabled = false;
+        }
     });
 
     /* ------------------------------------------------------------ lifecycle -- */
