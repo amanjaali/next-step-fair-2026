@@ -3,6 +3,7 @@
 use App\Models\Organization;
 use Database\Seeders\ProgrammeSeeder;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The Kurdistan Students Association, added to a site that is already running.
@@ -20,6 +21,15 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Only for a database already in service, which is the whole point of
+        // this one. On a fresh build there is nothing here to patch and the
+        // seeders add these three anyway — and writing organisations this early
+        // fails outright, because the model has since learned to stamp a booth
+        // QR code on every new row and that column is ten migrations away.
+        if (DB::table('organizations')->doesntExist()) {
+            return;
+        }
+
         (new ProgrammeSeeder)->syncStrategicPartners(overwrite: false);
     }
 
