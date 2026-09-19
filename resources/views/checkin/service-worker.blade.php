@@ -1,13 +1,31 @@
 /* Next Step check-in — offline shell.
    Caches the scanner UI and its assets so gate staff can keep scanning when the
    venue Wi-Fi drops. Scan results are queued in localStorage by the page itself. */
-const CACHE = 'ns-checkin-v1';
+const CACHE = 'ns-checkin-v2';
+const INDEX = '{{ route('checkin.index') }}';
+const INDEX_PATH = new URL(INDEX).pathname;
 const SHELL = [
-    '{{ route('checkin.index') }}',
+    INDEX,
     '{{ Vite::asset('resources/css/checkin.css') }}',
     '{{ Vite::asset('resources/js/checkin.js') }}',
     '{{ asset('assets/brand/nextstep-white-sm.png') }}',
 ];
+
+/*
+ * Only the scanner page itself is worth storing.
+ *
+ * A signed-out request for /checkin answers with a redirect to the login page,
+ * and caching that under the scanner's own address is what put staff in front
+ * of a login screen — carrying a dead CSRF token, so the password looked wrong
+ * — every time the venue Wi-Fi dropped.
+ */
+function isCacheable(request, response) {
+    if (!response.ok || response.redirected || !request.url.startsWith(self.location.origin)) {
+        return false;
+    }
+
+    return request.mode !== 'navigate' || new URL(request.url).pathname === INDEX_PATH;
+}
 
 self.addEventListener('install', (event) => {
     event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -32,12 +50,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(request)
             .then((response) => {
-                if (response.ok && request.url.startsWith(self.location.origin)) {
+                if (isCacheable(request, response)) {
                     const copy = response.clone();
                     caches.open(CACHE).then((cache) => cache.put(request, copy));
                 }
                 return response;
             })
-            .catch(() => caches.match(request).then((hit) => hit || caches.match('{{ route('checkin.index') }}')))
+            .catch(() => caches.match(request).then((hit) => hit || caches.match(INDEX)))
     );
 });
