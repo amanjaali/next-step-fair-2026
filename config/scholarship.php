@@ -53,29 +53,18 @@ return [
     | The eligibility check
     |---------------------------------------------------------------------------
     |
-    | Five questions, about a minute. It runs before the application opens so that
-    | nobody spends an evening on a statement and a proposal only to be closed at
-    | screening for something they could have been told in advance.
+    | Three questions, about a minute. It runs before the application opens so
+    | that nobody spends an evening on a statement and a proposal only to be
+    | closed at screening for something they could have been told in advance.
     |
-    | `fail` ends it. `warn` lets them through with something to fix.
+    | `fail` ends it. `warn` lets them through with something to fix. `year` is
+    | asked for the record only — no answer to it closes the application.
     */
     'eligibility' => [
         [
-            'id' => 'grade12',
-            'options' => ['y', 'n'],
-            'fail' => ['n'],
-            'warn' => [],
-        ],
-        [
-            'id' => 'average',
-            'options' => ['y', 'p', 'n'],
-            'fail' => ['n'],
-            'warn' => ['p'],
-        ],
-        [
             'id' => 'year',
             'options' => ['y', 'n'],
-            'fail' => ['n'],
+            'fail' => [],
             'warn' => [],
         ],
         [

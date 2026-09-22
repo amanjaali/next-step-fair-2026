@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Registration;
 use App\Services\CaptchaService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -76,27 +77,62 @@ class StoreFairRegistrationRequest extends FormRequest
         ];
     }
 
-    /** The already-registered phone number, if this is a duplicate. */
+    /**
+     * The already-registered phone number, if this is a duplicate.
+     *
+     * A shared number is not always one person: the desk lets a family register
+     * several people — more than one of them a student — against a single phone
+     * (see RegistrationDeskController::validatedMembers()). Picking an arbitrary
+     * row among several would let one sibling's submission silently overwrite
+     * another's record instead of completing their own, so more than one match
+     * is only resolved when the submitted name points at exactly one of them.
+     * Anything less certain falls through to a fresh registration rather than a
+     * guess.
+     */
     public function existingRegistration(): ?Registration
     {
-        return Registration::fair()
+        $matches = Registration::fair()
             ->active()
             ->wherePhone($this->normalisedPhone())
             // Someone completing their own visitor pass is not a duplicate of
             // themselves; without this they would be bounced off their own number.
             ->when($this->upgrading(), fn ($query, $pass) => $query->whereKeyNot($pass->getKey()))
-            ->first();
+            ->get();
+
+        if ($matches->count() <= 1) {
+            return $matches->first();
+        }
+
+        $submittedName = $this->normalisedName((string) $this->input('full_name'));
+
+        $named = $matches->filter(
+            fn (Registration $candidate) => $this->normalisedName((string) $candidate->full_name) === $submittedName
+        );
+
+        return $named->count() === 1 ? $named->first() : null;
     }
 
-    /** The same address already used by another account. */
+    private function normalisedName(string $name): string
+    {
+        return Str::of($name)->trim()->lower()->toString();
+    }
+
+    /**
+     * The same address already used by another account.
+     *
+     * Not scoped to the fair track: a student signs in with their address, so
+     * it cannot become somebody else's — including a conference delegate's,
+     * or a badge would silently sit on two unrelated registrations that share
+     * an email, and signing in would have no reliable way to tell them apart.
+     * Same reasoning as UpdateAttendeeProfileRequest::withValidator().
+     */
     public function existingEmail(): ?Registration
     {
         if (blank($this->input('email'))) {
             return null;
         }
 
-        return Registration::fair()
-            ->active()
+        return Registration::active()
             ->whereEmail((string) $this->input('email'))
             ->when($this->upgrading(), fn ($query, $pass) => $query->whereKeyNot($pass->getKey()))
             ->first();

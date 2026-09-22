@@ -142,6 +142,34 @@ class ConferenceRsvpTest extends TestCase
     }
 
     /**
+     * An address already used by a fair student or parent must not also open
+     * a conference RSVP — that leaves the same address on two unrelated
+     * registrations with no reliable way to tell them apart at sign-in.
+     */
+    public function test_an_email_already_used_by_a_fair_registration_is_blocked(): void
+    {
+        Registration::create([
+            'track' => Registration::TRACK_FAIR,
+            'type' => Registration::TYPE_STUDENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'A Fair Student',
+            'phone' => '7704119933',
+            'phone_country' => '+964',
+            'city' => 'Sulaimani',
+            'email' => 'r.kareem@mhe.krd',
+            'password' => 'a-good-password',
+            'education_stage' => 'grade12',
+            'days' => [1, 2, 3],
+        ]);
+
+        $this->post('/en/register/conference', $this->payload())
+            ->assertSessionHas('duplicate');
+
+        $this->assertDatabaseCount('registrations', 1);
+    }
+
+    /**
      * The conference is for more than ministries now: a company and a person
      * attending on their own account both have a way in.
      */

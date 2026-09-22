@@ -213,6 +213,92 @@ class FairRegistrationTest extends TestCase
         $this->assertDatabaseCount('registrations', 1);
     }
 
+    /** A desk walk-in on a shared family phone, as RegistrationDeskController issues one. */
+    private function deskStudent(string $name, string $phone): Registration
+    {
+        return Registration::create([
+            'full_name' => $name,
+            'type' => Registration::TYPE_STUDENT,
+            'track' => Registration::TRACK_FAIR,
+            'phone_country' => '+964',
+            'phone' => $phone,
+            'status' => Registration::STATUS_CONFIRMED,
+            'is_walk_in' => true,
+            'days' => array_keys(config('nextstep.event.days')),
+        ]);
+    }
+
+    /**
+     * Two siblings can walk up to the desk together and share one phone number —
+     * the desk form allows more than one of them to be entered as a student. If
+     * one of them later self-registers online under a name that does not
+     * plainly match either desk record (a nickname, a typo, a translit
+     * difference), the match is too uncertain to trust — it must not silently
+     * take over whichever sibling's row the phone number happens to match
+     * first. A fresh registration, not a guess, is the safe outcome.
+     */
+    public function test_an_unclear_match_on_a_shared_phone_gets_a_new_account_instead_of_a_guess(): void
+    {
+        $first = $this->deskStudent('Sara Hama Amin', '7704112288');
+        $second = $this->deskStudent('Lana Hama Amin', '7704112288');
+
+        $this->post('/en/register/fair', $this->payload([
+            'full_name' => 'Lana H. Amin',
+            'phone' => '7704112288',
+            'email' => 'lana@example.com',
+        ]));
+
+        $this->assertDatabaseCount('registrations', 3);
+
+        $first->refresh();
+        $this->assertSame('Sara Hama Amin', $first->full_name);
+        $this->assertNull($first->email);
+        $this->assertFalse($first->isStudentAccount());
+
+        $second->refresh();
+        $this->assertSame('Lana Hama Amin', $second->full_name);
+        $this->assertNull($second->email);
+        $this->assertFalse($second->isStudentAccount());
+
+        $lana = Registration::whereEmail('lana@example.com')->firstOrFail();
+        $this->assertTrue($lana->isStudentAccount());
+        $this->assertAuthenticatedAs($lana, 'attendee');
+    }
+
+    /** The common case — one desk walk-in finishing their own profile — is unaffected. */
+    public function test_a_lone_desk_walk_in_still_completes_their_own_pass(): void
+    {
+        $pass = $this->deskStudent('Hemin Karim Salih', '7704112288');
+
+        $this->post('/en/register/fair', $this->payload([
+            'full_name' => 'Hemin Karim Salih',
+            'phone' => '7704112288',
+        ]));
+
+        $this->assertDatabaseCount('registrations', 1);
+        $this->assertTrue($pass->refresh()->isStudentAccount());
+        $this->assertAuthenticatedAs($pass, 'attendee');
+    }
+
+    /** Submitting with the name of a specific sibling still completes that sibling's own row. */
+    public function test_a_shared_phone_still_resolves_by_matching_name(): void
+    {
+        $sara = $this->deskStudent('Sara Hama Amin', '7704112288');
+        $lana = $this->deskStudent('Lana Hama Amin', '7704112288');
+
+        $this->post('/en/register/fair', $this->payload([
+            'full_name' => 'Sara Hama Amin',
+            'phone' => '7704112288',
+            'email' => 'sara@example.com',
+        ]));
+
+        $this->assertDatabaseCount('registrations', 2);
+
+        $this->assertTrue($sara->refresh()->isStudentAccount());
+        $this->assertSame('sara@example.com', $sara->email);
+        $this->assertFalse($lana->refresh()->isStudentAccount());
+    }
+
     public function test_consent_is_required(): void
     {
         $this->post('/en/register/fair', $this->payload(['consent_terms' => null]))
@@ -251,6 +337,31 @@ class FairRegistrationTest extends TestCase
         $this->post('/en/register/fair', $this->payload());
 
         $this->post('/en/register/fair', $this->payload(['phone' => '7704110000']))
+            ->assertSessionHasErrors('email');
+
+        $this->assertDatabaseCount('registrations', 1);
+    }
+
+    /**
+     * An address already used by a conference delegate must not also open a
+     * fair student account — that leaves the same address on two unrelated
+     * registrations with no reliable way to tell them apart at sign-in.
+     */
+    public function test_an_email_already_used_by_a_conference_delegate_is_blocked(): void
+    {
+        Registration::create([
+            'track' => Registration::TRACK_CONFERENCE,
+            'type' => Registration::TYPE_GOVERNMENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'A Conference Delegate',
+            'phone' => '7704119922',
+            'phone_country' => '+964',
+            'email' => 'hemin@example.com',
+            'days' => [1],
+        ]);
+
+        $this->post('/en/register/fair', $this->payload())
             ->assertSessionHasErrors('email');
 
         $this->assertDatabaseCount('registrations', 1);

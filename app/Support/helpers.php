@@ -618,9 +618,25 @@ if (! function_exists('ns_scholarship_universities')) {
         // with nothing entered just gets no requirements text and no gate.
         $requirements = ScholarshipUniversityRequirement::all()->keyBy('university_slug');
 
+        // The apply form matches a submitted choice back to its data by this
+        // name, so two entries sharing one — most likely the same partner
+        // entered on both sides, a catalogue row and an Opportunity — would
+        // make that match ambiguous and silently resolve to whichever came
+        // first. Slugs are already guaranteed unique by both sources, so a
+        // repeated name is disambiguated with its own rather than guessed.
+        $seen = [];
+
         return collect($universities)
-            ->map(function (array $university) use ($requirements) {
+            ->map(function (array $university) use ($requirements, &$seen) {
                 $university['requirements'] = $requirements->get($university['slug'])?->t('requirements') ?: null;
+
+                $key = mb_strtolower(trim($university['name']));
+
+                if (isset($seen[$key])) {
+                    $university['name'] .= " ({$university['slug']})";
+                } else {
+                    $seen[$key] = true;
+                }
 
                 return $university;
             })

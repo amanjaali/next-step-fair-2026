@@ -135,6 +135,50 @@ class ScholarshipAudienceTest extends TestCase
         }
     }
 
+    /* ---------------------------------------------- gate ineligibility copy -- */
+
+    /**
+     * A student in the wrong education stage — grade 11 here, but this covers
+     * institute/other/unset too — must not be told they're "already at
+     * university" when they might never have set that field at all.
+     */
+    public function test_a_grade_11_student_sees_the_stage_reason_not_a_guess_about_university(): void
+    {
+        $student = $this->registration(['education_stage' => 'grade11']);
+
+        $response = $this->actingAs($student, 'attendee')->get('/en/scholarship/apply')->assertOk();
+
+        $response->assertSee(__('scholarship.apply.not_eligible.stage.title'));
+        $response->assertDontSee(__('scholarship.apply.not_eligible.unconfirmed.title'));
+    }
+
+    /** Not confirmed yet is a different problem than the education stage, and reads as one. */
+    public function test_an_unconfirmed_student_account_sees_the_unconfirmed_reason(): void
+    {
+        $student = $this->registration([
+            'status' => Registration::STATUS_AWAITING_OTP,
+            'confirmed_at' => null,
+        ]);
+
+        $response = $this->actingAs($student, 'attendee')->get('/en/scholarship/apply')->assertOk();
+
+        $response->assertSee(__('scholarship.apply.not_eligible.unconfirmed.title'));
+        $response->assertDontSee(__('scholarship.apply.not_eligible.stage.title'));
+    }
+
+    public function test_an_eligible_student_sees_neither_ineligibility_message(): void
+    {
+        $response = $this->actingAs($this->registration(), 'attendee')->get('/en/scholarship/apply')->assertOk();
+
+        $response->assertDontSee(__('scholarship.apply.not_eligible.stage.title'));
+        $response->assertDontSee(__('scholarship.apply.not_eligible.unconfirmed.title'));
+    }
+
+    public function test_scholarship_ineligibility_reason_is_null_for_a_non_student(): void
+    {
+        $this->assertNull($this->parent()->scholarshipIneligibilityReason());
+    }
+
     /* ------------------------------------------------------ opportunities -- */
 
     public function test_the_board_tells_a_parent_who_the_offers_are_aimed_at(): void

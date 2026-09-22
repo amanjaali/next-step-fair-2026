@@ -237,9 +237,9 @@ return [
     'eligibility' => [
         'title' => 'Eligibility check',
         'kicker' => 'Before you start',
-        'heading' => 'Five questions, about a minute',
+        'heading' => 'Three questions, about a minute',
         'lead' => 'This runs before the application opens so nobody spends an evening writing a statement and a proposal only to be closed at screening for something we could have told them now.',
-        'submit' => 'Check my eligibility',
+        'submit' => 'Continue',
         'answered' => 'answered',
         'remaining' => ':count still to answer',
         'gate_blocked' => 'The eligibility check opens once you have a Next Step student account. Here is what is still needed.',
@@ -252,28 +252,14 @@ return [
         'fail_title' => 'You cannot apply this cycle',
 
         'errors' => [
-            'answer_all' => 'Answer all five questions.',
+            'answer_all' => 'Answer all three questions.',
         ],
 
         'questions' => [
-            'grade12' => [
-                'title' => 'Did you complete grade 12 at a school in the Kurdistan Region?',
-                'note' => 'Your school decides which regional quota you compete in.',
-                'options' => ['y' => 'Yes', 'n' => 'No'],
-                'fail' => 'The forty seats are held for students who completed grade 12 at a school inside the Kurdistan Region. A certificate from elsewhere in Iraq or abroad cannot be placed in a regional quota.',
-            ],
-            'average' => [
-                'title' => 'Is your grade 12 national exam average 85% or above?',
-                'note' => 'The baseline is 85%. Results still pending are accepted at this stage.',
-                'options' => ['y' => 'Yes', 'p' => 'Results pending', 'n' => 'Below 85%'],
-                'fail' => 'The evaluation baseline is an average of 85%. Below that the file is closed at screening, before any committee member reads it.',
-                'warn' => 'Your results are still pending. You can complete and submit the application now, but the certificate must be uploaded within seven days of results being published.',
-            ],
             'year' => [
                 'title' => 'Will you begin your first undergraduate degree in the 2026–2027 academic year?',
-                'note' => 'The award funds a first degree from year one. It cannot be transferred to a later year.',
+                'note' => 'Asked so the committee has this on file — it does not decide whether you can apply.',
                 'options' => ['y' => 'Yes', 'n' => 'No'],
-                'fail' => 'The award funds a first undergraduate degree beginning in 2026–2027. Students already enrolled, or planning to start in a later year, apply in the cycle for that year.',
             ],
             'funded' => [
                 'title' => 'Do you already hold a full scholarship from another programme?',
@@ -321,8 +307,16 @@ return [
 
         'have_account' => 'Already registered as a student? Sign in and the application will know who you are.',
 
-        'not_eligible_title' => 'This cycle is for students finishing school',
-        'not_eligible_body' => 'The award funds a first undergraduate degree from year one, so it is open to students in grade 12 and those who have just finished. Your account says you are already at university. If that is wrong, update it from your account page.',
+        'not_eligible' => [
+            'stage' => [
+                'title' => 'This cycle is for students finishing school',
+                'body' => 'The award funds a first undergraduate degree from year one, so it is open to students in grade 12 and those who have just finished. Your account\'s education stage does not currently match that. If it is wrong, update it from your account page.',
+            ],
+            'unconfirmed' => [
+                'title' => 'Your registration is not confirmed yet',
+                'body' => 'The scholarship opens once your Next Step registration is confirmed. This is usually quick — check back shortly, or speak to the registration desk if it has been longer than a day.',
+            ],
+        ],
 
         'ready_title' => 'What to have ready',
         'ready_lead' => 'Two of these take time to obtain. Start them before you start writing.',

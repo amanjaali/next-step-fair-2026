@@ -41,6 +41,7 @@ class ApplicationController extends Controller
             'cycle' => config('scholarship.cycle'),
             'hasAccount' => $attendee?->isStudentAccount() ?? false,
             'isEligibleStudent' => $attendee?->canApplyForScholarship() ?? false,
+            'ineligibleReason' => $attendee?->scholarshipIneligibilityReason(),
             'checkPassed' => $application?->hasPassedEligibility() ?? false,
         ]);
     }
@@ -83,8 +84,7 @@ class ApplicationController extends Controller
         $application->eligibility_passed_at = $application->hasPassedEligibility() ? now() : null;
         $application->save();
 
-        return redirect()->route('scholarship.eligibility')
-            ->with('checked', true);
+        return redirect()->route('scholarship.eligibility');
     }
 
     /* --------------------------------------------------------------- form -- */

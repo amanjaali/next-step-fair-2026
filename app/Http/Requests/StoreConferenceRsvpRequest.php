@@ -52,10 +52,19 @@ class StoreConferenceRsvpRequest extends FormRequest
         ];
     }
 
+    /**
+     * The same address already used by another account.
+     *
+     * Not scoped to the conference track: an address already tied to a fair
+     * student or parent registration must not also pick up a conference RSVP,
+     * or that address ends up on two unrelated registrations with nothing
+     * distinguishing which one is "theirs" at sign-in. Same reasoning as
+     * StoreFairRegistrationRequest::existingEmail() and
+     * UpdateAttendeeProfileRequest::withValidator().
+     */
     public function existingRegistration(): ?Registration
     {
-        return Registration::conference()
-            ->active()
+        return Registration::active()
             ->whereEmail((string) $this->input('email'))
             ->first();
     }

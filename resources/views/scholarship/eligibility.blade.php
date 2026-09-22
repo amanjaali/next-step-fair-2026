@@ -9,7 +9,12 @@
         <h1 class="ns-h1 !text-[clamp(28px,4vw,42px)] mb-3">{{ __('scholarship.eligibility.heading') }}</h1>
         <p class="ns-body max-w-[56ch] mb-9">{{ __('scholarship.eligibility.lead') }}</p>
 
-        @if (session('checked'))
+        {{-- Shown whenever every question is answered, not only right after
+             submitting them: a student who saved a pass or a warn and comes back
+             to this page later — the direct link, not the gate's "Review your
+             answers" button — deserves to see where they stand and, for a pass
+             or a warn, the way through, not a bare form with no explanation. --}}
+        @if ($verdict !== 'incomplete')
             @if ($verdict === 'fail')
                 {{-- Closed, and told why now rather than at screening in November. --}}
                 <div class="ns-card border-t-[6px] !border-t-crimson mb-9" role="alert">
@@ -50,7 +55,7 @@
         @endif
 
         {{-- The form counts itself.
-             Five questions with no indication of how many are answered, and a
+             The questions with no indication of how many are answered, and a
              live-looking button that silently bounces you back to a list of
              errors, is the whole reason this page felt broken. The count is live,
              the unanswered ones are marked, and the button says what is left. --}}

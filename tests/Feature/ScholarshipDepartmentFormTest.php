@@ -146,7 +146,92 @@ class ScholarshipDepartmentFormTest extends TestCase
         $this->assertSame('Civil Engineering', $student->scholarshipApplication()->first_choice_department);
     }
 
+    /**
+     * Two partners can share a name — most plausibly the same organisation
+     * entered as two separate scholarship announcements. The form must not
+     * let that make a choice ambiguous: each stays individually selectable
+     * and a submission is validated against its own department data, not
+     * whichever namesake happens to come first in the merged list.
+     */
+    public function test_two_partners_with_the_same_name_stay_individually_selectable(): void
+    {
+        Storage::fake('local');
+
+        $this->partnerWithSeats();
+        $this->namesakePartnerWithSeats();
+
+        $universities = collect(ns_scholarship_universities())
+            ->filter(fn (array $u) => str_starts_with($u['name'], 'Lutka Institute'))
+            ->values();
+
+        $this->assertCount(2, $universities);
+        $this->assertNotSame($universities[0]['name'], $universities[1]['name']);
+
+        $namesake = $universities->firstWhere('name', '!=', 'Lutka Institute');
+        $this->assertNotNull($namesake, 'the second Lutka Institute was not disambiguated');
+
+        $student = $this->student();
+        $this->pass($student);
+
+        // The namesake's own department needs a form. Submitting without one
+        // must fail for it, the way it already does for the first partner's —
+        // proving this choice resolved to its own data, not the first
+        // "Lutka Institute" match with no "Fine Arts" department at all.
+        $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', [
+                'step' => 2,
+                'exam_status' => 'published',
+                'exam_average' => '91.5',
+                'stream' => 'scientific',
+                'school_name' => 'Sulaimani Preparatory',
+                'first_choice_university' => $namesake['name'],
+                'first_choice_department' => 'Fine Arts',
+                'first_choice_ack' => '1',
+            ])
+            ->assertSessionHasErrors('first_choice_form');
+
+        $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', [
+                'step' => 2,
+                'exam_status' => 'published',
+                'exam_average' => '91.5',
+                'stream' => 'scientific',
+                'school_name' => 'Sulaimani Preparatory',
+                'first_choice_university' => $namesake['name'],
+                'first_choice_department' => 'Fine Arts',
+                'first_choice_ack' => '1',
+                'first_choice_form' => UploadedFile::fake()->image('namesake.jpg'),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($namesake['name'], $student->scholarshipApplication()->fresh()->first_choice_university);
+    }
+
     /* ----------------------------------------------------------- helpers -- */
+
+    private function namesakePartnerWithSeats(): Opportunity
+    {
+        $organization = Organization::create([
+            'slug' => 'lutka-institute-fine-arts',
+            'kind' => 'university',
+            'name' => ['en' => 'Lutka Institute'],
+            'city' => 'Duhok',
+            'year' => 2026,
+        ]);
+
+        return Opportunity::create([
+            'slug' => 'lutka-fine-arts-scholarship',
+            'kind' => Opportunity::KIND_SCHOLARSHIP,
+            'audience' => Opportunity::AUDIENCE_GRADE12,
+            'organization_id' => $organization->id,
+            'published' => true,
+            'title' => ['en' => 'Fine Arts Scholarship'],
+            'summary' => ['en' => 'Seats in fine arts.'],
+            'departments' => [
+                ['name' => 'Fine Arts', 'seats' => 8, 'requires_form' => true],
+            ],
+        ]);
+    }
 
     private function partnerWithSeats(): Opportunity
     {
@@ -235,7 +320,7 @@ class ScholarshipDepartmentFormTest extends TestCase
     private function pass(Registration $student): ScholarshipApplication
     {
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/eligibility', [
-            'answers' => ['grade12' => 'y', 'average' => 'y', 'year' => 'y', 'funded' => 'n', 'docs' => 'y'],
+            'answers' => ['year' => 'y', 'funded' => 'n', 'docs' => 'y'],
         ]);
 
         return $student->scholarshipApplication();

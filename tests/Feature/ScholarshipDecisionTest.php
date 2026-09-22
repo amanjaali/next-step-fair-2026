@@ -65,7 +65,7 @@ class ScholarshipDecisionTest extends TestCase
             'cycle' => config('scholarship.cycle'),
             'status' => ScholarshipApplication::STATUS_SUBMITTED,
             'step' => 4,
-            'eligibility' => ['grade12' => 'y', 'average' => 'y', 'year' => 'y', 'funded' => 'n', 'docs' => 'y'],
+            'eligibility' => ['year' => 'y', 'funded' => 'n', 'docs' => 'y'],
             'eligibility_passed_at' => now(),
             'region_code' => 'HLB',
             'district' => 'Halabja Centre',

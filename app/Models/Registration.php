@@ -188,6 +188,21 @@ class Registration extends Model implements AuthenticatableContract
             && in_array($this->education_stage, ['grade12', 'graduate'], true);
     }
 
+    /**
+     * Which of the two checks in canApplyForScholarship() a student account is
+     * failing, so the gate can say the actual reason instead of guessing one.
+     * Null once they can apply, or for anything that isn't a student account —
+     * the gate only asks this after already establishing both.
+     */
+    public function scholarshipIneligibilityReason(): ?string
+    {
+        if (! $this->isStudentAccount() || $this->canApplyForScholarship()) {
+            return null;
+        }
+
+        return $this->isConfirmed() ? 'stage' : 'unconfirmed';
+    }
+
     public function getAuthPassword(): string
     {
         return (string) $this->password;

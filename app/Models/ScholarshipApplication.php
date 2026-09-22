@@ -71,7 +71,7 @@ class ScholarshipApplication extends Model
     /* --------------------------------------------------------- eligibility -- */
 
     /**
-     * Whether the five answers clear the programme's rules.
+     * Whether the answers clear the programme's rules.
      *
      * A single fail closes it. Warnings — results still pending, a document not
      * yet in hand — let the student through with something to sort out, because

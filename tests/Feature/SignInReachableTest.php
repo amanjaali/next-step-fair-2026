@@ -113,4 +113,57 @@ class SignInReachableTest extends TestCase
 
         $this->assertGuest('attendee');
     }
+
+    /**
+     * An email is not unique across tracks — a conference RSVP under the same
+     * address as a student's fair registration is possible today, and that RSVP
+     * row has no password at all. Whichever row is newest must never shadow the
+     * real student account at sign-in.
+     */
+    public function test_a_student_signs_in_even_when_a_newer_row_shares_their_email(): void
+    {
+        $student = $this->student();
+
+        Registration::create([
+            'track' => Registration::TRACK_CONFERENCE,
+            'type' => Registration::TYPE_GOVERNMENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Same Address, Different Person',
+            'phone' => '7709998877',
+            'phone_country' => '+964',
+            'email' => 'returning@example.com',
+            'days' => [1],
+        ]);
+
+        $this->post('/en/signin', [
+            'email' => 'returning@example.com',
+            'password' => 'a-good-password',
+        ])->assertRedirect();
+
+        $this->assertAuthenticatedAs($student, 'attendee');
+    }
+
+    /** The email exists, but only on a row with no password to check — same generic error. */
+    public function test_an_email_with_no_student_account_behind_it_still_says_incorrect(): void
+    {
+        Registration::create([
+            'track' => Registration::TRACK_CONFERENCE,
+            'type' => Registration::TYPE_GOVERNMENT,
+            'status' => Registration::STATUS_CONFIRMED,
+            'locale' => 'en',
+            'full_name' => 'Delegate Only',
+            'phone' => '7709998866',
+            'phone_country' => '+964',
+            'email' => 'delegate-only@example.com',
+            'days' => [1],
+        ]);
+
+        $this->from('/en/signin')->post('/en/signin', [
+            'email' => 'delegate-only@example.com',
+            'password' => 'anything-at-all',
+        ])->assertRedirect('/en/signin')->assertSessionHasErrors('email');
+
+        $this->assertGuest('attendee');
+    }
 }

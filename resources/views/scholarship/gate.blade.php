@@ -102,12 +102,13 @@
             </div>
         @endunless
 
-        @if ($hasAccount && ! $isEligibleStudent)
-            {{-- A registered student who is not finishing school. Say why rather than
-                 leaving a locked card with no explanation. --}}
+        @if ($hasAccount && ! $isEligibleStudent && $ineligibleReason)
+            {{-- A registered student who cannot apply yet. Say the actual reason —
+                 not confirmed, or the wrong education stage — rather than a locked
+                 card with a guess that's wrong more often than it's right. --}}
             <div class="ns-card border-s-[6px] !border-s-[#C08A1E] mb-12">
-                <div class="font-[family-name:var(--ns-display)] text-[18px] font-semibold mb-2">{{ __('scholarship.apply.not_eligible_title') }}</div>
-                <p class="ns-body !text-[15px] max-w-[58ch]">{{ __('scholarship.apply.not_eligible_body') }}</p>
+                <div class="font-[family-name:var(--ns-display)] text-[18px] font-semibold mb-2">{{ __("scholarship.apply.not_eligible.{$ineligibleReason}.title") }}</div>
+                <p class="ns-body !text-[15px] max-w-[58ch]">{{ __("scholarship.apply.not_eligible.{$ineligibleReason}.body") }}</p>
             </div>
         @endif
 

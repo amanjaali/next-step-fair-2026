@@ -43,15 +43,23 @@ class SignInController extends Controller
             'password.required' => __('attendee.signin.errors.password'),
         ]);
 
+        // Scoped to what a student account actually is — type and a password set
+        // — not just the email. An email can sit on more than one row (a
+        // conference RSVP under the same address, say), and none of those other
+        // rows has a password to check against, so picking any row by email
+        // alone risks comparing the typed password against the wrong account
+        // entirely and rejecting a correct one.
         $registration = Registration::query()
             ->active()
             ->whereEmail($data['email'])
+            ->where('type', Registration::TYPE_STUDENT)
+            ->whereNotNull('password')
             ->latest('id')
             ->first();
 
         // One message for a wrong address and a wrong password alike, so neither
         // can be used to find out which accounts exist.
-        if (! $registration?->isStudentAccount() || ! Hash::check($data['password'], (string) $registration->password)) {
+        if (! $registration || ! Hash::check($data['password'], (string) $registration->password)) {
             return back()->withInput($request->only('email'))
                 ->withErrors(['email' => __('attendee.signin.errors.no_match')]);
         }
