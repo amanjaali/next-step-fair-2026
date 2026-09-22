@@ -41,7 +41,10 @@
         </div>
 
         {{-- Everyone else. A parent or a visitor has no account and does not need
-             one — they have lost a WhatsApp message, and that is all. --}}
+             one — they have lost a WhatsApp message, and that is all.
+             This used to be a self-service "send me a code" form, but nothing
+             behind it ever delivered a code — a dead end dressed up as a fix.
+             Sent to a person instead, until that delivery actually exists. --}}
         <details class="ns-card !py-5">
             <summary class="font-[family-name:var(--ns-body)] text-[15px] font-bold cursor-pointer">
                 {{ __('attendee.signin.badge_title') }}
@@ -49,24 +52,7 @@
 
             <p class="ns-body !text-[14.5px] text-body-soft mt-4 mb-5 max-w-[52ch]">{{ __('attendee.signin.badge_lead') }}</p>
 
-            <form method="POST" action="{{ route('attendee.signin.send') }}" novalidate>
-                @csrf
-                <label class="block mb-5">
-                    <span class="ns-label">{{ __('attendee.signin.phone') }} <span class="ns-req">*</span></span>
-                    <div class="flex gap-2">
-                        <select name="phone_country" class="ns-select !w-[110px] ns-num">
-                            @foreach (config('nextstep.phone.countries') as $code => $label)
-                                <option value="{{ $code }}" @selected(old('phone_country', config('nextstep.phone.default_country')) === $code)>{{ $code }}</option>
-                            @endforeach
-                        </select>
-                        <input type="tel" name="phone" value="{{ old('phone') }}" inputmode="numeric"
-                               autocomplete="tel" placeholder="770 000 0000" class="ns-input ns-num flex-1">
-                    </div>
-                    @error('phone')<span class="ns-error">{{ $message }}</span>@enderror
-                </label>
-
-                <button type="submit" class="ns-btn ns-btn-ghost ns-btn-sm">{{ __('attendee.signin.badge_submit') }}</button>
-            </form>
+            <a href="{{ route('contact') }}" class="ns-btn ns-btn-ghost ns-btn-sm">{{ __('site.nav.contact') }}</a>
         </details>
     </div>
 </x-layouts.site>

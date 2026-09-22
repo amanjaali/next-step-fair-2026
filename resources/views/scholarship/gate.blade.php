@@ -23,6 +23,12 @@
             // Three gates, shown together with their state. Discovering them one at
             // a time — sign up, then a check, then a form — is how an application
             // gets abandoned halfway.
+            //
+            // The form itself only opens when both the check has passed AND the
+            // student is still currently eligible — checkPassed alone survives a
+            // stage change made after passing, and offering the form on that alone
+            // shows a clickable "Open the application" that bounces straight back.
+            $canOpenForm = $checkPassed && $isEligibleStudent;
             $steps = [
                 [
                     'n' => 1,
@@ -49,11 +55,11 @@
                     'title' => __('scholarship.apply.gate3_title'),
                     'body' => __('scholarship.apply.gate3_body'),
                     'done' => $application?->isSubmitted() ?? false,
-                    'cta' => $checkPassed ? __('scholarship.apply.gate3_cta') : null,
+                    'cta' => $canOpenForm ? __('scholarship.apply.gate3_cta') : null,
                     'href' => $application?->isSubmitted() ? route('scholarship.status') : route('scholarship.apply.form'),
                     'state' => $application?->isSubmitted()
                         ? __('scholarship.apply.state_submitted')
-                        : ($checkPassed ? __('scholarship.apply.state_open') : __('scholarship.apply.state_locked')),
+                        : ($canOpenForm ? __('scholarship.apply.state_open') : __('scholarship.apply.state_locked')),
                 ],
             ];
         @endphp

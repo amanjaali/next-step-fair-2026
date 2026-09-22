@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Registration;
+use App\Models\ScholarshipApplication;
 use App\Models\ScholarshipUniversity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -177,6 +178,38 @@ class ScholarshipAudienceTest extends TestCase
     public function test_scholarship_ineligibility_reason_is_null_for_a_non_student(): void
     {
         $this->assertNull($this->parent()->scholarshipIneligibilityReason());
+    }
+
+    /**
+     * A passed check does not stay a standing pass if the student later
+     * becomes ineligible another way (here, an education stage change). The
+     * form step must lock again rather than keep offering a CTA that bounces
+     * back the moment it is pressed.
+     */
+    public function test_the_form_step_locks_again_if_eligibility_changes_after_passing(): void
+    {
+        $student = $this->registration(['education_stage' => 'grade12']);
+
+        ScholarshipApplication::create([
+            'registration_id' => $student->id,
+            'cycle' => config('scholarship.cycle'),
+            'status' => ScholarshipApplication::STATUS_DRAFT,
+            'step' => 1,
+            'eligibility' => ['year' => 'y', 'funded' => 'n', 'docs' => 'y'],
+            'eligibility_passed_at' => now(),
+        ]);
+
+        $student->forceFill(['education_stage' => 'university'])->save();
+
+        $response = $this->actingAs($student, 'attendee')->get('/en/scholarship/apply')->assertOk();
+
+        $response->assertDontSee(__('scholarship.apply.gate3_cta'));
+        $response->assertSee(__('scholarship.apply.state_locked'));
+
+        // And the form itself still refuses, matching the gate's word.
+        $this->actingAs($student, 'attendee')
+            ->get('/en/scholarship/apply/form')
+            ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
     }
 
     /* ------------------------------------------------------ opportunities -- */

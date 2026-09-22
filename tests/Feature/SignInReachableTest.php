@@ -166,4 +166,18 @@ class SignInReachableTest extends TestCase
 
         $this->assertGuest('attendee');
     }
+
+    /**
+     * The "lost your badge" box used to promise a WhatsApp code that nothing
+     * ever sends. It now points at a real human channel instead of a form
+     * that leads to a dead end.
+     */
+    public function test_the_lost_badge_box_points_at_contact_not_a_broken_form(): void
+    {
+        $html = $this->get('/en/signin')->assertOk()->getContent();
+
+        $this->assertStringContainsString(route('contact', ['locale' => 'en']), $html);
+        $this->assertStringNotContainsString('name="phone"', $html);
+        $this->assertStringContainsString(__('attendee.signin.badge_title'), $html);
+    }
 }

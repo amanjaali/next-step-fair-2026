@@ -290,7 +290,7 @@ return [
         'gate1_cta' => 'Register as a student',
 
         'gate2_title' => 'The eligibility check',
-        'gate2_body' => 'Five questions on your grade 12 record, your region and your documents. About a minute.',
+        'gate2_body' => 'Three questions on your start date, other funding and your documents. About a minute.',
         'gate2_cta' => 'Start the check',
         'gate2_review' => 'Review your answers',
 
