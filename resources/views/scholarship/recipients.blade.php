@@ -19,11 +19,15 @@
         <p class="ns-body !text-[15px] text-body-soft max-w-[58ch] mb-6">{{ __('scholarship.recipients.quota_lead') }}</p>
 
         <div class="grid gap-px bg-[rgba(5,7,8,0.14)] border border-[rgba(5,7,8,0.14)] sm:grid-cols-2 lg:grid-cols-4">
-            @foreach ($regions as $code => $region)
+            @foreach ($scholarships['institutions'] as $institution)
                 <div class="bg-white px-5 py-4">
                     <div class="flex items-baseline justify-between gap-3">
-                        <span class="font-[family-name:var(--ns-body)] text-[14.5px] font-bold">{{ $region['name'] }}</span>
-                        <span class="ns-num font-[family-name:var(--ns-display)] text-[18px] font-bold text-magenta">{{ $region['seats'] }}</span>
+                        <span class="font-[family-name:var(--ns-body)] text-[14.5px] font-bold">{{ __("scholarship.institution_names.{$institution['slug']}") }}</span>
+                        @if ($institution['seats'] > 0)
+                            <span class="ns-num font-[family-name:var(--ns-display)] text-[18px] font-bold text-magenta shrink-0">{{ $institution['seats'] }}</span>
+                        @else
+                            <span class="ns-meta !text-[11px] font-bold text-body-soft shrink-0">{{ __('scholarship.home.seats_confirming') }}</span>
+                        @endif
                     </div>
                 </div>
             @endforeach

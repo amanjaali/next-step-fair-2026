@@ -25,29 +25,29 @@
         </div>
     </section>
 
-    {{-- Forty seats, and where they go. The quota is the whole point of the
+    {{-- Where the seats actually sit. The quota is the whole point of the
          programme, so it is the first thing after the headline. --}}
     <section class="ns-wrap max-w-[1080px] py-[clamp(40px,6vw,80px)]">
         <div class="flex items-baseline justify-between gap-4 flex-wrap mb-2">
             <h2 class="ns-h2 !text-[clamp(24px,3vw,34px)]">{{ __('scholarship.home.quota_title') }}</h2>
             <span class="ns-num font-[family-name:var(--ns-display)] text-[38px] font-bold leading-none text-magenta">
-                {{ config('scholarship.seats') }}
+                {{ $scholarships['total'] }}
             </span>
         </div>
         <p class="ns-body max-w-[62ch] mb-8">{{ __('scholarship.home.quota_lead') }}</p>
 
         <div class="grid gap-px bg-[rgba(5,7,8,0.14)] border border-[rgba(5,7,8,0.14)] sm:grid-cols-2 lg:grid-cols-4">
-            @foreach ($regions as $code => $region)
-                <a href="{{ route('scholarship.region', ['code' => strtolower($code)]) }}"
-                   class="bg-white px-5 py-[18px] block no-underline hover:bg-bone-50">
+            @foreach ($scholarships['institutions'] as $institution)
+                <div class="bg-white px-5 py-[18px]">
                     <div class="flex items-baseline justify-between gap-3">
-                        <span class="font-[family-name:var(--ns-display)] text-[17px] font-semibold text-ink">{{ $region['name'] }}</span>
-                        <span class="ns-num font-[family-name:var(--ns-display)] text-[20px] font-bold text-magenta">{{ $region['seats'] }}</span>
+                        <span class="font-[family-name:var(--ns-display)] text-[15.5px] font-semibold text-ink leading-[1.3]">{{ __("scholarship.institution_names.{$institution['slug']}") }}</span>
+                        @if ($institution['seats'] > 0)
+                            <span class="ns-num font-[family-name:var(--ns-display)] text-[20px] font-bold text-magenta shrink-0">{{ $institution['seats'] }}</span>
+                        @else
+                            <span class="ns-meta !text-[11.5px] font-bold text-body-soft shrink-0">{{ __('scholarship.home.seats_confirming') }}</span>
+                        @endif
                     </div>
-                    <div class="ns-meta text-[12px] mt-[3px]">
-                        {{ __("scholarship.region_types.{$region['type']}") }} · {{ trans_choice('scholarship.home.districts', count($region['districts']), ['count' => count($region['districts'])]) }}
-                    </div>
-                </a>
+                </div>
             @endforeach
         </div>
 

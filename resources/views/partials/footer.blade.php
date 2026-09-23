@@ -87,7 +87,7 @@
                 @if (session('newsletter'))
                     <p class="font-[family-name:var(--ns-body)] text-[13px] text-white/80 mt-3">{{ session('newsletter') }}</p>
                 @endif
-                <div class="font-[family-name:var(--ns-body)] text-sm text-white/80 mt-[22px] flex flex-col gap-[6px]">
+                <div class="font-[family-name:var(--ns-body)] text-sm text-white/80 mt-[22px] flex flex-col gap-[6px] text-left">
                     <a href="mailto:{{ config('nextstep.contact.general') }}" class="text-white/80 hover:text-white">{{ config('nextstep.contact.general') }}</a>
                     <span class="ns-num">{{ config('nextstep.contact.phone') }}</span>
                 </div>

@@ -20,8 +20,8 @@ class ScholarshipController extends Controller
     public function home(): View
     {
         return $this->page('scholarship.home', 'home', [
-            'regions' => config('scholarship.regions'),
             'universities' => ns_scholarship_universities(),
+            'scholarships' => config('scholarship.university_scholarships'),
         ]);
     }
 
@@ -87,7 +87,7 @@ class ScholarshipController extends Controller
     public function recipients(): View
     {
         return $this->page('scholarship.recipients', 'recipients', [
-            'regions' => config('scholarship.regions'),
+            'scholarships' => config('scholarship.university_scholarships'),
         ]);
     }
 

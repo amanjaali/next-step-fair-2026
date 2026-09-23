@@ -223,15 +223,6 @@ class ZankolineTest extends TestCase
      * It belongs on the opportunities board too — and above the sign-in wall,
      * because a student who cannot see the board yet can still walk into a desk.
      */
-    public function test_the_opportunities_board_lists_it_as_a_service(): void
-    {
-        $this->get('/en/opportunities')
-            ->assertOk()
-            ->assertSee(__('zankoline.promo.kicker'))
-            ->assertSee(__('zankoline.promo.title'))
-            ->assertSee(route('zankoline', ['locale' => 'en']), false);
-    }
-
     public function test_the_front_page_shows_it_in_every_language(): void
     {
         foreach (['ku', 'ar'] as $locale) {

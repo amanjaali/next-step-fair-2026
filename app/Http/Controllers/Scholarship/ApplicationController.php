@@ -154,6 +154,12 @@ class ApplicationController extends Controller
                 'first_choice_department' => ['required', 'string', 'max:120'],
                 'second_choice_university' => ['nullable', 'string', 'max:190'],
                 'second_choice_department' => ['nullable', 'string', 'max:120'],
+                'third_choice_university' => ['nullable', 'string', 'max:190'],
+                'third_choice_department' => ['nullable', 'string', 'max:120'],
+                'fourth_choice_university' => ['nullable', 'string', 'max:190'],
+                'fourth_choice_department' => ['nullable', 'string', 'max:120'],
+                'fifth_choice_university' => ['nullable', 'string', 'max:190'],
+                'fifth_choice_department' => ['nullable', 'string', 'max:120'],
             ],
             3 => [
                 'statement' => ['required', 'string', "min:{$words['min']}", 'max:8000'],
@@ -165,46 +171,45 @@ class ApplicationController extends Controller
         // A choice with something to read cannot be saved without the box
         // checked — but only if there is something to read: a university
         // nobody has written requirements for asks for no acknowledgement.
+        // Applies to every filled slot, not just the required first one.
         if ($step === 2) {
-            if ($this->requirementsFor($request->input('first_choice_university'), $request->input('first_choice_department')) !== null) {
-                $rules['first_choice_ack'] = ['accepted'];
-            }
-            if (filled($request->input('second_choice_university'))
-                && $this->requirementsFor($request->input('second_choice_university'), $request->input('second_choice_department')) !== null) {
-                $rules['second_choice_ack'] = ['accepted'];
-            }
+            foreach (ScholarshipApplication::CHOICE_SLOTS as $slot) {
+                $university = $request->input("{$slot}_choice_university");
+                $department = $request->input("{$slot}_choice_department");
 
-            // A university running its own application form alongside ours —
-            // whole university, so this applies no matter which of its
-            // departments was picked.
-            if ($this->requiresExternalForm($request->input('first_choice_university'))) {
-                $rules['first_choice_external_form_ack'] = ['accepted'];
-            }
-            if (filled($request->input('second_choice_university'))
-                && $this->requiresExternalForm($request->input('second_choice_university'))) {
-                $rules['second_choice_external_form_ack'] = ['accepted'];
-            }
-
-            // A department that hands out its own paper form cannot be applied
-            // to without it. One already on file counts — they are coming back
-            // to a saved step, not starting again — but only while the choice
-            // is the one it was uploaded for: a form belongs to the department
-            // that issued it, and must not follow a student to another.
-            foreach (['first', 'second'] as $slot) {
-                if (! $this->requiresForm($request->input("{$slot}_choice_university"), $request->input("{$slot}_choice_department"))) {
+                if (blank($university)) {
                     continue;
                 }
 
-                $held = $application->documents["{$slot}_choice_form"] ?? null;
+                if ($this->requirementsFor($university, $department) !== null) {
+                    $rules["{$slot}_choice_ack"] = ['accepted'];
+                }
 
-                $rules["{$slot}_choice_form"] = [
-                    Rule::requiredIf(blank($held) || $this->choiceChanged($application, $request, $slot)),
-                    'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:8192',
-                ];
+                // A university running its own application form alongside
+                // ours — whole university, so this applies no matter which of
+                // its departments was picked.
+                if ($this->requiresExternalForm($university)) {
+                    $rules["{$slot}_choice_external_form_ack"] = ['accepted'];
+                }
+
+                // A department that hands out its own paper form cannot be
+                // applied to without it. One already on file counts — they
+                // are coming back to a saved step, not starting again — but
+                // only while the choice is the one it was uploaded for: a
+                // form belongs to the department that issued it, and must
+                // not follow a student to another.
+                if ($this->requiresForm($university, $department)) {
+                    $held = $application->documents["{$slot}_choice_form"] ?? null;
+
+                    $rules["{$slot}_choice_form"] = [
+                        Rule::requiredIf(blank($held) || $this->choiceChanged($application, $request, $slot)),
+                        'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:8192',
+                    ];
+                }
             }
         }
 
-        $data = $request->validate($rules, [
+        $messages = [
             'region_code.required' => __('scholarship.apply.errors.region'),
             'district.required' => __('scholarship.apply.errors.district'),
             'exam_average.required' => __('scholarship.apply.errors.average'),
@@ -212,28 +217,62 @@ class ApplicationController extends Controller
             'statement.min' => __('scholarship.apply.errors.statement_short'),
             'proposal.required' => __('scholarship.apply.errors.proposal'),
             'proposal.min' => __('scholarship.apply.errors.proposal_short'),
-            'first_choice_ack.accepted' => __('scholarship.apply.errors.first_choice_ack'),
-            'second_choice_ack.accepted' => __('scholarship.apply.errors.second_choice_ack'),
-            'first_choice_external_form_ack.accepted' => __('scholarship.apply.errors.external_form_ack'),
-            'second_choice_external_form_ack.accepted' => __('scholarship.apply.errors.external_form_ack'),
-            'first_choice_form.required' => __('scholarship.apply.errors.choice_form'),
-            'second_choice_form.required' => __('scholarship.apply.errors.choice_form'),
-            'first_choice_form.mimes' => __('scholarship.apply.errors.choice_form_type'),
-            'second_choice_form.mimes' => __('scholarship.apply.errors.choice_form_type'),
-            'first_choice_form.max' => __('scholarship.apply.errors.choice_form_size'),
-            'second_choice_form.max' => __('scholarship.apply.errors.choice_form_size'),
-        ]);
+        ];
+
+        foreach (ScholarshipApplication::CHOICE_SLOTS as $slot) {
+            $messages["{$slot}_choice_ack.accepted"] = __("scholarship.apply.errors.{$slot}_choice_ack");
+            $messages["{$slot}_choice_external_form_ack.accepted"] = __('scholarship.apply.errors.external_form_ack');
+            $messages["{$slot}_choice_form.required"] = __('scholarship.apply.errors.choice_form');
+            $messages["{$slot}_choice_form.mimes"] = __('scholarship.apply.errors.choice_form_type');
+            $messages["{$slot}_choice_form.max"] = __('scholarship.apply.errors.choice_form_size');
+        }
+
+        $validator = validator($request->all(), $rules, $messages);
+
+        // The same seat cannot be listed twice under different choices — a
+        // student picking the same university's same department as both
+        // their first and third choice is not five real preferences, it is
+        // four. A different department at the same university is fine; it is
+        // a different seat.
+        if ($step === 2) {
+            $validator->after(function ($validator) use ($request) {
+                $seen = [];
+
+                foreach (ScholarshipApplication::CHOICE_SLOTS as $slot) {
+                    $university = $request->input("{$slot}_choice_university");
+                    $department = $request->input("{$slot}_choice_department");
+
+                    if (blank($university) || blank($department)) {
+                        continue;
+                    }
+
+                    $seat = mb_strtolower($university).'|'.mb_strtolower($department);
+
+                    if (isset($seen[$seat])) {
+                        $validator->errors()->add(
+                            "{$slot}_choice_department",
+                            __('scholarship.apply.errors.duplicate_choice'),
+                        );
+                    }
+
+                    $seen[$seat] = true;
+                }
+            });
+        }
+
+        $data = $validator->validate();
 
         if ($step === 2) {
             // The ack checkboxes are not real columns — swap them for a
             // timestamped snapshot of exactly what was shown and agreed to,
             // so a requirements text edited later cannot rewrite history.
-            unset($data['first_choice_ack'], $data['second_choice_ack']);
-            unset($data['first_choice_external_form_ack'], $data['second_choice_external_form_ack']);
+            foreach (ScholarshipApplication::CHOICE_SLOTS as $slot) {
+                unset($data["{$slot}_choice_ack"], $data["{$slot}_choice_external_form_ack"]);
+            }
 
             $documents = $application->documents ?? [];
 
-            foreach (['first', 'second'] as $slot) {
+            foreach (ScholarshipApplication::CHOICE_SLOTS as $slot) {
                 // Moving to another department leaves the old department's form
                 // behind rather than passing it off as this one's.
                 if ($this->choiceChanged($application, $request, $slot) && filled($documents["{$slot}_choice_form"] ?? null)) {

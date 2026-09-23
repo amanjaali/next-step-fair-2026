@@ -282,6 +282,76 @@ class ScholarshipDepartmentFormTest extends TestCase
             ->assertSessionHasErrors('first_choice_external_form_ack');
     }
 
+    /* ------------------------------------------------------- five choices -- */
+
+    public function test_a_student_can_list_a_third_choice(): void
+    {
+        $this->partnerWithSeats();
+        $this->secondPartnerWithSeats();
+
+        $student = $this->student();
+        $this->pass($student);
+
+        $response = $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', $this->step2(department: 'Civil Engineering') + [
+                'second_choice_university' => 'Bardi Institute',
+                'second_choice_department' => 'Nursing',
+                'second_choice_ack' => '1',
+                'second_choice_form' => UploadedFile::fake()->image('bardi.jpg'),
+                'third_choice_university' => 'Lutka Institute',
+                'third_choice_department' => 'Graphic Design',
+                'third_choice_ack' => '1',
+                'third_choice_form' => UploadedFile::fake()->image('lutka.jpg'),
+            ]);
+
+        $response->assertSessionDoesntHaveErrors();
+
+        $application = $student->scholarshipApplication()->fresh();
+        $this->assertSame('Lutka Institute', $application->third_choice_university);
+        $this->assertSame('Graphic Design', $application->third_choice_department);
+        $this->assertNotNull($application->documents['third_choice_form'] ?? null);
+    }
+
+    public function test_the_same_seat_cannot_be_listed_twice(): void
+    {
+        $this->partnerWithSeats();
+
+        $student = $this->student();
+        $this->pass($student);
+
+        $response = $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', $this->step2(department: 'Civil Engineering') + [
+                'second_choice_university' => 'Lutka Institute',
+                'second_choice_department' => 'Civil Engineering',
+            ]);
+
+        $response->assertSessionHasErrors('second_choice_department');
+
+        $this->assertNull($student->scholarshipApplication()->fresh()->second_choice_university);
+    }
+
+    public function test_the_same_university_with_a_different_department_is_not_a_duplicate(): void
+    {
+        $this->partnerWithSeats();
+
+        $student = $this->student();
+        $this->pass($student);
+
+        $response = $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', $this->step2(department: 'Civil Engineering') + [
+                'second_choice_university' => 'Lutka Institute',
+                'second_choice_department' => 'Graphic Design',
+                'second_choice_ack' => '1',
+                'second_choice_form' => UploadedFile::fake()->image('lutka-2nd.jpg'),
+            ]);
+
+        $response->assertSessionDoesntHaveErrors();
+
+        $application = $student->scholarshipApplication()->fresh();
+        $this->assertSame('Civil Engineering', $application->first_choice_department);
+        $this->assertSame('Graphic Design', $application->second_choice_department);
+    }
+
     /* ----------------------------------------------------------- helpers -- */
 
     private function flagExternalForm(string $universitySlug, string $url): ScholarshipUniversityRequirement

@@ -41,6 +41,9 @@ class ScholarshipApplication extends Model
 
     public const DECISION_DECLINED = 'declined';
 
+    /** The university/department choices a student can list, in order. Only the first is required. */
+    public const CHOICE_SLOTS = ['first', 'second', 'third', 'fourth', 'fifth'];
+
     protected $guarded = ['id'];
 
     protected function casts(): array
@@ -52,6 +55,9 @@ class ScholarshipApplication extends Model
             'eligibility_passed_at' => 'datetime',
             'first_choice_external_form_ack_at' => 'datetime',
             'second_choice_external_form_ack_at' => 'datetime',
+            'third_choice_external_form_ack_at' => 'datetime',
+            'fourth_choice_external_form_ack_at' => 'datetime',
+            'fifth_choice_external_form_ack_at' => 'datetime',
             'submitted_at' => 'datetime',
             'screened_at' => 'datetime',
             'shortlisted_at' => 'datetime',
@@ -153,23 +159,22 @@ class ScholarshipApplication extends Model
         return (int) round($done / 4 * 100);
     }
 
-    /** The stages, in order, with the one they are at marked. */
+    /**
+     * The two milestones an applicant sees: submitted, then decided. The
+     * screening/shortlisted/interview stages in between still drive the
+     * committee's own workflow and the notification an applicant gets when
+     * they're reached (see REVIEW_STAGES and advanceTo()) — they're just not
+     * broken out as separate steps here, since from the applicant's side
+     * they're all "still under review."
+     */
     public function timeline(): array
     {
-        $order = [
-            self::STATUS_SUBMITTED,
-            self::STATUS_SCREENING,
-            self::STATUS_SHORTLISTED,
-            self::STATUS_INTERVIEW,
-            self::STATUS_DECIDED,
+        $decided = $this->status === self::STATUS_DECIDED;
+
+        return [
+            ['key' => self::STATUS_SUBMITTED, 'state' => $this->isSubmitted() ? 'done' : 'todo'],
+            ['key' => self::STATUS_DECIDED, 'state' => $decided ? 'done' : ($this->isSubmitted() ? 'now' : 'todo')],
         ];
-
-        $at = array_search($this->status, $order, true);
-
-        return collect($order)->map(fn ($stage, $i) => [
-            'key' => $stage,
-            'state' => $at === false ? 'todo' : ($i < $at ? 'done' : ($i === $at ? 'now' : 'todo')),
-        ])->all();
     }
 
     /* ------------------------------------------------------- the committee -- */

@@ -65,16 +65,16 @@ class ScholarshipApplicationInfolist
             Section::make(__('admin.scholarship.choices'))
                 ->columns(2)
                 ->schema([
-                    TextEntry::make('first_choice_university')
-                        ->label(__('admin.scholarship.first_choice'))
-                        ->formatStateUsing(fn (ScholarshipApplication $record) => trim(
-                            ($record->first_choice_university ?? '—').' · '.($record->first_choice_department ?? ''), ' ·')),
-                    TextEntry::make('second_choice_university')
-                        ->label(__('admin.scholarship.second_choice'))
-                        ->placeholder('—')
-                        ->formatStateUsing(fn (ScholarshipApplication $record) => $record->second_choice_university
-                            ? trim($record->second_choice_university.' · '.($record->second_choice_department ?? ''), ' ·')
-                            : '—'),
+                    ...collect(ScholarshipApplication::CHOICE_SLOTS)
+                        ->map(fn (string $slot) => TextEntry::make("{$slot}_choice_university")
+                            ->label(__("admin.scholarship.{$slot}_choice"))
+                            ->visible(fn (ScholarshipApplication $record) => $slot === 'first'
+                                || filled($record->{"{$slot}_choice_university"}))
+                            ->formatStateUsing(fn (ScholarshipApplication $record) => trim(
+                                ($record->{"{$slot}_choice_university"} ?? '—').' · '.($record->{"{$slot}_choice_department"} ?? ''),
+                                ' ·'
+                            )))
+                        ->all(),
                     TextEntry::make('external_form_acks')
                         ->label(__('admin.scholarship.external_form_acks'))
                         ->state(fn (ScholarshipApplication $record) => self::externalFormAcks($record))
@@ -210,7 +210,7 @@ class ScholarshipApplicationInfolist
     /** Which choices needed the university's own form, and whether it was confirmed. */
     private static function externalFormAcks(ScholarshipApplication $record): array
     {
-        return collect(['first', 'second'])
+        return collect(ScholarshipApplication::CHOICE_SLOTS)
             ->filter(fn (string $slot) => filled($record->{"{$slot}_choice_external_form_url_ack"}))
             ->map(fn (string $slot) => __('admin.scholarship.'.$slot.'_choice').': '
                 .__('admin.scholarship.external_form_confirmed', [
@@ -225,7 +225,7 @@ class ScholarshipApplicationInfolist
     {
         $held = $record->documents ?? [];
 
-        return collect(['first', 'second'])
+        return collect(ScholarshipApplication::CHOICE_SLOTS)
             ->filter(fn (string $slot) => filled($held[$slot.'_choice_form'] ?? null))
             ->map(function (string $slot) use ($held) {
                 $url = Storage::disk('local')->temporaryUrl(

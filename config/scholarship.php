@@ -50,6 +50,37 @@ return [
 
     /*
     |---------------------------------------------------------------------------
+    | Confirmed university and institute scholarships
+    |---------------------------------------------------------------------------
+    |
+    | The headline count on the scholarship homepage — separate from the 40-seat
+    | regional quota above, and separate from the dashboard-managed university
+    | catalogue used on the application form. This is the confirmed pledge total
+    | for the current cycle, updated by hand each time a partner confirms or
+    | revises its count. Names are translated per locale under
+    | scholarship.institution_names.
+    */
+    'university_scholarships' => [
+        'total' => 376,
+        'count' => 12,
+        'institutions' => [
+            ['slug' => 'azmar', 'seats' => 123],
+            ['slug' => 'lutka', 'seats' => 120],
+            ['slug' => 'nit', 'seats' => 100],
+            ['slug' => 'komar', 'seats' => 15],
+            ['slug' => 'qaiwan-intl', 'seats' => 5],
+            ['slug' => 'bright', 'seats' => 4],
+            ['slug' => 'kti', 'seats' => 4],
+            ['slug' => 'auis', 'seats' => 2],
+            ['slug' => 'nishtiman', 'seats' => 2],
+            ['slug' => 'lebanese-french', 'seats' => 1],
+            ['slug' => 'knowledge', 'seats' => 0],
+            ['slug' => 'jihan', 'seats' => 0],
+        ],
+    ],
+
+    /*
+    |---------------------------------------------------------------------------
     | The eligibility check
     |---------------------------------------------------------------------------
     |

@@ -162,7 +162,7 @@ return [
                 'agenda_saved' => '{1} 1 session saved · add more|[2,*] :count sessions saved · add more',
                 'agenda_empty' => 'Nothing saved yet · pick your seminars and panels',
                 'scholarship' => 'National Scholarship Program',
-                'scholarship_note' => 'Forty funded degrees · apply with this account',
+                'scholarship_note' => 'Scholarships open · apply with this account',
                 'opportunities' => 'Opportunities',
                 'opportunities_note' => 'Scholarships and offers from our partners',
                 'zankoline' => 'Zankoline and scholarships',
@@ -410,7 +410,7 @@ return [
             'lead' => 'Attendance, session popularity, exit surveys and the SDG indicators, published after every edition.',
         ],
         'scholarships' => [
-            'programme_pointer' => 'This page lists the scholarships universities bring to the expo. Next Step also runs its own programme: forty fully funded degrees, held in regional quotas.',
+            'programme_pointer' => 'This page lists the scholarships universities bring to the expo. Next Step also runs its own programme, funding places at partner universities and institutes across the Kurdistan Region.',
             'title' => 'Scholarships',
             'lead' => 'Named programmes, real deadlines and the documents you need before you start.',
             'bridge' => 'The full scholarship catalogue lives on our scholarship platform.',

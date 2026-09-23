@@ -380,22 +380,59 @@ Alpine.data('nsEligibility', (total) => ({
  * changed, so the tick has to happen again.
  */
 Alpine.data('nsScholarshipChoice', () => ({
-    slots: {
-        first: {
-            requirements: '', hasRequirements: false, ack: false, requiresForm: false,
-            requiresExternalForm: false, externalFormUrl: '', externalFormName: '', externalFormAck: false,
-        },
-        second: {
-            requirements: '', hasRequirements: false, ack: false, requiresForm: false,
-            requiresExternalForm: false, externalFormUrl: '', externalFormName: '', externalFormAck: false,
-        },
-    },
+    /* Only the first choice is required. Up to five, in order. */
+    slotOrder: ['first', 'second', 'third', 'fourth', 'fifth'],
+
+    slots: Object.fromEntries(['first', 'second', 'third', 'fourth', 'fifth'].map((slot) => [slot, {
+        requirements: '', hasRequirements: false, ack: false, requiresForm: false,
+        requiresExternalForm: false, externalFormUrl: '', externalFormName: '', externalFormAck: false,
+    }])),
+
+    /* Two shown by default; a saved application may already have more filled
+       in, so those are revealed too rather than hiding data the student
+       already entered. */
+    visibleSlots: ['first', 'second'],
 
     init() {
-        this.filterDepartments('first');
-        this.filterDepartments('second');
-        this.sync('first');
-        this.sync('second');
+        this.slotOrder.forEach((slot) => {
+            const uniSelect = this.$root.querySelector(`select[name="${slot}_choice_university"]`);
+
+            if (uniSelect && uniSelect.value !== '' && !this.visibleSlots.includes(slot)) {
+                this.visibleSlots.push(slot);
+            }
+        });
+
+        this.slotOrder.forEach((slot) => {
+            this.filterDepartments(slot);
+            this.sync(slot);
+        });
+    },
+
+    addChoice() {
+        const next = this.slotOrder.find((slot) => !this.visibleSlots.includes(slot));
+
+        if (next) {
+            this.visibleSlots.push(next);
+        }
+    },
+
+    /* Clears the slot's own selects before hiding it, so a removed choice
+       does not silently resubmit whatever was picked before it was hidden. */
+    removeChoice(slot) {
+        this.visibleSlots = this.visibleSlots.filter((s) => s !== slot);
+
+        const uniSelect = this.$root.querySelector(`select[name="${slot}_choice_university"]`);
+        const deptSelect = this.$root.querySelector(`select[name="${slot}_choice_department"]`);
+
+        if (uniSelect) {
+            uniSelect.value = '';
+        }
+        if (deptSelect) {
+            deptSelect.value = '';
+        }
+
+        this.filterDepartments(slot);
+        this.sync(slot);
     },
 
     /**
@@ -470,9 +507,9 @@ Alpine.data('nsScholarshipChoice', () => ({
         this.slots[slot].externalFormAck = false;
     },
 
-    /** Whether an unchecked box in either slot is still holding the form shut. */
+    /** Whether an unchecked box in any visible slot is still holding the form shut. */
     blocked() {
-        return ['first', 'second'].some((slot) => (this.slots[slot].hasRequirements && !this.slots[slot].ack)
+        return this.visibleSlots.some((slot) => (this.slots[slot].hasRequirements && !this.slots[slot].ack)
             || (this.slots[slot].requiresExternalForm && !this.slots[slot].externalFormAck));
     },
 

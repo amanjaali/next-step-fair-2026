@@ -5,6 +5,18 @@
         3 => __('scholarship.apply.steps.statement'),
         4 => __('scholarship.apply.steps.review'),
     ];
+
+    // Every choice the student actually filled in, first through fifth —
+    // not just the required first one, so the review step shows what they
+    // are really submitting.
+    $choiceRows = collect(['first', 'second', 'third', 'fourth', 'fifth'])
+        ->filter(fn ($slot) => filled($application->{"{$slot}_choice_university"}))
+        ->mapWithKeys(fn ($slot) => [
+            __("scholarship.apply.f.{$slot}_choice") => trim(
+                $application->{"{$slot}_choice_university"}.' · '.$application->{"{$slot}_choice_department"},
+                ' ·'
+            ),
+        ]);
 @endphp
 
 <x-layouts.scholarship :title="$title" :scholarshipNav="$scholarshipNav" :attendee="$attendee" :application="$application">
@@ -71,7 +83,7 @@
                             ? __('scholarship.apply.pending_results')
                             : $application->exam_average,
                         __('scholarship.apply.f.school') => $application->school_name,
-                        __('scholarship.apply.f.first_choice') => trim($application->first_choice_university.' · '.$application->first_choice_department, ' ·'),
+                        ...$choiceRows->all(),
                         __('scholarship.apply.f.statement') => $application->statement ? str_word_count($application->statement).' '.__('scholarship.apply.words') : null,
                         __('scholarship.apply.f.proposal') => $application->proposal ? str_word_count($application->proposal).' '.__('scholarship.apply.words') : null,
                     ] as $label => $value)
@@ -156,7 +168,6 @@
                                 <span class="ns-label">{{ __('scholarship.apply.f.average') }}</span>
                                 <input type="number" name="exam_average" step="0.01" min="0" max="100"
                                        value="{{ old('exam_average', $application->exam_average) }}" class="ns-input ns-num">
-                                <span class="ns-hint">{{ __('scholarship.apply.average_note', ['min' => config('scholarship.minimum_average')]) }}</span>
                             </label>
 
                             <label>
@@ -179,7 +190,18 @@
                         <h3 class="font-[family-name:var(--ns-display)] text-[18px] font-semibold mt-9 mb-2">{{ __('scholarship.apply.choices_title') }}</h3>
                         <p class="ns-body !text-[14px] text-body-soft mb-5 max-w-[56ch]">{{ __('scholarship.apply.choices_lead') }}</p>
 
-                        @foreach (['first' => true, 'second' => false] as $slot => $required)
+                        @foreach (['first', 'second', 'third', 'fourth', 'fifth'] as $slot)
+                            @php $required = $slot === 'first'; @endphp
+                            <div x-show="visibleSlots.includes('{{ $slot }}')" x-cloak>
+                            <div class="flex items-center justify-between gap-3 mb-1">
+                                <span class="ns-eyebrow !text-[10px]">{{ __("scholarship.apply.f.{$slot}_choice") }}</span>
+                                @if ($slot !== 'first')
+                                    <button type="button" @click="removeChoice('{{ $slot }}')"
+                                            class="font-[family-name:var(--ns-body)] text-[12.5px] font-bold text-crimson bg-transparent border-0 cursor-pointer p-0">
+                                        {{ __('scholarship.apply.remove_choice') }}
+                                    </button>
+                                @endif
+                            </div>
                             <div class="grid gap-[22px] sm:grid-cols-2 mb-3">
                                 <label>
                                     <span class="ns-label">
@@ -273,7 +295,13 @@
                                           x-text="`{{ __('scholarship.apply.external_form_ack') }}`.replace(':university', slots.{{ $slot }}.externalFormName)"></span>
                                 </label>
                             </div>
+                            </div>
                         @endforeach
+
+                        <button type="button" x-show="visibleSlots.length < 5" x-cloak @click="addChoice()"
+                                class="ns-btn ns-btn-ghost ns-btn-sm mb-9">
+                            {{ __('scholarship.apply.add_choice') }}
+                        </button>
                     @elseif ($step === 3)
                         <h2 class="font-[family-name:var(--ns-display)] text-[22px] font-semibold mb-2">{{ __('scholarship.apply.statement_title') }}</h2>
                         <p class="ns-body !text-[14.5px] text-body-soft mb-7 max-w-[56ch]">{{ __('scholarship.apply.statement_lead') }}</p>

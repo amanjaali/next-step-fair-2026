@@ -79,27 +79,27 @@ return [
         'body' => 'Only a student with a Next Step account can apply — they answer the eligibility questions and write the statement themselves. If you are here for somebody, this is the page to put in front of them.',
         'send' => 'Send this to your student',
         'register' => 'How a student registers',
-        'message' => "The Next Step National Scholarship Program is open — forty fully funded degrees, held in regional quotas.\n\nYou apply yourself, with a Next Step account. Everything is here:\n:url",
+        'message' => "The Next Step National Scholarship Program is open — funded places at partner universities and institutes across the Kurdistan Region.\n\nYou apply yourself, with a Next Step account. Everything is here:\n:url",
     ],
 
     'home' => [
         'title' => 'Overview',
         'kicker' => 'Cycle :cycle',
-        'heading' => 'Forty students. One degree each. Paid in full.',
-        'lead' => 'The National Scholarship Program funds a first undergraduate degree from year one, at a participating university in the Kurdistan Region. Seats are held in regional quotas, so where you sat grade 12 is who you compete against.',
+        'heading' => '376 scholarships. 12 universities and institutes.',
+        'lead' => 'The National Scholarship Program funds a first undergraduate degree, at a participating university or institute in the Kurdistan Region. Scholarship details vary by university and institute, and include both free (fully funded) and subsidized (partially funded) scholarships. Check what each one offers before you apply.',
         'cta' => 'Start your application',
         'cta_rules' => 'Read the guidelines',
 
-        'quota_title' => 'How the seats are shared',
-        'quota_lead' => 'Four provinces hold eight seats each; four independent administrations hold two. A student from Halabja competes against Halabja, not against Sulaymaniyah.',
-        'quota_note' => 'The quota is set by where you completed grade 12. It cannot be changed after you submit.',
-        'districts' => '{1} 1 district|[2,*] :count districts',
+        'quota_title' => 'This cycle\'s confirmed scholarships',
+        'quota_lead' => 'Every seat sits with the university that funds it. Here is what each partner has confirmed for this cycle.',
+        'quota_note' => 'Seat counts reflect what each university has confirmed for this cycle and can change before applications close.',
+        'seats_confirming' => 'Confirming',
 
-        'covers_title' => 'What the award covers',
+        'covers_title' => 'What a scholarship can include',
         'covers' => [
-            ['title' => 'Full tuition', 'body' => 'Every year of the degree, paid directly to the university. Not a discount, and not a first-year offer.'],
-            ['title' => 'A living stipend', 'body' => 'Paid monthly through the academic year, so a seat does not depend on a second job.'],
-            ['title' => 'Books and materials', 'body' => 'An annual allowance for the things a course actually requires.'],
+            ['title' => 'Tuition', 'body' => 'At many universities, full tuition for every year of the degree, paid directly to the university. Some offer partial tuition instead — each university\'s page says which.'],
+            ['title' => 'A living stipend', 'body' => 'At some universities, paid monthly through the academic year, so a seat does not depend on a second job.'],
+            ['title' => 'Books and materials', 'body' => 'At some universities, an annual allowance for the things a course actually requires.'],
             ['title' => 'Housing, where offered', 'body' => 'Some universities include it, some contribute. Each one says which on its page.'],
         ],
 
@@ -109,13 +109,28 @@ return [
         'deadline_kicker' => 'Applications close',
     ],
 
+    'institution_names' => [
+        'azmar' => 'Azmar Technical and Vocational Institute',
+        'lutka' => 'Lutka Technical and Vocational Institute',
+        'nit' => 'National Institute of Technology',
+        'komar' => 'Komar University of Science and Technology',
+        'qaiwan-intl' => 'Qaiwan International University',
+        'bright' => 'Bright Technical and Vocational Institute',
+        'kti' => 'Kurdistan Technical Institute',
+        'auis' => 'American University of Iraq, Sulaimani',
+        'nishtiman' => 'Nishtiman Institute',
+        'lebanese-french' => 'Lebanese French University',
+        'knowledge' => 'Knowledge University',
+        'jihan' => 'Jihan University',
+    ],
+
     /* ------------------------------------------------------------ about -- */
 
     'about' => [
         'title' => 'About',
         'kicker' => 'About the programme',
         'heading' => 'Why this programme exists',
-        'lead' => 'A student with the grades and without the money is a loss the region cannot afford. This is a straightforward attempt to stop that happening forty times a year.',
+        'lead' => 'A student with the grades and without the money is a loss the region cannot afford. This is a straightforward attempt to close that gap, one accepted student at a time.',
         'sections' => [
             [
                 'title' => 'The problem it addresses',
@@ -200,8 +215,8 @@ return [
         'lead' => 'Published after each cycle closes, with the region and the subject for every seat awarded.',
         'empty_title' => 'The first cycle is still open',
         'empty_body' => 'Recipients for :cycle will be published here once decisions are made and every applicant has been told the outcome. Until then this page stays empty rather than showing names that do not exist yet.',
-        'quota_title' => 'Seats available this cycle',
-        'quota_lead' => 'Forty in total, held per region.',
+        'quota_title' => 'Where this cycle\'s seats are',
+        'quota_lead' => '376 in total, across 12 universities and institutes.',
     ],
 
     /* ---------------------------------------------------- universities -- */
@@ -347,7 +362,6 @@ return [
 
         'academic_title' => 'Your grade 12 record',
         'academic_lead' => 'If your results are still pending, say so — you can still apply, and upload the certificate within seven days of publication.',
-        'average_note' => 'The baseline is :min%.',
         'results' => ['published' => 'Published', 'pending' => 'Still pending'],
 
         'choices_title' => 'Where you want to study',
@@ -391,10 +405,14 @@ return [
             'confirm' => 'Confirm that the information is true before submitting.',
             'first_choice_ack' => 'Read the requirements for your first choice, then check the box to confirm.',
             'second_choice_ack' => 'Read the requirements for your second choice, then check the box to confirm.',
+            'third_choice_ack' => 'Read the requirements for your third choice, then check the box to confirm.',
+            'fourth_choice_ack' => 'Read the requirements for your fourth choice, then check the box to confirm.',
+            'fifth_choice_ack' => 'Read the requirements for your fifth choice, then check the box to confirm.',
             'external_form_ack' => "Open the university's own application form and complete it, then check the box to confirm.",
             'choice_form' => 'Attach the filled form for this choice.',
             'choice_form_type' => 'The form must be a JPG, PNG, WEBP or PDF file.',
             'choice_form_size' => 'The form must be smaller than 8 MB.',
+            'duplicate_choice' => 'You have already listed this department as another choice. Pick a different one, or a different university.',
         ],
 
         'f' => [
@@ -407,12 +425,22 @@ return [
             'school' => 'School',
             'first_university' => 'First choice university',
             'second_university' => 'Second choice university',
+            'third_university' => 'Third choice university',
+            'fourth_university' => 'Fourth choice university',
+            'fifth_university' => 'Fifth choice university',
             'department' => 'Department',
             'choice_form' => 'Filled form from the department',
             'first_choice' => 'First choice',
+            'second_choice' => 'Second choice',
+            'third_choice' => 'Third choice',
+            'fourth_choice' => 'Fourth choice',
+            'fifth_choice' => 'Fifth choice',
             'statement' => 'Personal statement',
             'proposal' => 'Problem-solving proposal',
         ],
+
+        'add_choice' => '+ Add another choice',
+        'remove_choice' => 'Remove',
     ],
 
     /* ----------------------------------------------------------- status -- */
@@ -462,7 +490,7 @@ return [
             'declined' => [
                 'kicker' => 'The result',
                 'title' => 'You were not selected this time',
-                'body' => 'Your application for cycle :cycle was not selected. There are far more applications than the forty funded places, and being turned down here says nothing about what you can do next.',
+                'body' => 'Your application for cycle :cycle was not selected. There are far more applications than funded places, and being turned down here says nothing about what you can do next.',
                 'next' => 'The scholarship page lists the other routes open to you — university offers, partner scholarships and the opportunities board — and you can apply again in the next cycle.',
             ],
         ],
