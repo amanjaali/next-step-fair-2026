@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ScholarshipApplications\Pages;
 use App\Filament\Resources\ScholarshipApplications\ScholarshipApplicationResource;
 use App\Models\ScholarshipApplication;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -32,6 +33,8 @@ class ViewScholarshipApplication extends ViewRecord
 
                     Notification::make()->title(__('admin.notify.saved'))->success()->send();
                 }),
+
+            DeleteAction::make(),
         ];
     }
 }

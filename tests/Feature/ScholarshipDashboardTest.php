@@ -246,11 +246,16 @@ class ScholarshipDashboardTest extends TestCase
         );
     }
 
-    public function test_an_application_cannot_be_deleted_from_the_dashboard(): void
+    public function test_only_the_committee_can_delete_an_application(): void
     {
         $application = $this->application();
 
+        $this->actingAs($this->committee());
+        $this->assertTrue(ScholarshipApplicationResource::canDelete($application));
+
+        $this->actingAs(User::where('email', 'registration@nextstepfair.com')->firstOrFail());
         $this->assertFalse(ScholarshipApplicationResource::canDelete($application));
+
         $this->assertFalse(ScholarshipApplicationResource::canCreate());
     }
 }

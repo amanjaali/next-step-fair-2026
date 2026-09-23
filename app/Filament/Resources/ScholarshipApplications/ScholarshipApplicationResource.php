@@ -178,7 +178,6 @@ class ScholarshipApplicationResource extends Resource
 
     public static function canDelete($record): bool
     {
-        // A submitted application is a record of what somebody sent us.
-        return false;
+        return auth()->user()?->can('review-scholarships') ?? false;
     }
 }
