@@ -12,8 +12,11 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -86,6 +89,22 @@ class ScholarshipUniversityRequirementResource extends Resource
                     kinds: ['requirements' => 'editor'],
                 ),
             ]),
+
+            Section::make(__('admin.scholarship_requirements.external_form'))
+                ->description(__('admin.scholarship_requirements.external_form_help'))
+                ->columns(2)
+                ->schema([
+                    Toggle::make('requires_external_form')
+                        ->label(__('admin.scholarship_requirements.requires_external_form'))
+                        ->live()
+                        ->columnSpanFull(),
+                    TextInput::make('external_form_url')
+                        ->label(__('admin.scholarship_requirements.external_form_url'))
+                        ->url()
+                        ->required(fn (Get $get) => (bool) $get('requires_external_form'))
+                        ->visible(fn (Get $get) => (bool) $get('requires_external_form'))
+                        ->columnSpanFull(),
+                ]),
         ]);
     }
 

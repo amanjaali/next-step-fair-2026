@@ -192,6 +192,8 @@
                                         @foreach ($universities as $university)
                                             <option value="{{ $university['name'] }}"
                                                     data-requirements="{{ $university['requirements'] ? ns_rich($university['requirements']) : '' }}"
+                                                    data-requires-external-form="{{ ($university['requires_external_form'] ?? false) ? '1' : '' }}"
+                                                    data-external-form-url="{{ $university['external_form_url'] ?? '' }}"
                                                     @selected($application->{$slot.'_choice_university'} === $university['name'])>{{ $university['name'] }}</option>
                                         @endforeach
                                     </select>
@@ -250,6 +252,27 @@
                                     </span>
                                 </label>
                             </div>
+
+                            {{-- Some partners run their own application form alongside ours.
+                                 Whole university, so this shows once per choice regardless of
+                                 which department was picked — not something we can verify a
+                                 student actually completed, only ask them to confirm. --}}
+                            <div x-show="slots.{{ $slot }}.requiresExternalForm" x-cloak
+                                 class="ns-card !p-4 !border !border-[rgba(5,7,8,0.14)] !shadow-none mb-5">
+                                <div class="ns-eyebrow !text-[9.5px] mb-2">{{ __('scholarship.apply.external_form_title') }}</div>
+                                <p class="ns-body !text-[13.5px] text-body-soft mb-3 max-w-[56ch]"
+                                   x-text="`{{ __('scholarship.apply.external_form_lead') }}`.replace(':university', slots.{{ $slot }}.externalFormName)"></p>
+                                <a :href="slots.{{ $slot }}.externalFormUrl" target="_blank" rel="noopener noreferrer"
+                                   class="ns-btn ns-btn-ghost ns-btn-sm mb-4"
+                                   x-text="`{{ __('scholarship.apply.external_form_cta') }}`.replace(':university', slots.{{ $slot }}.externalFormName)"></a>
+                                <label class="flex gap-[12px] items-start cursor-pointer">
+                                    <input type="checkbox" name="{{ $slot }}_choice_external_form_ack" value="1" class="sr-only"
+                                           x-model="slots.{{ $slot }}.externalFormAck">
+                                    <span class="ns-box mt-[2px]"></span>
+                                    <span class="font-[family-name:var(--ns-body)] text-[13.5px] leading-[1.5] max-w-[56ch]"
+                                          x-text="`{{ __('scholarship.apply.external_form_ack') }}`.replace(':university', slots.{{ $slot }}.externalFormName)"></span>
+                                </label>
+                            </div>
                         @endforeach
                     @elseif ($step === 3)
                         <h2 class="font-[family-name:var(--ns-display)] text-[22px] font-semibold mb-2">{{ __('scholarship.apply.statement_title') }}</h2>
@@ -278,8 +301,8 @@
                         @endif
 
                         <button type="submit" class="ns-btn ns-btn-magenta"
-                                :disabled="(slots.first.hasRequirements && !slots.first.ack) || (slots.second.hasRequirements && !slots.second.ack)"
-                                :class="{ 'opacity-50 cursor-not-allowed': (slots.first.hasRequirements && !slots.first.ack) || (slots.second.hasRequirements && !slots.second.ack) }">{{ __('scholarship.apply.save_continue') }}</button>
+                                :disabled="blocked()"
+                                :class="{ 'opacity-50 cursor-not-allowed': blocked() }">{{ __('scholarship.apply.save_continue') }}</button>
                     </div>
                 </form>
             @endif

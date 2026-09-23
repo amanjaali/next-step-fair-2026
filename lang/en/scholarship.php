@@ -358,6 +358,11 @@ return [
         'choice_form_hint' => 'Photograph or scan the form the department gave you and attach it here. JPG, PNG or PDF, up to 8 MB.',
         'choice_form_uploaded' => 'A form is already attached. Choosing a file replaces it.',
 
+        'external_form_title' => 'This university also has its own application form',
+        'external_form_lead' => ':university asks applicants to also complete their own form, separate from this one. Open it, complete it there, then confirm below.',
+        'external_form_cta' => "Open :university's form",
+        'external_form_ack' => "I have completed :university's own application form.",
+
         'statement_title' => 'Your statement and proposal',
         'statement_lead' => 'These are what the committee actually reads. Write them yourself, in your own words.',
         'statement_prompt' => 'Who you are, what you want to study, and why it matters to you.',
@@ -386,6 +391,7 @@ return [
             'confirm' => 'Confirm that the information is true before submitting.',
             'first_choice_ack' => 'Read the requirements for your first choice, then check the box to confirm.',
             'second_choice_ack' => 'Read the requirements for your second choice, then check the box to confirm.',
+            'external_form_ack' => "Open the university's own application form and complete it, then check the box to confirm.",
             'choice_form' => 'Attach the filled form for this choice.',
             'choice_form_type' => 'The form must be a JPG, PNG, WEBP or PDF file.',
             'choice_form_size' => 'The form must be smaller than 8 MB.',

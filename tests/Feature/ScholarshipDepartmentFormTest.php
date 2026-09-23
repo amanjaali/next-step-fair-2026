@@ -6,6 +6,7 @@ use App\Models\Opportunity;
 use App\Models\Organization;
 use App\Models\Registration;
 use App\Models\ScholarshipApplication;
+use App\Models\ScholarshipUniversityRequirement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -207,7 +208,90 @@ class ScholarshipDepartmentFormTest extends TestCase
         $this->assertSame($namesake['name'], $student->scholarshipApplication()->fresh()->first_choice_university);
     }
 
+    /**
+     * A partner's own application form is whole-university: it must block
+     * saving no matter which department was picked, not just the one that
+     * also happens to hand out a paper form.
+     */
+    public function test_a_university_with_its_own_form_blocks_saving_until_confirmed(): void
+    {
+        $this->partnerWithSeats();
+        $this->flagExternalForm('opportunity-lutka-grade-based-scholarship', 'https://lutka.example/apply');
+
+        $student = $this->student();
+        $this->pass($student);
+
+        // Civil Engineering asks nothing of its own — proving the block comes
+        // from the university-wide flag, not a department requirement.
+        $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', $this->step2(department: 'Civil Engineering') + [
+                'first_choice_ack' => '1',
+            ])
+            ->assertSessionHasErrors('first_choice_external_form_ack');
+
+        $this->assertNull($student->scholarshipApplication()->fresh()->first_choice_university);
+
+        $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', $this->step2(department: 'Civil Engineering') + [
+                'first_choice_ack' => '1',
+                'first_choice_external_form_ack' => '1',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $application = $student->scholarshipApplication()->fresh();
+        $this->assertSame('Lutka Institute', $application->first_choice_university);
+        $this->assertNotNull($application->first_choice_external_form_ack_at);
+        $this->assertSame('https://lutka.example/apply', $application->first_choice_external_form_url_ack);
+    }
+
+    /** A university with nothing flagged asks for nothing extra — this stays additive. */
+    public function test_a_university_without_its_own_form_is_unaffected(): void
+    {
+        $this->partnerWithSeats();
+
+        $student = $this->student();
+        $this->pass($student);
+
+        $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', $this->step2(department: 'Civil Engineering') + ['first_choice_ack' => '1'])
+            ->assertSessionHasNoErrors();
+
+        $application = $student->scholarshipApplication()->fresh();
+        $this->assertNull($application->first_choice_external_form_ack_at);
+        $this->assertNull($application->first_choice_external_form_url_ack);
+    }
+
+    /** The same mechanism works for a hand-curated catalogue university, not just an Opportunity partner. */
+    public function test_a_catalogue_university_can_also_require_its_own_form(): void
+    {
+        $this->flagExternalForm('auis', 'https://auis.example/apply');
+
+        $student = $this->student();
+        $this->pass($student);
+
+        $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/form', [
+                'step' => 2,
+                'exam_status' => 'published',
+                'exam_average' => '91.5',
+                'stream' => 'scientific',
+                'school_name' => 'Sulaimani Preparatory',
+                'first_choice_university' => 'American University of Iraq, Sulaimani',
+                'first_choice_department' => 'Computer Science',
+            ])
+            ->assertSessionHasErrors('first_choice_external_form_ack');
+    }
+
     /* ----------------------------------------------------------- helpers -- */
+
+    private function flagExternalForm(string $universitySlug, string $url): ScholarshipUniversityRequirement
+    {
+        return ScholarshipUniversityRequirement::create([
+            'university_slug' => $universitySlug,
+            'requires_external_form' => true,
+            'external_form_url' => $url,
+        ]);
+    }
 
     private function namesakePartnerWithSeats(): Opportunity
     {

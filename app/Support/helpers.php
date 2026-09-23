@@ -628,7 +628,11 @@ if (! function_exists('ns_scholarship_universities')) {
 
         return collect($universities)
             ->map(function (array $university) use ($requirements, &$seen) {
-                $university['requirements'] = $requirements->get($university['slug'])?->t('requirements') ?: null;
+                $requirement = $requirements->get($university['slug']);
+
+                $university['requirements'] = $requirement?->t('requirements') ?: null;
+                $university['requires_external_form'] = (bool) ($requirement?->requires_external_form ?? false);
+                $university['external_form_url'] = $requirement?->external_form_url ?: null;
 
                 $key = mb_strtolower(trim($university['name']));
 

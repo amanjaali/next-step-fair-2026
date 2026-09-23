@@ -50,6 +50,8 @@ class ScholarshipApplication extends Model
             'documents' => 'array',
             'exam_average' => 'decimal:2',
             'eligibility_passed_at' => 'datetime',
+            'first_choice_external_form_ack_at' => 'datetime',
+            'second_choice_external_form_ack_at' => 'datetime',
             'submitted_at' => 'datetime',
             'screened_at' => 'datetime',
             'shortlisted_at' => 'datetime',

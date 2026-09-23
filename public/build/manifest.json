@@ -568,7 +568,7 @@
     "src": "node_modules/@fontsource/space-grotesk/files/space-grotesk-vietnamese-700-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-bSmYb3_h.css",
+    "file": "assets/app-wqhBETyH.css",
     "name": "app",
     "names": [
       "app.css"
@@ -739,7 +739,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-CVE-Bb41.js",
+    "file": "assets/app-afHGI-TP.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

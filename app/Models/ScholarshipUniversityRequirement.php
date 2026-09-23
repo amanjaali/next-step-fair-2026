@@ -21,4 +21,11 @@ class ScholarshipUniversityRequirement extends Model
     public array $translatable = ['requirements'];
 
     protected $guarded = ['id'];
+
+    protected function casts(): array
+    {
+        return [
+            'requires_external_form' => 'boolean',
+        ];
+    }
 }

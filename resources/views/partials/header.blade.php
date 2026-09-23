@@ -190,8 +190,17 @@
 
     {{-- Mobile panel. The group is shown open rather than as a second tap: on a
          panel you scroll anyway, hiding four links behind an accordion buys
-         nothing and costs a tap. --}}
-    <div id="ns-mobile-nav" x-show="open" x-collapse x-cloak class="xl:hidden border-t border-[rgba(5,7,8,0.1)] bg-bone">
+         nothing and costs a tap.
+
+         Opening it locks the page behind it (nsNav.toggle() sets body
+         overflow:hidden, so the page itself cannot scroll). This panel sits
+         in normal flow inside the sticky header rather than as its own
+         full-screen overlay, so on a short phone screen its content is taller
+         than the viewport that's left once the top bar and body-scroll-lock
+         are accounted for — without its own scroll, the sign-in link at the
+         bottom becomes genuinely unreachable, not just below the fold. --}}
+    <div id="ns-mobile-nav" x-show="open" x-collapse x-cloak
+         class="xl:hidden border-t border-[rgba(5,7,8,0.1)] bg-bone max-h-[calc(100dvh-76px)] overflow-y-auto overscroll-contain">
         <div class="ns-wrap py-6 flex flex-col gap-1">
             @foreach ($navItems as $item)
                 @if (isset($item['children']))

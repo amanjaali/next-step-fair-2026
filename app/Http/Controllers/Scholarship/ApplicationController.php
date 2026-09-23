@@ -174,6 +174,17 @@ class ApplicationController extends Controller
                 $rules['second_choice_ack'] = ['accepted'];
             }
 
+            // A university running its own application form alongside ours —
+            // whole university, so this applies no matter which of its
+            // departments was picked.
+            if ($this->requiresExternalForm($request->input('first_choice_university'))) {
+                $rules['first_choice_external_form_ack'] = ['accepted'];
+            }
+            if (filled($request->input('second_choice_university'))
+                && $this->requiresExternalForm($request->input('second_choice_university'))) {
+                $rules['second_choice_external_form_ack'] = ['accepted'];
+            }
+
             // A department that hands out its own paper form cannot be applied
             // to without it. One already on file counts — they are coming back
             // to a saved step, not starting again — but only while the choice
@@ -203,6 +214,8 @@ class ApplicationController extends Controller
             'proposal.min' => __('scholarship.apply.errors.proposal_short'),
             'first_choice_ack.accepted' => __('scholarship.apply.errors.first_choice_ack'),
             'second_choice_ack.accepted' => __('scholarship.apply.errors.second_choice_ack'),
+            'first_choice_external_form_ack.accepted' => __('scholarship.apply.errors.external_form_ack'),
+            'second_choice_external_form_ack.accepted' => __('scholarship.apply.errors.external_form_ack'),
             'first_choice_form.required' => __('scholarship.apply.errors.choice_form'),
             'second_choice_form.required' => __('scholarship.apply.errors.choice_form'),
             'first_choice_form.mimes' => __('scholarship.apply.errors.choice_form_type'),
@@ -216,6 +229,7 @@ class ApplicationController extends Controller
             // timestamped snapshot of exactly what was shown and agreed to,
             // so a requirements text edited later cannot rewrite history.
             unset($data['first_choice_ack'], $data['second_choice_ack']);
+            unset($data['first_choice_external_form_ack'], $data['second_choice_external_form_ack']);
 
             $documents = $application->documents ?? [];
 
@@ -230,6 +244,16 @@ class ApplicationController extends Controller
                 $text = $this->requirementsFor($data["{$slot}_choice_university"] ?? null, $data["{$slot}_choice_department"] ?? null);
                 $data["{$slot}_choice_requirements_ack_at"] = $text !== null ? now() : null;
                 $data["{$slot}_choice_requirements_snapshot"] = $text;
+
+                // Same reasoning, for the university's own form: the URL they
+                // were actually sent to, not just a flag, so a partner
+                // changing their link later does not rewrite what this
+                // applicant agreed to.
+                $url = $this->requiresExternalForm($data["{$slot}_choice_university"] ?? null)
+                    ? $this->externalFormUrl($data["{$slot}_choice_university"] ?? null)
+                    : null;
+                $data["{$slot}_choice_external_form_ack_at"] = $url !== null ? now() : null;
+                $data["{$slot}_choice_external_form_url_ack"] = $url;
 
                 // Somebody's paperwork, so it goes on the private disk and only
                 // its path is kept. Replacing one drops the old file rather than
@@ -352,6 +376,25 @@ class ApplicationController extends Controller
         [, $department] = $this->choice($universityName, $departmentName);
 
         return (bool) ($department['requires_form'] ?? false);
+    }
+
+    /**
+     * Whether this university also runs its own application form — whole
+     * university, not per department, the same as the requirements text it
+     * sits beside.
+     */
+    private function requiresExternalForm(?string $universityName): bool
+    {
+        [$university] = $this->choice($universityName, null);
+
+        return (bool) ($university['requires_external_form'] ?? false);
+    }
+
+    private function externalFormUrl(?string $universityName): ?string
+    {
+        [$university] = $this->choice($universityName, null);
+
+        return $university['external_form_url'] ?? null;
     }
 
     /**

@@ -381,8 +381,14 @@ Alpine.data('nsEligibility', (total) => ({
  */
 Alpine.data('nsScholarshipChoice', () => ({
     slots: {
-        first: { requirements: '', hasRequirements: false, ack: false, requiresForm: false },
-        second: { requirements: '', hasRequirements: false, ack: false, requiresForm: false },
+        first: {
+            requirements: '', hasRequirements: false, ack: false, requiresForm: false,
+            requiresExternalForm: false, externalFormUrl: '', externalFormName: '', externalFormAck: false,
+        },
+        second: {
+            requirements: '', hasRequirements: false, ack: false, requiresForm: false,
+            requiresExternalForm: false, externalFormUrl: '', externalFormName: '', externalFormAck: false,
+        },
     },
 
     init() {
@@ -455,6 +461,19 @@ Alpine.data('nsScholarshipChoice', () => ({
         this.slots[slot].hasRequirements = this.slots[slot].requirements.length > 0;
         this.slots[slot].requiresForm = Boolean(deptBelongsToUni && deptOption.dataset.requiresForm);
         this.slots[slot].ack = false;
+
+        // Whole-university, so this reads off the university option only —
+        // it does not matter which department under it was picked.
+        this.slots[slot].requiresExternalForm = Boolean(uniOption && uniOption.value && uniOption.dataset.requiresExternalForm);
+        this.slots[slot].externalFormUrl = this.slots[slot].requiresExternalForm ? (uniOption.dataset.externalFormUrl || '') : '';
+        this.slots[slot].externalFormName = this.slots[slot].requiresExternalForm ? uniOption.value : '';
+        this.slots[slot].externalFormAck = false;
+    },
+
+    /** Whether an unchecked box in either slot is still holding the form shut. */
+    blocked() {
+        return ['first', 'second'].some((slot) => (this.slots[slot].hasRequirements && !this.slots[slot].ack)
+            || (this.slots[slot].requiresExternalForm && !this.slots[slot].externalFormAck));
     },
 
     escapeHtml(text) {

@@ -12,12 +12,20 @@ class EditOpportunity extends EditRecord
 
     protected ?array $universityRequirements = null;
 
-    /** Pulls the "whole university" text in from its own table to pre-fill the field. */
+    protected bool $requiresExternalForm = false;
+
+    protected ?string $externalFormUrl = null;
+
+    /** Pulls the "whole university" text (and its own form, if any) in to pre-fill the fields. */
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $data['university_requirements'] = ScholarshipUniversityRequirement::query()
+        $requirement = ScholarshipUniversityRequirement::query()
             ->where('university_slug', 'opportunity-'.$this->record->slug)
-            ->first()?->getTranslations('requirements') ?? [];
+            ->first();
+
+        $data['university_requirements'] = $requirement?->getTranslations('requirements') ?? [];
+        $data['requires_external_form'] = $requirement?->requires_external_form ?? false;
+        $data['external_form_url'] = $requirement?->external_form_url;
 
         return $data;
     }
@@ -25,13 +33,20 @@ class EditOpportunity extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $this->universityRequirements = $data['university_requirements'] ?? null;
-        unset($data['university_requirements']);
+        $this->requiresExternalForm = (bool) ($data['requires_external_form'] ?? false);
+        $this->externalFormUrl = $data['external_form_url'] ?? null;
+        unset($data['university_requirements'], $data['requires_external_form'], $data['external_form_url']);
 
         return $data;
     }
 
     protected function afterSave(): void
     {
-        OpportunityResource::syncUniversityRequirements($this->record, $this->universityRequirements);
+        OpportunityResource::syncUniversityRequirements(
+            $this->record,
+            $this->universityRequirements,
+            $this->requiresExternalForm,
+            $this->externalFormUrl,
+        );
     }
 }

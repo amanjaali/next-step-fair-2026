@@ -127,6 +127,23 @@ class OpportunityResource extends Resource
                         __('admin.opportunities.university_requirements'),
                         __('admin.opportunities.university_requirements_help'),
                     ),
+
+                    Fieldset::make(__('admin.opportunities.external_form'))
+                        ->columns(2)
+                        ->schema([
+                            Text::make(__('admin.opportunities.external_form_help'))
+                                ->size(TextSize::ExtraSmall)->color('gray')->columnSpanFull(),
+                            Toggle::make('requires_external_form')
+                                ->label(__('admin.opportunities.requires_external_form'))
+                                ->live()
+                                ->columnSpanFull(),
+                            TextInput::make('external_form_url')
+                                ->label(__('admin.opportunities.external_form_url'))
+                                ->url()
+                                ->required(fn (Get $get) => (bool) $get('requires_external_form'))
+                                ->visible(fn (Get $get) => (bool) $get('requires_external_form'))
+                                ->columnSpanFull(),
+                        ]),
                     Repeater::make('departments')
                         ->label('')
                         ->schema([
@@ -265,12 +282,17 @@ class OpportunityResource extends Resource
      * edits — one source of truth, reachable from either place. Blank in
      * every language deletes the row rather than leaving an empty one behind.
      */
-    public static function syncUniversityRequirements(Opportunity $opportunity, ?array $translations): void
-    {
+    public static function syncUniversityRequirements(
+        Opportunity $opportunity,
+        ?array $translations,
+        bool $requiresExternalForm = false,
+        ?string $externalFormUrl = null,
+    ): void {
         $slug = 'opportunity-'.$opportunity->slug;
-        $hasContent = collect($translations ?? [])->contains(fn ($text) => filled($text));
+        $hasText = collect($translations ?? [])->contains(fn ($text) => filled($text));
+        $hasExternalForm = $requiresExternalForm && filled($externalFormUrl);
 
-        if (! $hasContent) {
+        if (! $hasText && ! $hasExternalForm) {
             ScholarshipUniversityRequirement::where('university_slug', $slug)->delete();
 
             return;
@@ -278,7 +300,11 @@ class OpportunityResource extends Resource
 
         ScholarshipUniversityRequirement::updateOrCreate(
             ['university_slug' => $slug],
-            ['requirements' => $translations],
+            [
+                'requirements' => $translations,
+                'requires_external_form' => $hasExternalForm,
+                'external_form_url' => $hasExternalForm ? $externalFormUrl : null,
+            ],
         );
     }
 
