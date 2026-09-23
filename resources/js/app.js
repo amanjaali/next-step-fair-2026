@@ -368,11 +368,13 @@ Alpine.data('nsEligibility', (total) => ({
 /**
  * The requirements box on the scholarship application form.
  *
- * University and department are two independent selects, not a cascading
- * pair, so both are read fresh on every change rather than assumed to agree.
- * A department's own requirements only count when it actually belongs to the
- * university currently selected — picking a different university without
- * reselecting a department should not carry over a stranger's requirements.
+ * University and department used to be two independent selects with every
+ * department from every university listed at once — a student picked their
+ * university, then had to scroll a hundred unrelated departments to find the
+ * handful that were actually theirs. The department list is now filtered to
+ * the chosen university as soon as it is picked, and cleared back to empty
+ * if the university changes to one it does not belong to, rather than
+ * silently keeping a stranger's seat filled in.
  *
  * Changing either select clears that slot's acknowledgement: the box shown
  * changed, so the tick has to happen again.
@@ -384,8 +386,48 @@ Alpine.data('nsScholarshipChoice', () => ({
     },
 
     init() {
+        this.filterDepartments('first');
+        this.filterDepartments('second');
         this.sync('first');
         this.sync('second');
+    },
+
+    /**
+     * Shows only the departments that belong to the chosen university,
+     * hiding the rest instead of leaving every university's departments in
+     * one long list. A department already selected under a different
+     * university is cleared, since it no longer applies to this choice.
+     */
+    filterDepartments(slot) {
+        const uniSelect = this.$root.querySelector(`select[name="${slot}_choice_university"]`);
+        const deptSelect = this.$root.querySelector(`select[name="${slot}_choice_department"]`);
+
+        if (!uniSelect || !deptSelect) {
+            return;
+        }
+
+        const chosen = uniSelect.value;
+        let selectedStillBelongs = false;
+
+        deptSelect.querySelectorAll('optgroup').forEach((group) => {
+            group.hidden = chosen !== '' && group.label !== chosen;
+        });
+
+        deptSelect.querySelectorAll('option[data-university]').forEach((option) => {
+            const belongs = chosen === '' || option.dataset.university === chosen;
+            option.hidden = !belongs;
+            option.disabled = !belongs;
+
+            if (option.selected && option.dataset.university === chosen) {
+                selectedStillBelongs = true;
+            }
+        });
+
+        deptSelect.disabled = chosen === '';
+
+        if (chosen !== '' && deptSelect.value !== '' && !selectedStillBelongs) {
+            deptSelect.value = '';
+        }
     },
 
     sync(slot) {

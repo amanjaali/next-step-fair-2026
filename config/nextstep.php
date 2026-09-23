@@ -218,7 +218,7 @@ return [
         'Sulaimani', 'Erbil', 'Duhok', 'Halabja', 'Ranya', 'Chamchamal', 'Kalar', 'Koya',
         'Shaqlawa', 'Zakho', 'Dukan', 'Penjwen', 'Qaladze', 'Darbandikhan', 'Sayed Sadiq',
         'Sharbazher', 'Sharazoor', 'Qaradagh', 'Biara', 'Khurmal', 'Sirwan', 'Mergasur',
-        'Choman', 'Rawandz', 'Banaslawa', 'Amedi', 'Semel', 'Bardarash', 'Akre',
+        'Choman', 'Rawandz', 'Banaslawa', 'Amedi', 'Semel', 'Bardarash', 'Akre', 'Soran',
     ],
 
     /*

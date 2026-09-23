@@ -187,7 +187,7 @@
                                         @if ($required)<span class="ns-req">*</span>@endif
                                     </span>
                                     <select name="{{ $slot }}_choice_university" class="ns-select"
-                                            @change="sync('{{ $slot }}')">
+                                            @change="filterDepartments('{{ $slot }}'); sync('{{ $slot }}')">
                                         <option value="">—</option>
                                         @foreach ($universities as $university)
                                             <option value="{{ $university['name'] }}"

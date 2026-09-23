@@ -112,9 +112,37 @@ class StoreFairRegistrationRequest extends FormRequest
         return $named->count() === 1 ? $named->first() : null;
     }
 
+    /**
+     * Case-folded, whitespace-collapsed, and Arabic-script-normalized so a
+     * name typed on an Arabic keyboard still matches the same name typed on
+     * a Kurdish or Farsi one — different keyboards render visually identical
+     * letters (yeh, kaf, the alef-hamza forms) on different code points, and
+     * diacritics present on one entry and not the other are not a real
+     * difference. `ه`/`ە` are never merged: distinct letters, distinct
+     * sounds, in Sorani Kurdish.
+     */
     private function normalisedName(string $name): string
     {
-        return Str::of($name)->trim()->lower()->toString();
+        $name = trim($name);
+
+        if (class_exists(\Normalizer::class)) {
+            $name = \Normalizer::normalize($name, \Normalizer::FORM_C) ?: $name;
+        }
+
+        // Diacritics (tashkeel) and the tatweel elongation mark carry no
+        // letter identity of their own.
+        $name = preg_replace('/[\x{0610}-\x{061A}\x{064B}-\x{065F}\x{0670}\x{06D6}-\x{06ED}\x{0640}]/u', '', $name);
+
+        $name = strtr($name, [
+            'أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ٱ' => 'ا',
+            'ی' => 'ي', 'ى' => 'ي',
+            'ک' => 'ك',
+            'ة' => 'ه',
+        ]);
+
+        $name = preg_replace('/\s+/u', ' ', $name);
+
+        return Str::of(trim($name))->lower()->toString();
     }
 
     /**

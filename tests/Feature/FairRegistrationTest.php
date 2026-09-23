@@ -299,6 +299,73 @@ class FairRegistrationTest extends TestCase
         $this->assertFalse($lana->refresh()->isStudentAccount());
     }
 
+    /**
+     * A name typed on an Arabic keyboard and the same name typed on a
+     * Kurdish/Farsi one can differ in raw bytes — yeh, kaf, and the alef-hamza
+     * forms sit on different code points depending on which keyboard was
+     * used — while looking identical or near-identical on screen. The match
+     * must still resolve to the sibling's own desk record rather than
+     * treating that as ambiguous.
+     */
+    public function test_a_shared_phone_resolves_across_keyboard_letter_variants(): void
+    {
+        // Desk-entered with the Kurdish/Farsi yeh (ی) and keheh (ک).
+        $yasin = $this->deskStudent('یاسین کریم', '7704112299');
+        $this->deskStudent('سارا کریم', '7704112299');
+
+        // Typed online with the Arabic yeh (ي) and kaf (ك) for the same name.
+        $this->post('/en/register/fair', $this->payload([
+            'full_name' => 'ياسين كريم',
+            'phone' => '7704112299',
+            'email' => 'yasin.kw@example.com',
+        ]));
+
+        $this->assertDatabaseCount('registrations', 2);
+        $this->assertTrue($yasin->refresh()->isStudentAccount());
+        $this->assertSame('yasin.kw@example.com', $yasin->email);
+    }
+
+    /** Same idea for the alef-hamza forms and diacritics present on only one side. */
+    public function test_a_shared_phone_resolves_across_alef_and_diacritic_variants(): void
+    {
+        $ahmed = $this->deskStudent('أَحْمَد علي', '7704112300');
+        $this->deskStudent('محمد علي', '7704112300');
+
+        $this->post('/en/register/fair', $this->payload([
+            'full_name' => 'احمد علي',
+            'phone' => '7704112300',
+            'email' => 'ahmed.ali@example.com',
+        ]));
+
+        $this->assertDatabaseCount('registrations', 2);
+        $this->assertTrue($ahmed->refresh()->isStudentAccount());
+        $this->assertSame('ahmed.ali@example.com', $ahmed->email);
+    }
+
+    /**
+     * ه (heh) and ە (the Kurdish letter "ae") are different letters with
+     * different sounds — normalizing keyboard variants must not blur that
+     * distinction into a false match. If it did, submitting the exact bytes
+     * of one desk sibling's name would ambiguously match both and fall
+     * through to a third, new account instead of resolving to the one it
+     * exactly matches.
+     */
+    public function test_kurdish_ae_and_heh_are_never_treated_as_the_same_letter(): void
+    {
+        $heh = $this->deskStudent('احمه عمر', '7704112301');
+        $this->deskStudent('احمە عمر', '7704112301');
+
+        $this->post('/en/register/fair', $this->payload([
+            'full_name' => 'احمه عمر',
+            'phone' => '7704112301',
+            'email' => 'ahmeh@example.com',
+        ]));
+
+        $this->assertDatabaseCount('registrations', 2);
+        $this->assertTrue($heh->refresh()->isStudentAccount());
+        $this->assertSame('ahmeh@example.com', $heh->email);
+    }
+
     public function test_consent_is_required(): void
     {
         $this->post('/en/register/fair', $this->payload(['consent_terms' => null]))
