@@ -307,14 +307,14 @@
                         <p class="ns-body !text-[14.5px] text-body-soft mb-7 max-w-[56ch]">{{ __('scholarship.apply.statement_lead') }}</p>
 
                         <label class="block mb-7">
-                            <span class="ns-label">{{ __('scholarship.apply.f.statement') }}</span>
+                            <span class="ns-label">{{ __('scholarship.apply.f.statement') }} <span class="text-body-soft font-normal">({{ __('scholarship.apply.optional') }})</span></span>
                             <span class="ns-hint block mb-2">{{ __('scholarship.apply.statement_prompt') }}</span>
                             <textarea name="statement" rows="10" class="ns-textarea">{{ old('statement', $application->statement) }}</textarea>
                             <span class="ns-hint ns-num">{{ __('scholarship.apply.word_range', config('scholarship.statement_words')) }}</span>
                         </label>
 
                         <label class="block">
-                            <span class="ns-label">{{ __('scholarship.apply.f.proposal') }}</span>
+                            <span class="ns-label">{{ __('scholarship.apply.f.proposal') }} <span class="text-body-soft font-normal">({{ __('scholarship.apply.optional') }})</span></span>
                             <span class="ns-hint block mb-2">{{ __('scholarship.apply.proposal_prompt') }}</span>
                             <textarea name="proposal" rows="12" class="ns-textarea">{{ old('proposal', $application->proposal) }}</textarea>
                             <span class="ns-hint ns-num">{{ __('scholarship.apply.word_range', config('scholarship.proposal_words')) }}</span>

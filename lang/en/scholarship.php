@@ -372,6 +372,7 @@ return [
         'statement_prompt' => 'Who you are, what you want to study, and why it matters to you.',
         'proposal_prompt' => 'A problem in the Kurdistan Region, and something you could realistically do about it with this degree.',
         'word_range' => 'Up to :max words',
+        'optional' => 'Optional',
 
         'review_title' => 'Check it before it goes',
         'review_lead' => 'Nothing can be changed after you submit. Read it once more.',

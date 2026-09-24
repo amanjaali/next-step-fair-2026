@@ -401,6 +401,16 @@ class ScholarshipTest extends TestCase
         $this->assertTrue($student->scholarshipApplication()->isSubmitted());
     }
 
+    public function test_the_statement_and_proposal_are_labelled_optional(): void
+    {
+        $student = $this->student();
+        $this->pass($student);
+
+        $this->actingAs($student, 'attendee')->get('/en/scholarship/apply/form?step=3')
+            ->assertOk()
+            ->assertSee('(Optional)', false);
+    }
+
     public function test_a_short_statement_is_accepted(): void
     {
         $student = $this->student();
