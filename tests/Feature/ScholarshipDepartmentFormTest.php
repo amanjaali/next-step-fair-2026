@@ -474,7 +474,7 @@ class ScholarshipDepartmentFormTest extends TestCase
     private function pass(Registration $student): ScholarshipApplication
     {
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/eligibility', [
-            'answers' => ['year' => 'y', 'funded' => 'n', 'docs' => 'y'],
+            'answers' => ['year' => 'y', 'funded' => 'n'],
         ]);
 
         return $student->scholarshipApplication();

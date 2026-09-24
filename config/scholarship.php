@@ -84,7 +84,7 @@ return [
     | The eligibility check
     |---------------------------------------------------------------------------
     |
-    | Three questions, about a minute. It runs before the application opens so
+    | Two questions, about a minute. It runs before the application opens so
     | that nobody spends an evening on a statement and a proposal only to be
     | closed at screening for something they could have been told in advance.
     |
@@ -103,12 +103,6 @@ return [
             'options' => ['n', 'p', 'y'],
             'fail' => ['y'],
             'warn' => [],
-        ],
-        [
-            'id' => 'docs',
-            'options' => ['y', 'p', 'n'],
-            'fail' => ['n'],
-            'warn' => ['p'],
         ],
     ],
 

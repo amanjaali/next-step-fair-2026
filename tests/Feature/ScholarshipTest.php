@@ -160,7 +160,7 @@ class ScholarshipTest extends TestCase
         $student = $this->student();
 
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/eligibility', [
-            'answers' => ['year' => 'y', 'funded' => 'y', 'docs' => 'y'],
+            'answers' => ['year' => 'y', 'funded' => 'y'],
         ])->assertRedirect();
 
         $application = $student->scholarshipApplication();
@@ -172,26 +172,6 @@ class ScholarshipTest extends TestCase
         $this->actingAs($student, 'attendee')
             ->get('/en/scholarship/apply/form')
             ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
-    }
-
-    /**
-     * A document not yet in hand is normal in September and is not a reason
-     * to stop somebody writing, so it warns rather than fails.
-     */
-    public function test_a_document_not_yet_in_hand_warns_but_does_not_close_it(): void
-    {
-        $student = $this->student();
-
-        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/eligibility', [
-            'answers' => ['year' => 'y', 'funded' => 'n', 'docs' => 'p'],
-        ]);
-
-        $application = $student->scholarshipApplication();
-
-        $this->assertSame('warn', $application->eligibilityVerdict());
-        $this->assertTrue($application->hasPassedEligibility());
-
-        $this->actingAs($student, 'attendee')->get('/en/scholarship/apply/form')->assertOk();
     }
 
     public function test_every_question_must_be_answered(): void
@@ -209,7 +189,7 @@ class ScholarshipTest extends TestCase
         $student = $this->student();
 
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/eligibility', [
-            'answers' => ['year' => 'n', 'funded' => 'n', 'docs' => 'y'],
+            'answers' => ['year' => 'n', 'funded' => 'n'],
         ]);
 
         $this->assertSame('pass', $student->scholarshipApplication()->eligibilityVerdict());
@@ -225,7 +205,7 @@ class ScholarshipTest extends TestCase
         $student = $this->student();
 
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/eligibility', [
-            'answers' => ['year' => 'y', 'funded' => 'n', 'docs' => 'y'],
+            'answers' => ['year' => 'y', 'funded' => 'n'],
         ]);
 
         // A session flash survives exactly one request; burn it with an
@@ -240,31 +220,13 @@ class ScholarshipTest extends TestCase
             ->assertSee(__('scholarship.eligibility.continue'));
     }
 
-    /** Same for a warn — the continue button must not vanish once the flash is gone. */
-    public function test_a_warn_verdict_still_shows_on_a_later_visit(): void
-    {
-        $student = $this->student();
-
-        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/eligibility', [
-            'answers' => ['year' => 'y', 'funded' => 'n', 'docs' => 'p'],
-        ]);
-
-        $this->actingAs($student, 'attendee')->get('/en/scholarship');
-
-        $this->actingAs($student, 'attendee')
-            ->get('/en/scholarship/apply/eligibility')
-            ->assertOk()
-            ->assertSee(__('scholarship.eligibility.warn_title'))
-            ->assertSee(__('scholarship.eligibility.continue'));
-    }
-
     /** And a fail — told why again, not left to wonder if it saved at all. */
     public function test_a_failed_check_still_shows_on_a_later_visit(): void
     {
         $student = $this->student();
 
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/eligibility', [
-            'answers' => ['year' => 'y', 'funded' => 'y', 'docs' => 'y'],
+            'answers' => ['year' => 'y', 'funded' => 'y'],
         ]);
 
         $this->actingAs($student, 'attendee')->get('/en/scholarship');
@@ -293,7 +255,7 @@ class ScholarshipTest extends TestCase
     private function pass(Registration $student): ScholarshipApplication
     {
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/eligibility', [
-            'answers' => ['year' => 'y', 'funded' => 'n', 'docs' => 'y'],
+            'answers' => ['year' => 'y', 'funded' => 'n'],
         ]);
 
         return $student->scholarshipApplication();

@@ -195,7 +195,7 @@ class ScholarshipAudienceTest extends TestCase
             'cycle' => config('scholarship.cycle'),
             'status' => ScholarshipApplication::STATUS_DRAFT,
             'step' => 1,
-            'eligibility' => ['year' => 'y', 'funded' => 'n', 'docs' => 'y'],
+            'eligibility' => ['year' => 'y', 'funded' => 'n'],
             'eligibility_passed_at' => now(),
         ]);
 

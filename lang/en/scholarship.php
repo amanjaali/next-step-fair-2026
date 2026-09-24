@@ -253,7 +253,7 @@ return [
     'eligibility' => [
         'title' => 'Eligibility check',
         'kicker' => 'Before you start',
-        'heading' => 'Three questions, about a minute',
+        'heading' => 'Two questions, about a minute',
         'lead' => 'This runs before the application opens so nobody spends an evening writing a statement and a proposal only to be closed at screening for something we could have told them now.',
         'submit' => 'Continue',
         'answered' => 'answered',
@@ -268,7 +268,7 @@ return [
         'fail_title' => 'You cannot apply this cycle',
 
         'errors' => [
-            'answer_all' => 'Answer all three questions.',
+            'answer_all' => 'Answer both questions.',
         ],
 
         'questions' => [
@@ -282,13 +282,6 @@ return [
                 'note' => 'A partial discount or a school award does not disqualify you.',
                 'options' => ['n' => 'No', 'p' => 'Partial funding only', 'y' => 'Yes, full'],
                 'fail' => 'A student already holding full funding cannot take a second full award. Declining the other programme in writing makes you eligible to apply.',
-            ],
-            'docs' => [
-                'title' => 'Can you provide your ID, residence confirmation and judicial record certificate?',
-                'note' => 'All three are required at screening. The judicial record can take up to two weeks to issue.',
-                'options' => ['y' => 'Yes, I have them', 'p' => 'Not yet, but I can get them', 'n' => 'No'],
-                'fail' => 'Screening cannot verify a file without the national ID, residence confirmation and judicial record certificate. Speak to the programme desk if a document is genuinely impossible to obtain.',
-                'warn' => 'Request the judicial record certificate now. It can take up to two weeks, and a file missing it at the deadline is closed without being read.',
             ],
         ],
     ],
@@ -306,7 +299,7 @@ return [
         'gate1_cta' => 'Register as a student',
 
         'gate2_title' => 'The eligibility check',
-        'gate2_body' => 'Three questions on your start date, other funding and your documents. About a minute.',
+        'gate2_body' => 'Two questions on your start date and other funding. About a minute.',
         'gate2_cta' => 'Start the check',
         'gate2_review' => 'Review your answers',
 
