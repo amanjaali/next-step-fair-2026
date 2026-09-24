@@ -178,31 +178,23 @@ class Registration extends Model implements AuthenticatableContract
     }
 
     /**
-     * Eligible to apply for the scholarship: a verified student finishing school.
+     * Eligible to apply for the scholarship: any confirmed Next Step student account.
      *
-     * Everything else about the application — the region, the average, the
-     * documents — is checked inside the scholarship itself.
+     * Education stage is still recorded for reviewers but no longer gates entry.
      */
     public function canApplyForScholarship(): bool
     {
-        return $this->isStudentAccount()
-            && $this->isConfirmed()
-            && in_array($this->education_stage, ['grade12', 'graduate'], true);
+        return $this->isStudentAccount() && $this->isConfirmed();
     }
 
-    /**
-     * Which of the two checks in canApplyForScholarship() a student account is
-     * failing, so the gate can say the actual reason instead of guessing one.
-     * Null once they can apply, or for anything that isn't a student account —
-     * the gate only asks this after already establishing both.
-     */
+    /** Why a student account can't apply yet; null once it can, or for non-students. */
     public function scholarshipIneligibilityReason(): ?string
     {
         if (! $this->isStudentAccount() || $this->canApplyForScholarship()) {
             return null;
         }
 
-        return $this->isConfirmed() ? 'stage' : 'unconfirmed';
+        return 'unconfirmed';
     }
 
     public function getAuthPassword(): string

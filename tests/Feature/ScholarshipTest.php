@@ -123,22 +123,14 @@ class ScholarshipTest extends TestCase
             ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
     }
 
-    /**
-     * The award funds a first degree from year one, so somebody already at
-     * university is told why rather than shown a locked card.
-     */
-    public function test_a_student_already_at_university_is_told_why_not(): void
+    /** Any confirmed student account can apply, whatever its education stage. */
+    public function test_a_student_already_at_university_can_apply(): void
     {
         $student = $this->student(['education_stage' => 'university']);
 
         $this->actingAs($student, 'attendee')
-            ->get('/en/scholarship/apply')
-            ->assertOk()
-            ->assertSee(__('scholarship.apply.not_eligible.stage.title'));
-
-        $this->actingAs($student, 'attendee')
             ->get('/en/scholarship/apply/eligibility')
-            ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
+            ->assertOk();
     }
 
     /** Registering for the expo is the only sign-up there is. */

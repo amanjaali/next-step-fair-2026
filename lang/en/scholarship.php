@@ -317,11 +317,6 @@ return [
         'have_account' => 'Already registered as a student? Sign in and the application will know who you are.',
 
         'not_eligible' => [
-            'stage' => [
-                'title' => 'This cycle is for students finishing school',
-                'body' => 'The award funds a first undergraduate degree from year one, so it is open to students in grade 12 and those who have just finished. Your account\'s education stage does not currently match that. If it is wrong, update it from your account page.',
-                'action' => 'Update my education stage',
-            ],
             'unconfirmed' => [
                 'title' => 'Your registration is not confirmed yet',
                 'body' => 'The scholarship opens once your Next Step registration is confirmed. This is usually quick — check back shortly, or speak to the registration desk if it has been longer than a day.',

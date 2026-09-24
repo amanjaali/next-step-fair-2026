@@ -138,20 +138,15 @@ class ScholarshipAudienceTest extends TestCase
 
     /* ---------------------------------------------- gate ineligibility copy -- */
 
-    /**
-     * A student in the wrong education stage — grade 11 here, but this covers
-     * institute/other/unset too — must not be told they're "already at
-     * university" when they might never have set that field at all.
-     */
-    public function test_a_grade_11_student_sees_the_stage_reason_not_a_guess_about_university(): void
+    public function test_education_stage_no_longer_blocks_the_scholarship(): void
     {
-        $student = $this->registration(['education_stage' => 'grade11']);
+        foreach (['grade11', 'university', 'institute', 'other', null] as $stage) {
+            $student = $this->registration(['education_stage' => $stage, 'phone' => '77'.random_int(10000000, 99999999)]);
 
-        $response = $this->actingAs($student, 'attendee')->get('/en/scholarship/apply')->assertOk();
-
-        $response->assertSee(__('scholarship.apply.not_eligible.stage.title'));
-        $response->assertSee(route('me.edit'));
-        $response->assertDontSee(__('scholarship.apply.not_eligible.unconfirmed.title'));
+            $this->assertTrue($student->canApplyForScholarship(), "stage: {$stage}");
+            $this->actingAs($student, 'attendee')->get('/en/scholarship/apply')->assertOk()
+                ->assertDontSee(__('scholarship.apply.not_eligible.unconfirmed.title'));
+        }
     }
 
     /** Not confirmed yet is a different problem than the education stage, and reads as one. */
@@ -165,7 +160,6 @@ class ScholarshipAudienceTest extends TestCase
         $response = $this->actingAs($student, 'attendee')->get('/en/scholarship/apply')->assertOk();
 
         $response->assertSee(__('scholarship.apply.not_eligible.unconfirmed.title'));
-        $response->assertDontSee(__('scholarship.apply.not_eligible.stage.title'));
     }
 
     public function test_a_student_checked_in_at_the_fair_can_still_apply(): void
@@ -182,45 +176,12 @@ class ScholarshipAudienceTest extends TestCase
     {
         $response = $this->actingAs($this->registration(), 'attendee')->get('/en/scholarship/apply')->assertOk();
 
-        $response->assertDontSee(__('scholarship.apply.not_eligible.stage.title'));
         $response->assertDontSee(__('scholarship.apply.not_eligible.unconfirmed.title'));
     }
 
     public function test_scholarship_ineligibility_reason_is_null_for_a_non_student(): void
     {
         $this->assertNull($this->parent()->scholarshipIneligibilityReason());
-    }
-
-    /**
-     * A passed check does not stay a standing pass if the student later
-     * becomes ineligible another way (here, an education stage change). The
-     * form step must lock again rather than keep offering a CTA that bounces
-     * back the moment it is pressed.
-     */
-    public function test_the_form_step_locks_again_if_eligibility_changes_after_passing(): void
-    {
-        $student = $this->registration(['education_stage' => 'grade12']);
-
-        ScholarshipApplication::create([
-            'registration_id' => $student->id,
-            'cycle' => config('scholarship.cycle'),
-            'status' => ScholarshipApplication::STATUS_DRAFT,
-            'step' => 1,
-            'eligibility' => ['year' => 'y', 'funded' => 'n'],
-            'eligibility_passed_at' => now(),
-        ]);
-
-        $student->forceFill(['education_stage' => 'university'])->save();
-
-        $response = $this->actingAs($student, 'attendee')->get('/en/scholarship/apply')->assertOk();
-
-        $response->assertDontSee(__('scholarship.apply.gate3_cta'));
-        $response->assertSee(__('scholarship.apply.state_locked'));
-
-        // And the form itself still refuses, matching the gate's word.
-        $this->actingAs($student, 'attendee')
-            ->get('/en/scholarship/apply/form')
-            ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
     }
 
     /* ------------------------------------------------------ opportunities -- */
