@@ -99,8 +99,8 @@
         <div class="ns-wrap max-w-[1080px] py-[clamp(36px,5vw,64px)] flex items-center justify-between gap-8 flex-wrap">
             <div>
                 <div class="ns-eyebrow !text-magenta mb-2">{{ __('scholarship.home.deadline_kicker') }}</div>
-                <div class="font-[family-name:var(--ns-display)] text-[clamp(22px,3vw,32px)] font-semibold ns-num">
-                    {{ ns_format_date(\Illuminate\Support\Carbon::parse(config('scholarship.timeline.closes'))) }}
+                <div class="font-[family-name:var(--ns-display)] text-[clamp(22px,3vw,32px)] font-semibold">
+                    {{ __('scholarship.home.deadline_note') }}
                 </div>
             </div>
             <x-ns.scholarship-cta :attendee="$attendee" variant="dark" />

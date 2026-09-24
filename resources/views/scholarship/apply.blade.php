@@ -84,8 +84,8 @@
                             : $application->exam_average,
                         __('scholarship.apply.f.school') => $application->school_name,
                         ...$choiceRows->all(),
-                        __('scholarship.apply.f.statement') => $application->statement ? str_word_count($application->statement).' '.__('scholarship.apply.words') : null,
-                        __('scholarship.apply.f.proposal') => $application->proposal ? str_word_count($application->proposal).' '.__('scholarship.apply.words') : null,
+                        __('scholarship.apply.f.statement') => $application->statement ? ns_word_count($application->statement).' '.__('scholarship.apply.words') : null,
+                        __('scholarship.apply.f.proposal') => $application->proposal ? ns_word_count($application->proposal).' '.__('scholarship.apply.words') : null,
                     ] as $label => $value)
                         <div class="flex justify-between gap-6 py-[11px] border-b border-[rgba(5,7,8,0.1)] flex-wrap">
                             <dt class="ns-eyebrow !text-[9.5px] pt-[3px]">{{ $label }}</dt>

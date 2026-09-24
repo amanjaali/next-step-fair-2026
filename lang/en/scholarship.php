@@ -107,6 +107,7 @@ return [
         'universities_all' => 'All participating universities',
 
         'deadline_kicker' => 'Applications close',
+        'deadline_note' => 'Date to be announced',
     ],
 
     'institution_names' => [
@@ -340,8 +341,8 @@ return [
             ['what' => 'National ID or civil status card', 'note' => 'Both sides'],
             ['what' => 'Residence confirmation', 'note' => 'Issued in your region'],
             ['what' => 'Judicial record certificate', 'note' => 'Up to two weeks'],
-            ['what' => 'Personal statement', 'note' => '400–600 words'],
-            ['what' => 'Problem-solving proposal', 'note' => '500–800 words'],
+            ['what' => 'Personal statement', 'note' => '200–600 words'],
+            ['what' => 'Problem-solving proposal', 'note' => '250–800 words'],
         ],
 
         'steps' => [
@@ -398,9 +399,11 @@ return [
             'district' => 'Choose your district.',
             'average' => 'Enter your exam average, or say that results are still pending.',
             'statement' => 'Write your personal statement.',
-            'statement_short' => 'The personal statement should be at least 400 words.',
+            'statement_short' => 'The personal statement should be at least 200 words.',
+            'statement_long' => 'The personal statement should be at most 600 words.',
             'proposal' => 'Write your proposal.',
-            'proposal_short' => 'The proposal should be at least 500 words.',
+            'proposal_short' => 'The proposal should be at least 250 words.',
+            'proposal_long' => 'The proposal should be at most 800 words.',
             'incomplete' => 'Some parts of the application are still empty. Go back through the four steps before submitting.',
             'confirm' => 'Confirm that the information is true before submitting.',
             'first_choice_ack' => 'Read the requirements for your first choice, then check the box to confirm.',
