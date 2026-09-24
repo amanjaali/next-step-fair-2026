@@ -43,6 +43,27 @@ return [
         ],
     ],
 
+    'password' => [
+        'forgot_link' => 'Forgot your password?',
+        'forgot_title' => 'Reset your password',
+        'forgot_lead' => 'Enter the mobile number you registered with. We will send a code on WhatsApp to reset your password.',
+        'phone_label' => 'Mobile number',
+        'submit_request' => 'Send code',
+        'code_title' => 'Enter your code',
+        'new_title' => 'Set a new password',
+        'new_lead' => 'Your code is verified. Choose a new password to sign in with next time.',
+        'new_password' => 'New password',
+        'confirm_password' => 'Confirm new password',
+        'show' => 'Show',
+        'hide' => 'Hide',
+        'submit_reset' => 'Set password',
+        'changed' => 'Your password has been changed.',
+        'errors' => [
+            'required' => 'Enter a new password.',
+            'confirmed' => 'That does not match the password above.',
+        ],
+    ],
+
     'join' => [
         'title' => 'Save this to your agenda',
         'lead' => 'Your agenda is kept with your registration, so it is on your phone at the fair and it reminds you before each session starts.',

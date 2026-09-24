@@ -14,7 +14,7 @@
 
         {{-- Students: the Next Step ID they created when they registered. --}}
         <div class="ns-card mb-6">
-            <form method="POST" action="{{ route('attendee.signin.password') }}" novalidate>
+            <form method="POST" action="{{ route('attendee.signin.password') }}" novalidate x-data="{ show: false }">
                 @csrf
                 <label class="block mb-5">
                     <span class="ns-label">{{ __('attendee.signin.email') }} <span class="ns-req">*</span></span>
@@ -22,11 +22,22 @@
                     @error('email')<span class="ns-error">{{ $message }}</span>@enderror
                 </label>
 
-                <label class="block mb-6">
+                <label class="block mb-2">
                     <span class="ns-label">{{ __('register.account.password') }} <span class="ns-req">*</span></span>
-                    <input type="password" name="password" autocomplete="current-password" class="ns-input">
+                    <span class="relative block">
+                        <input :type="show ? 'text' : 'password'" name="password" autocomplete="current-password" class="ns-input !pe-[64px]">
+                        <button type="button" @click="show = ! show"
+                                class="absolute inset-y-0 end-0 px-4 font-[family-name:var(--ns-body)] text-[12.5px] font-bold text-body-soft">
+                            <span x-text="show ? '{{ __('attendee.password.hide') }}' : '{{ __('attendee.password.show') }}'"></span>
+                        </button>
+                    </span>
                     @error('password')<span class="ns-error">{{ $message }}</span>@enderror
                 </label>
+
+                <a href="{{ route('attendee.password.forgot') }}"
+                   class="inline-block mb-6 font-[family-name:var(--ns-body)] text-sm font-bold text-magenta">
+                    {{ __('attendee.password.forgot_link') }}
+                </a>
 
                 <button type="submit" class="ns-btn ns-btn-magenta">{{ __('attendee.signin.submit') }}</button>
             </form>

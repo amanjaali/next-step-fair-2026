@@ -142,6 +142,14 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(3)->by('signin:' . Registration::phoneHash((string) $request->input('phone'))),
         ]);
 
+        // Its own limiter, not a reuse of otp-signin, so a burst of reset
+        // attempts on one phone can't also lock that phone out of signing in.
+        RateLimiter::for('password-reset', fn(Request $request) => [
+            Limit::perMinute(5)->by($request->ip()),
+            Limit::perHour(15)->by($request->ip()),
+            Limit::perMinute(3)->by('password-reset:' . Registration::phoneHash((string) $request->input('phone'))),
+        ]);
+
         RateLimiter::for('leads', fn(Request $request) => Limit::perMinute(4)->by($request->ip()));
 
         RateLimiter::for('checkin-scan', fn(Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));

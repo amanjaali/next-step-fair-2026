@@ -3,6 +3,7 @@
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\Attendee\InterestsController;
+use App\Http\Controllers\Attendee\PasswordResetController;
 use App\Http\Controllers\Attendee\ProfileController;
 use App\Http\Controllers\Attendee\QuickPassController;
 use App\Http\Controllers\Attendee\SignInController;
@@ -138,6 +139,19 @@ Route::get('signin/code', [SignInController::class, 'showCode'])->name('attendee
 Route::post('signin/code', [SignInController::class, 'verify'])
     ->middleware('throttle:otp-signin')->name('attendee.signin.verify');
 Route::post('signout', [SignInController::class, 'signOut'])->name('attendee.signout');
+
+// A student who forgot the password to their Next Step ID: phone, a WhatsApp
+// code, then a new password. Kept separate from the sign-in codes above so
+// the two flows can never finish each other's session.
+Route::get('signin/forgot', [PasswordResetController::class, 'show'])->name('attendee.password.forgot');
+Route::post('signin/forgot', [PasswordResetController::class, 'send'])
+    ->middleware('throttle:password-reset')->name('attendee.password.send');
+Route::get('signin/forgot/code', [PasswordResetController::class, 'showCode'])->name('attendee.password.code');
+Route::post('signin/forgot/code', [PasswordResetController::class, 'verify'])
+    ->middleware('throttle:password-reset')->name('attendee.password.verify');
+Route::get('signin/forgot/reset', [PasswordResetController::class, 'showReset'])->name('attendee.password.reset');
+Route::post('signin/forgot/reset', [PasswordResetController::class, 'reset'])
+    ->middleware('throttle:password-reset')->name('attendee.password.update');
 
 Route::get('join', [ProfileController::class, 'join'])->name('attendee.join');
 Route::post('agenda/save/{session}', [ProfileController::class, 'toggle'])->name('me.agenda.toggle');

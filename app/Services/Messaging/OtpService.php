@@ -10,12 +10,15 @@ use Illuminate\Support\Facades\Hash;
 /**
  * Phone verification for the fair track.
  *
- * OTP delivery is not sent over WhatsApp — conference RSVP is the only track
- * that uses OTPIQ. In local debug mode the code is shown on the verify screen.
+ * The code is sent over WhatsApp via MessageDispatcher, using the same
+ * template mechanism as badge/reminder messages. In local debug mode the
+ * code is also cached and shown on the verify screen.
  */
 class OtpService
 {
-    /** Issues a fresh code. */
+    public function __construct(private readonly MessageDispatcher $dispatcher) {}
+
+    /** Issues a fresh code and sends it over WhatsApp. */
     public function send(Registration $registration): OtpVerification
     {
         $code = $this->generateCode();
@@ -33,13 +36,14 @@ class OtpService
             cache()->put($this->previewKey($verification), $code, now()->addMinutes(15));
         }
 
-        WhatsAppLog::info('otp.issued_not_sent_via_whatsapp', [
+        $this->dispatcher->whatsapp($registration, 'otp', ['code' => $code]);
+
+        WhatsAppLog::info('otp.issued', [
             'registration_id' => $registration->id,
             'ticket_id' => $registration->ticket_id,
             'phone' => $registration->maskedPhone(),
             'verification_id' => $verification->id,
             'debug_preview_available' => $this->inTestMode(),
-            'note' => 'Fair OTP is not sent over WhatsApp. The badge confirmation is queued after verify.',
         ]);
 
         return $verification;
