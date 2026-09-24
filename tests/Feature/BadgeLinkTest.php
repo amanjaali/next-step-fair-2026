@@ -105,4 +105,39 @@ class BadgeLinkTest extends TestCase
             $url,
         );
     }
+
+    /**
+     * A broadcast puts many different people's links in front of them at once,
+     * and a lot of real phones share one IP on carrier-grade NAT — an IP-only
+     * throttle would lock all of them out together once the broadcast's
+     * recipients cross it, even though each person only opened their own link
+     * once. The per-IP ceiling has to have enough room for a whole broadcast
+     * landing in the same minute.
+     */
+    public function test_many_different_tickets_opened_from_one_ip_are_not_throttled(): void
+    {
+        for ($i = 0; $i < 65; $i++) {
+            $registration = $this->registrant([
+                'phone' => '7701200'.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
+            ]);
+
+            $this->get("/b/{$registration->ticket_id}")->assertRedirect();
+        }
+    }
+
+    /**
+     * The per-IP ceiling being loose does not mean one link can be hammered
+     * without limit — a second, narrower ceiling keyed by the ticket itself
+     * still catches that.
+     */
+    public function test_one_ticket_opened_far_more_than_normal_is_throttled(): void
+    {
+        $registration = $this->registrant(['phone' => '7701199001']);
+
+        for ($i = 0; $i < 10; $i++) {
+            $this->get("/b/{$registration->ticket_id}")->assertRedirect();
+        }
+
+        $this->get("/b/{$registration->ticket_id}")->assertStatus(429);
+    }
 }

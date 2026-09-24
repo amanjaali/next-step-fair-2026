@@ -56,7 +56,7 @@ Route::get('q/{code}', [QrCampaignController::class, 'redirect'])->name('qr.redi
 
 // An exhibitor's desk QR: /v/{code} counts the visit and sends the visitor home.
 Route::get('v/{code}', BoothScanController::class)
-    ->middleware('throttle:60,1')
+    ->middleware('throttle:link-open')
     ->name('booth.scan');
 
 /*
@@ -64,7 +64,7 @@ Route::get('v/{code}', BoothScanController::class)
  * a fixed address and given only the tail of one at send time.
  */
 Route::get('b/{ticket}', BadgeLinkController::class)
-    ->middleware('throttle:60,1')
+    ->middleware('throttle:link-open')
     ->name('badge.link');
 
 // Delivery-status callbacks from the WhatsApp Cloud API.

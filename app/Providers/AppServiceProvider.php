@@ -145,5 +145,16 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('leads', fn(Request $request) => Limit::perMinute(4)->by($request->ip()));
 
         RateLimiter::for('checkin-scan', fn(Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));
+
+        // A badge or booth link goes out to many people in one WhatsApp
+        // broadcast, and a lot of them share one IP on carrier-grade NAT — an
+        // IP-only limit locks out everyone on that IP once the broadcast's
+        // recipients cross it. The per-IP ceiling here is loose (room for a
+        // whole broadcast landing at once); the per-link ceiling underneath
+        // it is what actually stops one link being hammered.
+        RateLimiter::for('link-open', fn(Request $request) => [
+            Limit::perMinute(300)->by($request->ip()),
+            Limit::perMinute(10)->by('link:'.(string) ($request->route('ticket') ?? $request->route('code'))),
+        ]);
     }
 }
