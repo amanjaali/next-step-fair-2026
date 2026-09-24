@@ -36,7 +36,7 @@
                     'body' => __('scholarship.apply.gate1_body'),
                     'done' => $hasAccount,
                     'cta' => $hasAccount ? null : __('scholarship.apply.gate1_cta'),
-                    'href' => route('register.fair', ['type' => 'student']),
+                    'href' => route('register.fair', ['type' => 'student', 'next' => 'scholarship']),
                     'state' => $hasAccount ? __('scholarship.apply.state_done') : __('scholarship.apply.state_required'),
                 ],
                 [

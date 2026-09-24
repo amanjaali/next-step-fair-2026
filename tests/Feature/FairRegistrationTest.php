@@ -114,6 +114,26 @@ class FairRegistrationTest extends TestCase
      * Phone verification is one setting away, and turning it on puts the code
      * screen back exactly where it was.
      */
+    public function test_registering_from_the_scholarship_returns_to_the_application(): void
+    {
+        $this->get('/en/register/fair?type=student&next=scholarship')->assertOk();
+
+        $this->post('/en/register/fair', $this->payload())
+            ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
+
+        // Only once: the next registration in this session lands on the badge again.
+        $this->assertNull(session('register.next'));
+    }
+
+    public function test_an_unknown_next_value_is_ignored(): void
+    {
+        $this->get('/en/register/fair?type=student&next=https://evil.example')->assertOk();
+
+        $response = $this->post('/en/register/fair', $this->payload());
+
+        $this->assertStringContainsString('/register/fair/done/', $response->headers->get('Location'));
+    }
+
     public function test_the_code_step_returns_when_phone_verification_is_switched_on(): void
     {
         config(['nextstep.registration.verify_phone' => true]);

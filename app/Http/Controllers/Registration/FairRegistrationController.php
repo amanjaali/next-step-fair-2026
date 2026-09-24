@@ -46,6 +46,10 @@ class FairRegistrationController extends Controller
             ? Registration::TYPE_PARENT
             : Registration::TYPE_STUDENT;
 
+        if ($request->query('next') === 'scholarship') {
+            $request->session()->put('register.next', 'scholarship');
+        }
+
         return view('register.fair', [
             'navKey' => 'home',
             'title' => __('register.title').' — '.config('nextstep.event.name'),
@@ -119,7 +123,7 @@ class FairRegistrationController extends Controller
         $this->confirm($registration);
         $this->signIn($request, $registration);
 
-        return redirect()->route('register.fair.done', $registration->ticket_id);
+        return $this->afterRegistration($request, $registration);
     }
 
     /**
@@ -165,7 +169,7 @@ class FairRegistrationController extends Controller
         $this->confirm($pass);
         $this->signIn($request, $pass);
 
-        return redirect()->route('register.fair.done', $pass->ticket_id)
+        return $this->afterRegistration($request, $pass)
             ->with('status', __('register.upgrade.done'));
     }
 
@@ -253,7 +257,17 @@ class FairRegistrationController extends Controller
         $this->confirm($record);
         $this->signIn($request, $record);
 
-        return redirect()->route('register.fair.done', $record->ticket_id);
+        return $this->afterRegistration($request, $record);
+    }
+
+    /** Back to where the registrant came from (only the scholarship), else the badge page. */
+    private function afterRegistration(Request $request, Registration $registration): RedirectResponse
+    {
+        if ($request->session()->pull('register.next') === 'scholarship') {
+            return redirect()->route('scholarship.apply');
+        }
+
+        return redirect()->route('register.fair.done', $registration->ticket_id);
     }
 
     /**
