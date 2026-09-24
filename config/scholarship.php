@@ -132,9 +132,9 @@ return [
     /* What screening needs on file. Nothing is read without all of it. */
     'documents' => ['certificate', 'national_id', 'residence', 'judicial_record'],
 
-    'statement_words' => ['min' => 400, 'max' => 600],
+    'statement_words' => ['min' => 200, 'max' => 600],
 
-    'proposal_words' => ['min' => 500, 'max' => 800],
+    'proposal_words' => ['min' => 250, 'max' => 800],
 
     /*
     |---------------------------------------------------------------------------

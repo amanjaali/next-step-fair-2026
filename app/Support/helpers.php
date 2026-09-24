@@ -191,21 +191,34 @@ if (! function_exists('ns_day_date')) {
     }
 }
 
+if (! function_exists('ns_word_count')) {
+    /**
+     * Word count that works for Kurdish and Arabic as well as Latin script.
+     * str_word_count() alone treats Arabic-script text as zero words
+     * regardless of length, so anything gated on a minimum word count would
+     * silently accept empty Kurdish/Arabic text and reject real submissions.
+     */
+    function ns_word_count(?string $text): int
+    {
+        $text = trim((string) $text);
+
+        if ($text === '') {
+            return 0;
+        }
+
+        $words = str_word_count($text);
+
+        return $words > 0 ? $words : count(preg_split('/\s+/u', $text) ?: []);
+    }
+}
+
 if (! function_exists('ns_reading_time')) {
     /**
      * Reading-time estimate at 200 words a minute, minimum one minute.
      */
     function ns_reading_time(?string $html): int
     {
-        $words = str_word_count(strip_tags((string) $html));
-
-        // Arabic-script text does not tokenise with str_word_count; fall back to
-        // whitespace splitting so Kurdish and Arabic posts get a sane estimate.
-        if ($words === 0) {
-            $words = count(preg_split('/\s+/u', trim(strip_tags((string) $html))) ?: []);
-        }
-
-        return max(1, (int) ceil($words / 200));
+        return max(1, (int) ceil(ns_word_count(strip_tags((string) $html)) / 200));
     }
 }
 

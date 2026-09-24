@@ -432,6 +432,62 @@ class ScholarshipTest extends TestCase
         ])->assertSessionHasErrors('statement');
     }
 
+    /**
+     * The word minimum is a word count, not a character count. 150 repeats of
+     * "word " is 750 characters — comfortably past the old character-based
+     * "min:200" Laravel rule — but only 150 words, under the real minimum.
+     * A version of this check that measures characters would let it through.
+     */
+    public function test_a_statement_long_in_characters_but_short_in_words_is_still_rejected(): void
+    {
+        $student = $this->student();
+        $this->pass($student);
+
+        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/form', [
+            'step' => 3,
+            'statement' => str_repeat('word ', 150),
+            'proposal' => str_repeat('idea ', 260),
+        ])->assertSessionHasErrors('statement');
+    }
+
+    public function test_a_statement_over_the_word_count_is_rejected(): void
+    {
+        $student = $this->student();
+        $this->pass($student);
+
+        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/form', [
+            'step' => 3,
+            'statement' => str_repeat('word ', 700),
+            'proposal' => str_repeat('idea ', 260),
+        ])->assertSessionHasErrors('statement');
+    }
+
+    /**
+     * str_word_count() treats Arabic-script text as zero words regardless of
+     * length, which would make a Kurdish or Arabic statement impossible to
+     * ever pass the minimum. The word count here must be Unicode-aware.
+     */
+    public function test_a_kurdish_statement_is_counted_correctly(): void
+    {
+        $student = $this->student();
+        $this->pass($student);
+
+        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/form', [
+            'step' => 3,
+            'statement' => str_repeat('وشەیەک ', 210),
+            'proposal' => str_repeat('وشەیەک ', 260),
+        ])->assertSessionDoesntHaveErrors(['statement', 'proposal']);
+
+        $this->assertSame(4, $student->scholarshipApplication()->fresh()->step);
+
+        // The review step's word count is Unicode-aware too: str_word_count()
+        // alone would print "0 words" here regardless of the real length.
+        $this->actingAs($student, 'attendee')
+            ->get('/en/scholarship/apply/form?step=4')
+            ->assertSee('>210 words<', false)
+            ->assertSee('>260 words<', false);
+    }
+
     public function test_the_status_page_shows_where_it_stands(): void
     {
         $student = $this->student();

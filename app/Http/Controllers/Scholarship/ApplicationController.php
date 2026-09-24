@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Scholarship;
 use App\Http\Controllers\Controller;
 use App\Models\Registration;
 use App\Models\ScholarshipApplication;
+use Closure;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -161,9 +162,26 @@ class ApplicationController extends Controller
                 'fifth_choice_university' => ['nullable', 'string', 'max:190'],
                 'fifth_choice_department' => ['nullable', 'string', 'max:120'],
             ],
+            // The word counts here are real word counts, not Laravel's string
+            // min/max (which measure characters — a mismatch that let a
+            // statement well under the intended length through as long as it
+            // was long enough in characters). The 8000/10000-character caps
+            // stay as a plain payload-size ceiling underneath the word check.
             3 => [
-                'statement' => ['required', 'string', "min:{$words['min']}", 'max:8000'],
-                'proposal' => ['required', 'string', "min:{$proposalWords['min']}", 'max:10000'],
+                'statement' => [
+                    'required', 'string', 'max:8000',
+                    fn (string $attribute, $value, Closure $fail) => ns_word_count($value) < $words['min']
+                        && $fail(__('scholarship.apply.errors.statement_short')),
+                    fn (string $attribute, $value, Closure $fail) => ns_word_count($value) > $words['max']
+                        && $fail(__('scholarship.apply.errors.statement_long')),
+                ],
+                'proposal' => [
+                    'required', 'string', 'max:10000',
+                    fn (string $attribute, $value, Closure $fail) => ns_word_count($value) < $proposalWords['min']
+                        && $fail(__('scholarship.apply.errors.proposal_short')),
+                    fn (string $attribute, $value, Closure $fail) => ns_word_count($value) > $proposalWords['max']
+                        && $fail(__('scholarship.apply.errors.proposal_long')),
+                ],
             ],
             default => [],
         };
@@ -214,9 +232,7 @@ class ApplicationController extends Controller
             'district.required' => __('scholarship.apply.errors.district'),
             'exam_average.required' => __('scholarship.apply.errors.average'),
             'statement.required' => __('scholarship.apply.errors.statement'),
-            'statement.min' => __('scholarship.apply.errors.statement_short'),
             'proposal.required' => __('scholarship.apply.errors.proposal'),
-            'proposal.min' => __('scholarship.apply.errors.proposal_short'),
         ];
 
         foreach (ScholarshipApplication::CHOICE_SLOTS as $slot) {
