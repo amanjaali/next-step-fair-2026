@@ -395,10 +395,11 @@ class ScholarshipTest extends TestCase
     }
 
     /**
-     * The word minimum is a word count, not a character count. 150 repeats of
-     * "word " is 750 characters — comfortably past the old character-based
-     * "min:200" Laravel rule — but only 150 words, under the real minimum.
-     * A version of this check that measures characters would let it through.
+     * The word minimum is a word count, not a character count. 30 repeats of
+     * "word " is 150 characters — comfortably past the old character-based
+     * "min:200" Laravel rule that used to gate this field — but only 30
+     * words, under the real minimum of 50. A version of this check that
+     * measures characters would let it through.
      */
     public function test_a_statement_long_in_characters_but_short_in_words_is_still_rejected(): void
     {
@@ -407,7 +408,7 @@ class ScholarshipTest extends TestCase
 
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/form', [
             'step' => 3,
-            'statement' => str_repeat('word ', 150),
+            'statement' => str_repeat('word ', 30),
             'proposal' => str_repeat('idea ', 260),
         ])->assertSessionHasErrors('statement');
     }
