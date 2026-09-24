@@ -45,21 +45,35 @@ class SignInController extends Controller
 
         // Scoped to what a student account actually is — type and a password set
         // — not just the email. An email can sit on more than one row (a
-        // conference RSVP under the same address, say), and none of those other
-        // rows has a password to check against, so picking any row by email
-        // alone risks comparing the typed password against the wrong account
-        // entirely and rejecting a correct one.
-        $registration = Registration::query()
+        // conference RSVP under the same address, say, or a duplicate left by a
+        // retried registration), and none of those other rows has a password to
+        // check against, so picking any row by email alone risks comparing the
+        // typed password against the wrong account entirely and rejecting a
+        // correct one — or worse, matching a stale duplicate instead of the
+        // confirmed account it was copied from.
+        //
+        // So every candidate is checked, not just the newest one: the password
+        // is the actual credential here, and taking "newest row" as a proxy for
+        // "the right one" breaks the moment a retry after an error leaves a
+        // second, unconfirmed row with the same email and password behind.
+        $candidates = Registration::query()
             ->active()
             ->whereEmail($data['email'])
             ->where('type', Registration::TYPE_STUDENT)
             ->whereNotNull('password')
-            ->latest('id')
-            ->first();
+            ->get()
+            ->filter(fn (Registration $r) => Hash::check($data['password'], (string) $r->password));
+
+        // Among everything the password actually matches, a confirmed account
+        // wins over a duplicate still waiting on confirmation — signing in
+        // should land the student on the account that actually works, not
+        // whichever one happens to have the highest id.
+        $registration = $candidates->first(fn (Registration $r) => $r->isConfirmed())
+            ?? $candidates->sortByDesc('id')->first();
 
         // One message for a wrong address and a wrong password alike, so neither
         // can be used to find out which accounts exist.
-        if (! $registration || ! Hash::check($data['password'], (string) $registration->password)) {
+        if (! $registration) {
             return back()->withInput($request->only('email'))
                 ->withErrors(['email' => __('attendee.signin.errors.no_match')]);
         }
@@ -90,11 +104,14 @@ class SignInController extends Controller
             'phone.regex' => __('attendee.signin.errors.phone'),
         ]);
 
-        $registration = Registration::query()
-            ->active()
-            ->wherePhone($data['phone'])
-            ->latest('id')
-            ->first();
+        // Same reasoning as the password path: a phone number can carry more
+        // than one row, and the newest one is not necessarily the one that
+        // actually works. Prefer a confirmed account over a duplicate still
+        // waiting on confirmation.
+        $candidates = Registration::query()->active()->wherePhone($data['phone'])->get();
+
+        $registration = $candidates->first(fn (Registration $r) => $r->isConfirmed())
+            ?? $candidates->sortByDesc('id')->first();
 
         if ($registration) {
             $this->otp->send($registration);

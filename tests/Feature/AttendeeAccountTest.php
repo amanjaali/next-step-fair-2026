@@ -95,6 +95,77 @@ class AttendeeAccountTest extends TestCase
         $this->assertGuest('attendee');
     }
 
+    /**
+     * A retried registration (after an error, or a name that could not be
+     * matched to an existing row) can leave a second, unconfirmed row behind
+     * with the same email and password as the real one. Picking "whichever
+     * row has the highest id" would sign the student into the duplicate
+     * instead of their working account — this proves the confirmed one wins.
+     */
+    public function test_signing_in_prefers_the_confirmed_account_over_a_later_duplicate(): void
+    {
+        $confirmed = $this->registrant();
+
+        $duplicate = $this->registrant([
+            'status' => Registration::STATUS_AWAITING_OTP,
+            'phone' => '7719990002',
+            'confirmed_at' => null,
+            'badge_generated_at' => null,
+        ]);
+
+        $this->assertTrue($duplicate->id > $confirmed->id);
+
+        $this->post('/en/signin', ['email' => 'rezan@example.com', 'password' => 'a-good-password'])
+            ->assertRedirect('/en/me');
+
+        $this->assertAuthenticatedAs($confirmed, 'attendee');
+    }
+
+    /**
+     * The password itself has to be checked against every candidate row, not
+     * just the newest one — otherwise a correct password fails simply
+     * because a newer, unrelated row with the same email happened to exist.
+     */
+    public function test_a_correct_password_still_works_when_a_newer_row_shares_the_email(): void
+    {
+        $confirmed = $this->registrant();
+
+        $this->registrant([
+            'status' => Registration::STATUS_AWAITING_OTP,
+            'phone' => '7719990003',
+            'password' => 'a-different-password',
+            'confirmed_at' => null,
+            'badge_generated_at' => null,
+        ]);
+
+        $this->post('/en/signin', ['email' => 'rezan@example.com', 'password' => 'a-good-password'])
+            ->assertRedirect('/en/me');
+
+        $this->assertAuthenticatedAs($confirmed, 'attendee');
+    }
+
+    /** Same fix, same reasoning, for the phone-based badge recovery. */
+    public function test_the_badge_code_also_prefers_the_confirmed_account(): void
+    {
+        $confirmed = $this->registrant();
+
+        $this->registrant([
+            'status' => Registration::STATUS_AWAITING_OTP,
+            'phone' => '7719990001',
+            'email' => 'rezan-dup@example.com',
+            'confirmed_at' => null,
+            'badge_generated_at' => null,
+        ]);
+
+        $this->post('/en/signin/badge', ['phone_country' => '+964', 'phone' => '07719990001'])
+            ->assertRedirect('/en/signin/code');
+
+        $code = $this->codeFor($confirmed);
+
+        $this->post('/en/signin/code', ['code' => $code])->assertRedirect('/en/me');
+        $this->assertAuthenticatedAs($confirmed, 'attendee');
+    }
+
     /** A parent has no account, so no password can open one. */
     public function test_a_parent_cannot_sign_in_with_a_password(): void
     {
