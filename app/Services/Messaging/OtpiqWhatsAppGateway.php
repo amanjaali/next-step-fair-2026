@@ -39,6 +39,17 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
     ): ?string {
         $config = config('whatsapp.otpiq', []);
         $logicalKey = $message->template_key ?: $template;
+
+        // OTPIQ's own verification product carries its pre-approved auth message,
+        // so no custom template has to exist in the dashboard for codes.
+        if ($logicalKey === 'otp' && isset($variables['code'])) {
+            return $this->post([
+                'phoneNumber' => $this->normalise($message->recipient),
+                'smsType' => 'verification',
+                'verificationCode' => (string) $variables['code'],
+                'provider' => $config['otp_provider'] ?? 'whatsapp',
+            ], $message, requiresWhatsAppAccount: false);
+        }
         $templateName = $this->resolveName($logicalKey, $locale, $template);
         $bodyVariables = $this->bodyVariables($logicalKey, $locale, $variables);
 
@@ -139,7 +150,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
         return $numbered;
     }
 
-    private function post(array $payload, Message $message): ?string
+    private function post(array $payload, Message $message, bool $requiresWhatsAppAccount = true): ?string
     {
         $config = config('whatsapp.otpiq', []);
 
@@ -174,7 +185,7 @@ class OtpiqWhatsAppGateway implements WhatsAppGateway
             );
         }
 
-        if (! $config['account_id'] || ! $config['phone_id']) {
+        if ($requiresWhatsAppAccount && (! $config['account_id'] || ! $config['phone_id'])) {
             WhatsAppLog::error('otpiq.not_configured', [
                 'message_id' => $message->id,
                 'missing' => array_values(array_filter([

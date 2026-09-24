@@ -37,6 +37,8 @@ return [
         'public_url' => env('OTPIQ_PUBLIC_URL', 'https://www.nextstepfair.com'),
         'local_header_image' => env('OTPIQ_LOCAL_HEADER_IMAGE'),
         'verify_ssl' => filter_var(env('OTPIQ_VERIFY_SSL', true), FILTER_VALIDATE_BOOL),
+        // Channel for OTP codes (OTPIQ verification type): whatsapp, sms, telegram or auto.
+        'otp_provider' => env('OTPIQ_OTP_PROVIDER', 'whatsapp'),
     ],
 
     'cloud_api' => [

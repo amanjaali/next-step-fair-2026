@@ -128,6 +128,32 @@ class OtpiqWhatsAppTest extends TestCase
         });
     }
 
+    public function test_otp_codes_use_otpiq_verification_type_without_a_custom_template(): void
+    {
+        Http::fake(['*' => Http::response(['smsId' => 'otpiq-otp'], 200)]);
+        config([
+            'whatsapp.otpiq.account_id' => null,
+            'whatsapp.otpiq.phone_id' => null,
+        ]);
+
+        $message = $this->message($this->registrant());
+        $message->forceFill(['template_key' => 'otp'])->save();
+
+        $id = app(OtpiqWhatsAppGateway::class)->sendTemplate($message, 'next_step_otp', 'ku', ['code' => '042917']);
+
+        $this->assertSame('otpiq-otp', $id);
+        Http::assertSent(function (ClientRequest $request) {
+            $body = $this->jsonBody($request);
+
+            return $body === [
+                'phoneNumber' => '9647701113322',
+                'smsType' => 'verification',
+                'verificationCode' => '042917',
+                'provider' => 'whatsapp',
+            ];
+        });
+    }
+
     /** Conference RSVP templates were created as rsvp_confirmed_{locale}_2026. */
     public function test_locale_suffixed_otpiq_names_are_used(): void
     {
