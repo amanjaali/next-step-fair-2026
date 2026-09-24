@@ -167,6 +167,16 @@ class ScholarshipAudienceTest extends TestCase
         $response->assertDontSee(__('scholarship.apply.not_eligible.stage.title'));
     }
 
+    public function test_a_student_checked_in_at_the_fair_can_still_apply(): void
+    {
+        $student = $this->registration(['status' => Registration::STATUS_CHECKED_IN]);
+
+        $this->assertTrue($student->canApplyForScholarship());
+
+        $response = $this->actingAs($student, 'attendee')->get('/en/scholarship/apply')->assertOk();
+        $response->assertDontSee(__('scholarship.apply.not_eligible.unconfirmed.title'));
+    }
+
     public function test_an_eligible_student_sees_neither_ineligibility_message(): void
     {
         $response = $this->actingAs($this->registration(), 'attendee')->get('/en/scholarship/apply')->assertOk();

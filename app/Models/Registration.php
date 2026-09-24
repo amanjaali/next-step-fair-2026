@@ -160,7 +160,9 @@ class Registration extends Model implements AuthenticatableContract
      */
     public function isConfirmed(): bool
     {
-        return $this->status === self::STATUS_CONFIRMED;
+        // Checking in at the gate moves a confirmed registration on to
+        // checked_in; it is still confirmed, not less so.
+        return in_array($this->status, [self::STATUS_CONFIRMED, self::STATUS_CHECKED_IN], true);
     }
 
     /**
