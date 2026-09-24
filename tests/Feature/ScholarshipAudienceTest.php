@@ -150,6 +150,7 @@ class ScholarshipAudienceTest extends TestCase
         $response = $this->actingAs($student, 'attendee')->get('/en/scholarship/apply')->assertOk();
 
         $response->assertSee(__('scholarship.apply.not_eligible.stage.title'));
+        $response->assertSee(route('me.edit'));
         $response->assertDontSee(__('scholarship.apply.not_eligible.unconfirmed.title'));
     }
 

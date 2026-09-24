@@ -320,6 +320,7 @@ return [
             'stage' => [
                 'title' => 'This cycle is for students finishing school',
                 'body' => 'The award funds a first undergraduate degree from year one, so it is open to students in grade 12 and those who have just finished. Your account\'s education stage does not currently match that. If it is wrong, update it from your account page.',
+                'action' => 'Update my education stage',
             ],
             'unconfirmed' => [
                 'title' => 'Your registration is not confirmed yet',

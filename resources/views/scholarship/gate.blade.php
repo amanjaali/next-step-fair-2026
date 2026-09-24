@@ -115,6 +115,9 @@
             <div class="ns-card border-s-[6px] !border-s-[#C08A1E] mb-12">
                 <div class="font-[family-name:var(--ns-display)] text-[18px] font-semibold mb-2">{{ __("scholarship.apply.not_eligible.{$ineligibleReason}.title") }}</div>
                 <p class="ns-body !text-[15px] max-w-[58ch]">{{ __("scholarship.apply.not_eligible.{$ineligibleReason}.body") }}</p>
+                @if ($ineligibleReason === 'stage')
+                    <a href="{{ route('me.edit') }}" class="ns-btn ns-btn-magenta ns-btn-sm mt-5">{{ __('scholarship.apply.not_eligible.stage.action') }}</a>
+                @endif
             </div>
         @endif
 
