@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Message;
 use App\Models\Registration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
@@ -91,6 +93,38 @@ class PasswordResetTest extends TestCase
             'channel' => 'whatsapp',
             'template_key' => 'otp',
         ]);
+    }
+
+    public function test_through_otpiq_the_code_goes_out_as_a_verification_send_and_verifies(): void
+    {
+        config([
+            'whatsapp.driver' => 'otpiq',
+            'whatsapp.otpiq.api_key' => 'sk_test_key',
+        ]);
+        Http::fake(['*' => Http::response(['smsId' => 'otpiq-otp'], 200)]);
+
+        $student = $this->student();
+        $this->requestCode();
+
+        $sent = null;
+        Http::assertSent(function (ClientRequest $request) use (&$sent) {
+            $sent = json_decode($request->body(), true);
+
+            return $request->url() === 'https://api.otpiq.com/api/sms'
+                && $sent['smsType'] === 'verification'
+                && $sent['phoneNumber'] === '9647701234567'
+                && preg_match('/^\d{6}$/', $sent['verificationCode']) === 1;
+        });
+
+        $this->assertDatabaseHas('messages', [
+            'registration_id' => $student->id,
+            'template_key' => 'otp',
+            'status' => Message::STATUS_SENT,
+            'provider_message_id' => 'otpiq-otp',
+        ]);
+
+        $this->post('/en/signin/forgot/code', ['code' => $sent['verificationCode']])
+            ->assertRedirect(route('attendee.password.reset', ['locale' => 'en']));
     }
 
     public function test_an_unknown_phone_gets_the_same_response_as_a_known_one(): void
