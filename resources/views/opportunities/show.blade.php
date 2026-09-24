@@ -48,7 +48,10 @@
         @endif
 
         @if ($opportunity->action_url)
-            @if ($attendee)
+            {{-- An "everyone" opportunity is open to anyone by definition — no
+                 account needed to act on it, only to see the ones scoped to
+                 students or parents specifically. --}}
+            @if ($attendee || $opportunity->audience === \App\Models\Opportunity::AUDIENCE_EVERYONE)
                 <a href="{{ route('opportunities.go', $opportunity->slug) }}" target="_blank" rel="noopener"
                    class="ns-btn ns-btn-lg ns-btn-magenta">{{ $opportunity->actionLabel() }}</a>
                 <p class="ns-meta text-[12.5px] mt-4 max-w-[54ch]">{{ __('opportunities.action_note') }}</p>

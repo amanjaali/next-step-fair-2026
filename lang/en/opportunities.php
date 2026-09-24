@@ -23,6 +23,8 @@ return [
     'locked_title' => 'Why you need an account',
     'locked_body' => 'You need to create an account on the Next Step website so you can submit applications to the available scholarships and track your application status after you apply.',
     'locked_cta' => 'Register for the fair',
+    'guest_title' => 'Open to everyone',
+    'guest_body' => 'Anything below is open to browse and apply to without an account. Create a Next Step account to also see offers aimed specifically at students, and to open the National Scholarship Program.',
     'empty_title' => 'Nothing open just now',
     'empty_body' => 'New scholarships and offers are added through the year, and closing dates are announced here first. We will message you when something opens that fits.',
 

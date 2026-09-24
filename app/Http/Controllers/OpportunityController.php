@@ -22,9 +22,10 @@ class OpportunityController extends Controller
     {
         $attendee = $this->attendee();
 
-        $opportunities = $attendee
-            ? Opportunity::live()->for($attendee)->ranked()->with('organization')->get()
-            : collect();
+        // scopeFor() already includes the "everyone" audience for a null
+        // attendee, so a guest sees those without needing an account — only
+        // the student/grade-12/parent-scoped ones stay behind sign-in.
+        $opportunities = Opportunity::live()->for($attendee)->ranked()->with('organization')->get();
 
         return view('opportunities.index', [
             'navKey' => 'opportunities',

@@ -71,14 +71,37 @@ class OpportunityTest extends TestCase
     }
 
     /** A stranger is told what is behind it, not shown a list they cannot use. */
-    public function test_a_visitor_sees_the_reason_to_register_and_no_listings(): void
+    /**
+     * A student-scoped offer stays behind an account — but the board itself is
+     * not a wall: a guest still gets the reason to register, just alongside
+     * whatever is genuinely open to anyone.
+     */
+    public function test_a_visitor_does_not_see_a_student_only_listing(): void
     {
         $this->opportunity(['title' => ['en' => 'Secret Offer XYZ']]);
 
         $this->get('/en/opportunities')
             ->assertOk()
-            ->assertSee(__('opportunities.locked_title'))
+            ->assertSee(__('opportunities.guest_title'))
             ->assertDontSee('Secret Offer XYZ');
+    }
+
+    /** An "everyone" opportunity needs no account at all — on the board or the page. */
+    public function test_a_visitor_sees_and_can_open_an_everyone_listing(): void
+    {
+        $opportunity = $this->opportunity([
+            'title' => ['en' => 'Open Offer ABC'],
+            'audience' => Opportunity::AUDIENCE_EVERYONE,
+        ]);
+
+        $this->get('/en/opportunities')
+            ->assertOk()
+            ->assertSee('Open Offer ABC');
+
+        $this->get("/en/opportunities/{$opportunity->slug}")
+            ->assertOk()
+            ->assertSee(__('opportunities.default_action'))
+            ->assertDontSee(__('opportunities.locked_body'));
     }
 
     public function test_a_registered_student_sees_the_listings(): void
