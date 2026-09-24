@@ -112,7 +112,7 @@ return [
     ],
 
     'footer' => [
-        'blurb' => '28–30 September 2026, Cultural Factory, Sulaimani. Organised by Next Step Organization.',
+        'blurb' => '19–21 September 2026, Cultural Factory, Sulaimani.',
         'sdg_badge' => 'SDG Acceleration Action',
         'attend' => 'Attend',
         'organisation' => 'Organisation',
@@ -325,7 +325,7 @@ return [
             'impact_body' => 'Attendance by city and day, session popularity, exit survey results and the SDG indicators reported for the year.',
             'download_impact' => 'Download the :year impact report',
             'press_coverage' => 'Press coverage from :year',
-            'cta' => 'The 4th edition runs 28–30 September 2026.',
+            'cta' => 'The 4th edition runs 19–21 September 2026.',
         ],
         'news' => [
             'kicker' => 'Newsroom',
@@ -389,7 +389,7 @@ return [
         'conference' => [
             'kicker' => 'The Conference · Day 1',
             'title' => 'The Conference',
-            'lead' => '28 September, Hall B. A one-day policy programme for ministries, missions, university leadership and official delegations.',
+            'lead' => '19 September, Hall B. A one-day policy programme for ministries, missions, university leadership and official delegations.',
             'themes' => 'Themes',
             'programme' => 'Day 1 programme',
             'speakers' => 'Conference speakers',

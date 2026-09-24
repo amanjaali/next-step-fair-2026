@@ -8,7 +8,7 @@ return [
 
     'kicker' => 'Conference · Day 1 only',
     'title' => 'Conference RSVP',
-    'lead' => '28 September, Hall B, Cultural Factory. By RSVP for ministries, directorates, diplomatic missions, university leadership, companies and individuals. One short form.',
+    'lead' => '19 September, Hall B, Cultural Factory. By RSVP for ministries, directorates, diplomatic missions, university leadership, companies and individuals. One short form.',
     'cross_link' => 'Registering as a student or parent instead? :link — the two are separate.',
     'cross_link_label' => 'Use the fair registration form',
     'agenda_link_label' => 'View the full agenda',
