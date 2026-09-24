@@ -118,5 +118,9 @@ return [
         'resend_cooldown_seconds' => 60,
         // Fallback channel when WhatsApp delivery fails.
         'sms_fallback' => env('OTP_SMS_FALLBACK', false),
+        // Reveal the code on-screen without turning on APP_DEBUG (which also
+        // exposes stack traces / env values on error pages). Toggle this alone
+        // when WhatsApp/e-mail delivery is down and work needs to continue.
+        'test_mode' => (bool) env('OTP_TEST_MODE', false),
     ],
 ];

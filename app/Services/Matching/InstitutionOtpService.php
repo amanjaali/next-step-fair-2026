@@ -74,7 +74,7 @@ class InstitutionOtpService
 
     private function inTestMode(): bool
     {
-        return config('app.debug');
+        return (bool) config('app.debug') || (bool) config('whatsapp.otp.test_mode');
     }
 
     private function previewKey(InstitutionOtp $otp): string

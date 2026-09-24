@@ -140,7 +140,7 @@ class OtpService
 
     private function inTestMode(): bool
     {
-        return (bool) config('app.debug');
+        return (bool) config('app.debug') || (bool) config('whatsapp.otp.test_mode');
     }
 
     private function previewKey(OtpVerification $verification): string
