@@ -149,7 +149,8 @@ class ScholarshipApplication extends Model
         $done = collect([
             filled($this->region_code) && filled($this->district),
             filled($this->exam_average) || $this->exam_status === 'pending',
-            filled($this->statement) && filled($this->proposal),
+            // Both texts are optional; the step counts once it has been saved past.
+            $this->step >= 4 || (filled($this->statement) && filled($this->proposal)),
             // By name, not by count: a university's own form is kept alongside
             // these and would otherwise stand in for one of them.
             collect(config('scholarship.documents'))

@@ -169,14 +169,14 @@ class ApplicationController extends Controller
             // stay as a plain payload-size ceiling underneath the word check.
             3 => [
                 'statement' => [
-                    'required', 'string', 'max:8000',
+                    'nullable', 'string', 'max:8000',
                     fn (string $attribute, $value, Closure $fail) => ns_word_count($value) < $words['min']
                         && $fail(__('scholarship.apply.errors.statement_short')),
                     fn (string $attribute, $value, Closure $fail) => ns_word_count($value) > $words['max']
                         && $fail(__('scholarship.apply.errors.statement_long')),
                 ],
                 'proposal' => [
-                    'required', 'string', 'max:10000',
+                    'nullable', 'string', 'max:10000',
                     fn (string $attribute, $value, Closure $fail) => ns_word_count($value) < $proposalWords['min']
                         && $fail(__('scholarship.apply.errors.proposal_short')),
                     fn (string $attribute, $value, Closure $fail) => ns_word_count($value) > $proposalWords['max']

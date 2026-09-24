@@ -376,33 +376,39 @@ class ScholarshipTest extends TestCase
         $this->assertNull($application->first_choice_requirements_snapshot);
     }
 
-    public function test_a_statement_below_the_word_count_is_rejected(): void
+    public function test_an_application_submits_with_an_empty_statement_and_proposal(): void
     {
         $student = $this->student();
         $this->pass($student);
 
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/form', [
-            'step' => 3, 'statement' => 'Too short.', 'proposal' => str_repeat('idea ', 520),
-        ])->assertSessionHasErrors('statement');
+            'step' => 1, 'region_code' => 'SLM', 'district' => 'Chamchamal',
+        ]);
+        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/form', [
+            'step' => 2, 'exam_status' => 'published', 'exam_average' => '92.5',
+            'stream' => 'scientific', 'school_name' => 'Chamchamal Preparatory',
+            'first_choice_university' => 'American University of Iraq, Sulaimani',
+            'first_choice_department' => 'Computer Science',
+        ]);
+        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/form', [
+            'step' => 3, 'statement' => '', 'proposal' => '',
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAs($student, 'attendee')
+            ->post('/en/scholarship/apply/submit', ['confirm' => '1'])
+            ->assertRedirect(route('scholarship.status', ['locale' => 'en']));
+
+        $this->assertTrue($student->scholarshipApplication()->isSubmitted());
     }
 
-    /**
-     * The word minimum is a word count, not a character count. 30 repeats of
-     * "word " is 150 characters — comfortably past the old character-based
-     * "min:200" Laravel rule that used to gate this field — but only 30
-     * words, under the real minimum of 50. A version of this check that
-     * measures characters would let it through.
-     */
-    public function test_a_statement_long_in_characters_but_short_in_words_is_still_rejected(): void
+    public function test_a_short_statement_is_accepted(): void
     {
         $student = $this->student();
         $this->pass($student);
 
         $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/form', [
-            'step' => 3,
-            'statement' => str_repeat('word ', 30),
-            'proposal' => str_repeat('idea ', 260),
-        ])->assertSessionHasErrors('statement');
+            'step' => 3, 'statement' => 'Too short.', 'proposal' => 'Also short.',
+        ])->assertSessionHasNoErrors();
     }
 
     public function test_a_statement_over_the_word_count_is_rejected(): void

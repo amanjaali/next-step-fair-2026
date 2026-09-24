@@ -330,8 +330,8 @@ return [
             ['what' => 'National ID or civil status card', 'note' => 'Both sides'],
             ['what' => 'Residence confirmation', 'note' => 'Issued in your region'],
             ['what' => 'Judicial record certificate', 'note' => 'Up to two weeks'],
-            ['what' => 'Personal statement', 'note' => '50–600 words'],
-            ['what' => 'Problem-solving proposal', 'note' => '50–800 words'],
+            ['what' => 'Personal statement', 'note' => 'Optional, up to 600 words'],
+            ['what' => 'Problem-solving proposal', 'note' => 'Optional, up to 800 words'],
         ],
 
         'steps' => [
@@ -371,7 +371,7 @@ return [
         'statement_lead' => 'These are what the committee actually reads. Write them yourself, in your own words.',
         'statement_prompt' => 'Who you are, what you want to study, and why it matters to you.',
         'proposal_prompt' => 'A problem in the Kurdistan Region, and something you could realistically do about it with this degree.',
-        'word_range' => ':min–:max words',
+        'word_range' => 'Up to :max words',
 
         'review_title' => 'Check it before it goes',
         'review_lead' => 'Nothing can be changed after you submit. Read it once more.',
