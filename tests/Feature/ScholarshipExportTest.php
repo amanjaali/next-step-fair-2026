@@ -7,6 +7,7 @@ use App\Filament\Exports\ScholarshipContactsExporter;
 use App\Filament\Exports\ScholarshipReviewExporter;
 use App\Filament\Exports\ScholarshipSummaryExporter;
 use App\Filament\Resources\ScholarshipApplications\Pages\ListScholarshipApplications;
+use App\Filament\Resources\ScholarshipApplications\ScholarshipApplicationResource;
 use App\Models\Registration;
 use App\Models\ScholarshipApplication;
 use App\Models\User;
@@ -135,7 +136,7 @@ class ScholarshipExportTest extends TestCase
             ->implode('');
 
         $this->assertStringContainsString('Export Student', $csv);
-        $this->assertStringContainsString('+9647701239876', $csv);
+        $this->assertStringContainsString('964 770 123 9876', $csv);
         $this->assertStringContainsString('export.student@example.com', $csv);
         $this->assertStringContainsString('I want to study computers.', $csv);
         $this->assertStringContainsString('Chamchamal', $csv);
@@ -143,6 +144,43 @@ class ScholarshipExportTest extends TestCase
             route('admin.scholarship.document', ['application' => $application->id, 'key' => 'certificate']),
             $csv,
         );
+    }
+
+    public function test_formula_like_text_is_neutralised_and_labels_are_readable(): void
+    {
+        Storage::fake('local');
+        $this->application([
+            'statement' => '=HYPERLINK("http://evil.example","click")',
+            'proposal' => '@SUM(1+1)',
+            'district' => '-Chamchamal',
+            'documents' => ['first_choice_form' => 'scholarship/test/auis-form.pdf'],
+        ]);
+
+        Livewire::actingAs($this->superAdmin())
+            ->test(ListScholarshipApplications::class)
+            ->callAction('export_everything', data: ['format' => 'csv']);
+
+        $export = Export::latest('id')->firstOrFail();
+        $csv = collect(Storage::disk($export->file_disk)->allFiles($export->getFileDirectory()))
+            ->filter(fn (string $f) => str_ends_with($f, '.csv'))
+            ->map(fn (string $f) => Storage::disk($export->file_disk)->get($f))
+            ->implode('');
+
+        $this->assertStringContainsString("'=HYPERLINK", $csv);
+        $this->assertStringContainsString("'@SUM(1+1)", $csv);
+        $this->assertStringContainsString("'-Chamchamal", $csv);
+        $this->assertStringNotContainsString(',=HYPERLINK', $csv);
+        $this->assertStringNotContainsString('"=HYPERLINK', $csv);
+
+        $this->assertStringContainsString(ScholarshipApplicationResource::statusOptions()['submitted'], $csv);
+        $this->assertStringContainsString('/first_choice_form', $csv);
+    }
+
+    public function test_the_phone_is_written_so_spreadsheets_keep_it_as_text(): void
+    {
+        $this->assertSame("'+964", ScholarshipApplicationExporter::safeCell('+964'));
+        $this->assertSame('964 770 123 9876', ScholarshipApplicationExporter::safeCell('964 770 123 9876'));
+        $this->assertSame(92.5, ScholarshipApplicationExporter::safeCell(92.5));
     }
 
     public function test_document_links_open_only_for_signed_in_reviewers(): void
