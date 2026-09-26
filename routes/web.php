@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ScholarshipDocumentController;
 use App\Http\Controllers\BadgeLinkController;
 use App\Http\Controllers\BoothScanController;
 use App\Http\Controllers\CaptchaController;
@@ -157,3 +158,7 @@ Route::prefix('{locale}')
 | Route::fallback only fires when nothing else matched.
 */
 Route::fallback([LocaleController::class, 'fallback']);
+
+Route::middleware('auth')
+    ->get('admin/scholarship-documents/{application}/{key}', ScholarshipDocumentController::class)
+    ->name('admin.scholarship.document');

@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $request->is('checkin*') => route('checkin.login'),
                 $request->is('registration*') => route('registration.login'),
                 $request->is('*/portal*') => route('portal.signin'),
+                $request->is('admin*') => route('filament.admin.auth.login'),
                 default => route('attendee.signin'),
             };
         });

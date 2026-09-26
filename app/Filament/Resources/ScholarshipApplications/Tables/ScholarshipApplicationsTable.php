@@ -142,6 +142,7 @@ class ScholarshipApplicationsTable
                     }),
             ])
             ->toolbarActions([
+                \App\Filament\Resources\ScholarshipApplications\Pages\ListScholarshipApplications::exportBulkActions(),
                 BulkActionGroup::make([
                     BulkAction::make('screen')
                         ->label(__('admin.scholarship.bulk_screen'))
