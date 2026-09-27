@@ -47,15 +47,3 @@
         });
     </script>
 @endif
-
-{{-- Fired once, on the page right after a scholarship application is saved. --}}
-@if (session('submit_application') && config('nextstep.analytics.meta_pixel'))
-    <script>
-        window.addEventListener('load', function () {
-            if (window.fbq) fbq('track', 'SubmitApplication', {
-                track: 'scholarship',
-                content_name: 'National Scholarship Program 2026-2027'
-            }, { eventID: @json('app_'.session('submit_application')) });
-        });
-    </script>
-@endif
