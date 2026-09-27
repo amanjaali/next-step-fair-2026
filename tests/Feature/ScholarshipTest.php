@@ -411,6 +411,25 @@ class ScholarshipTest extends TestCase
             ->assertSee('(Optional)', false);
     }
 
+    public function test_submit_application_fires_once_with_the_application_id(): void
+    {
+        config(['nextstep.analytics.meta_pixel' => '123456789']);
+        $student = $this->student();
+        $application = $this->pass($student);
+        $application->forceFill(['region_code' => 'SLM', 'district' => 'Chamchamal', 'exam_status' => 'published', 'exam_average' => 92.5, 'step' => 4])->save();
+
+        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/submit', ['confirm' => '1'])
+            ->assertRedirect(route('scholarship.status', ['locale' => 'en']));
+
+        $first = $this->actingAs($student, 'attendee')->get('/en/scholarship/my-application')->assertOk();
+        $first->assertSee("fbq('track', 'SubmitApplication'", false);
+        $first->assertSee('"app_'.$application->id.'"', false);
+
+        $this->actingAs($student, 'attendee')->get('/en/scholarship/my-application')
+            ->assertOk()
+            ->assertDontSee('SubmitApplication', false);
+    }
+
     public function test_a_short_statement_is_accepted(): void
     {
         $student = $this->student();

@@ -365,7 +365,8 @@ class ApplicationController extends Controller
         ])->save();
 
         return redirect()->route('scholarship.status')
-            ->with('status', __('scholarship.status.just_submitted'));
+            ->with('status', __('scholarship.status.just_submitted'))
+            ->with('submit_application', $application->id);
     }
 
     /** Where the application stands, and what happens next. */
