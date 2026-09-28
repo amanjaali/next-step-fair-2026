@@ -196,7 +196,7 @@ class MetaEventsTest extends TestCase
     {
         config(['nextstep.analytics.meta_capi_test_code' => 'TEST123']);
 
-        (new SendMetaConversionEvent(['event_name' => 'SubmitApplication', 'event_id' => 'app_7']))->handle();
+        (new SendMetaConversionEvent(['event_name' => 'SubmitApplication', 'event_id' => 'app_7']))->handle(app(\App\Services\Analytics\MetaConversionsClient::class));
 
         Http::assertSent(function (ClientRequest $request) {
             return str_starts_with($request->url(), 'https://graph.facebook.com/v21.0/111222333/events')
@@ -212,10 +212,10 @@ class MetaEventsTest extends TestCase
         Http::fake(['https://graph.facebook.com/*' => Http::response(['error' => ['message' => 'Invalid token']], 400)]);
         \Illuminate\Support\Facades\Log::spy();
 
-        (new SendMetaConversionEvent(['event_name' => 'SubmitApplication', 'event_id' => 'app_9']))->handle();
+        (new SendMetaConversionEvent(['event_name' => 'SubmitApplication', 'event_id' => 'app_9']))->handle(app(\App\Services\Analytics\MetaConversionsClient::class));
 
         \Illuminate\Support\Facades\Log::shouldHaveReceived('error')->withArgs(
-            fn (string $message, array $context) => $message === 'meta_capi.rejected' && $context['event_id'] === 'app_9',
+            fn (string $message, array $context) => $message === 'meta_capi.failed' && $context['events'] === ['SubmitApplication:app_9'],
         );
     }
 }

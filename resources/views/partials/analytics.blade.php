@@ -9,7 +9,7 @@
     </script>
 @endif
 
-@if ($id = config('nextstep.analytics.meta_pixel'))
+@if ($id = \App\Services\Analytics\MetaSettings::pixelId())
     <script>
         !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
         n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
@@ -51,7 +51,7 @@
 @endif
 
 {{-- A Meta event with its eventID, so the Conversions API copy is deduplicated. --}}
-@if (session('meta_event') && config('nextstep.analytics.meta_pixel'))
+@if (session('meta_event') && \App\Services\Analytics\MetaSettings::pixelId())
     @php $metaEvent = session('meta_event'); @endphp
     <script>
         window.addEventListener('load', function () {

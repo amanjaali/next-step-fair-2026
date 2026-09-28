@@ -22,7 +22,7 @@ class MetaEvents
         array $serverData,
         ?string $sourceUrl = null,
     ): void {
-        if (! config('nextstep.analytics.meta_pixel')) {
+        if (! MetaSettings::pixelId()) {
             return;
         }
 
@@ -32,25 +32,38 @@ class MetaEvents
             'event_id' => $eventId,
         ]);
 
-        if (! config('nextstep.analytics.meta_capi_token')) {
+        if (! MetaSettings::serverEnabled()) {
             return;
         }
 
         // After the response, without a queue worker: never slows the page, and a
         // failure is logged rather than shown to the student.
-        SendMetaConversionEvent::dispatchAfterResponse(array_filter([
-            'event_name' => $eventName,
-            'event_time' => now()->getTimestamp(),
-            'event_id' => $eventId,
-            'action_source' => 'website',
-            'event_source_url' => $sourceUrl ?? $request->headers->get('referer') ?? $request->fullUrl(),
-            'user_data' => $this->userData($request, $registration),
-            'custom_data' => $serverData,
-        ]));
+        SendMetaConversionEvent::dispatchAfterResponse(self::event(
+            $eventName,
+            $eventId,
+            now()->getTimestamp(),
+            $sourceUrl ?? $request->headers->get('referer') ?? $request->fullUrl(),
+            self::userData($registration, $request->ip(), $request->userAgent(), $request->cookie('_fbp'), $request->cookie('_fbc')),
+            $serverData,
+        ));
     }
 
     /** @return array<string, mixed> */
-    public function userData(Request $request, Registration $registration): array
+    public static function event(string $name, string $id, int $time, string $url, array $userData, array $customData): array
+    {
+        return [
+            'event_name' => $name,
+            'event_time' => $time,
+            'event_id' => $id,
+            'action_source' => 'website',
+            'event_source_url' => $url,
+            'user_data' => $userData,
+            'custom_data' => $customData,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    public static function userData(Registration $registration, ?string $ip, ?string $userAgent, ?string $fbp = null, ?string $fbc = null): array
     {
         $email = $registration->email ? strtolower(trim($registration->email)) : null;
         // Digits with the country code and no leading zeros: 9647701234567.
@@ -60,10 +73,10 @@ class MetaEvents
             'em' => $email ? [hash('sha256', $email)] : null,
             'ph' => $phone ? [hash('sha256', $phone)] : null,
             'external_id' => [hash('sha256', (string) $registration->id)],
-            'client_ip_address' => $request->ip(),
-            'client_user_agent' => $request->userAgent(),
-            'fbp' => $request->cookie('_fbp'),
-            'fbc' => $request->cookie('_fbc'),
+            'client_ip_address' => $ip,
+            'client_user_agent' => $userAgent,
+            'fbp' => $fbp,
+            'fbc' => $fbc,
         ]);
     }
 }
