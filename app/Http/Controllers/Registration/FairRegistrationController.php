@@ -47,10 +47,6 @@ class FairRegistrationController extends Controller
             ? Registration::TYPE_PARENT
             : Registration::TYPE_STUDENT;
 
-        if ($request->query('next') === 'scholarship') {
-            $request->session()->put('register.next', 'scholarship');
-        }
-
         return view('register.fair', [
             'navKey' => 'home',
             'title' => __('register.title').' — '.config('nextstep.event.name'),
@@ -77,7 +73,10 @@ class FairRegistrationController extends Controller
                 return $this->completeQuickPass($request, $existing);
             }
 
-            return redirect()->route('register.fair', ['type' => $request->input('type')])
+            return redirect()->route('register.fair', array_filter([
+                'type' => $request->input('type'),
+                'next' => $request->input('next') === 'scholarship' ? 'scholarship' : null,
+            ]))
                 ->with('duplicate', $this->rememberDuplicate($request, $existing));
         }
 
@@ -115,6 +114,8 @@ class FairRegistrationController extends Controller
      */
     private function finish(Request $request, Registration $registration): RedirectResponse
     {
+        $this->rememberReturn($request, $registration);
+
         if (config('nextstep.registration.verify_phone')) {
             $this->otp->send($registration);
 
@@ -266,11 +267,23 @@ class FairRegistrationController extends Controller
     {
         $this->recordConversion($request, $registration);
 
-        if ($request->session()->pull('register.next') === 'scholarship') {
+        $this->rememberReturn($request, $registration);
+
+        // Tied to this registration's ticket, so a form opened from the scholarship
+        // and abandoned can never redirect a later, unrelated registration.
+        if ($request->session()->pull('register.next') === $registration->ticket_id) {
             return redirect()->route('scholarship.apply');
         }
 
         return redirect()->route('register.fair.done', $registration->ticket_id);
+    }
+
+    /** The form was opened from the scholarship: return there once this registration completes. */
+    private function rememberReturn(Request $request, Registration $registration): void
+    {
+        if ($request->input('next') === 'scholarship') {
+            $request->session()->put('register.next', $registration->ticket_id);
+        }
     }
 
     /** CompleteRegistration, once, on the request where "Get my badge" succeeded. */

@@ -349,7 +349,10 @@ class ApplicationController extends Controller
         $attendee = $this->requireStudent();
         $application = $this->application($attendee);
 
-        abort_if($application->isSubmitted(), 403);
+        // A second click (or a resend) lands on the application, not an error page.
+        if ($application->isSubmitted()) {
+            return redirect()->route('scholarship.status');
+        }
 
         if (! $application->hasPassedEligibility() || $application->completeness() < 75) {
             return redirect()->route('scholarship.apply.form')

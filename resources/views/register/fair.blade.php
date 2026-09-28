@@ -84,6 +84,9 @@
                 <input type="hidden" name="utm_source" value="{{ request('utm_source') }}">
                 <input type="hidden" name="utm_medium" value="{{ request('utm_medium') }}">
                 <input type="hidden" name="utm_campaign" value="{{ request('utm_campaign') }}">
+                @if (request('next') === 'scholarship' || old('next') === 'scholarship')
+                    <input type="hidden" name="next" value="scholarship">
+                @endif
 
                 {{-- Honeypot: a real person never fills this in. --}}
                 <input type="text" name="ns_hp" value="" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">

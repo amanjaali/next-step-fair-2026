@@ -116,20 +116,45 @@ class FairRegistrationTest extends TestCase
      */
     public function test_registering_from_the_scholarship_returns_to_the_application(): void
     {
-        $this->get('/en/register/fair?type=student&next=scholarship')->assertOk();
+        $this->get('/en/register/fair?type=student&next=scholarship')
+            ->assertOk()
+            ->assertSee('<input type="hidden" name="next" value="scholarship">', false);
 
-        $this->post('/en/register/fair', $this->payload())
+        $this->post('/en/register/fair', $this->payload(['next' => 'scholarship']))
             ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
 
         // Only once: the next registration in this session lands on the badge again.
         $this->assertNull(session('register.next'));
     }
 
-    public function test_an_unknown_next_value_is_ignored(): void
+    public function test_an_abandoned_scholarship_visit_does_not_redirect_a_later_registration(): void
     {
-        $this->get('/en/register/fair?type=student&next=https://evil.example')->assertOk();
+        $this->get('/en/register/fair?type=student&next=scholarship')->assertOk();
+        $this->get('/en/register/fair?type=student')->assertOk()->assertDontSee('name="next"', false);
 
         $response = $this->post('/en/register/fair', $this->payload());
+
+        $this->assertStringContainsString('/register/fair/done/', $response->headers->get('Location'));
+    }
+
+    public function test_the_scholarship_return_survives_the_phone_code_step(): void
+    {
+        config(['nextstep.registration.verify_phone' => true]);
+
+        $this->post('/en/register/fair', $this->payload(['next' => 'scholarship']));
+        $registration = Registration::latest('id')->firstOrFail();
+        $registration->otpVerifications()->latest('id')->first()
+            ->forceFill(['code_hash' => \Illuminate\Support\Facades\Hash::make('123456')])->save();
+
+        $this->post('/en/register/fair/verify/'.$registration->ticket_id, ['code' => '123456'])
+            ->assertRedirect(route('scholarship.apply', ['locale' => 'en']));
+    }
+
+    public function test_an_unknown_next_value_is_ignored(): void
+    {
+        $this->get('/en/register/fair?type=student&next=https://evil.example')->assertOk()->assertDontSee('name="next"', false);
+
+        $response = $this->post('/en/register/fair', $this->payload(['next' => 'https://evil.example']));
 
         $this->assertStringContainsString('/register/fair/done/', $response->headers->get('Location'));
     }

@@ -39,7 +39,7 @@ class MetaEventsTest extends TestCase
         ]);
     }
 
-    private function register(): Registration
+    private function register(array $extra = []): Registration
     {
         $response = $this->withUnencryptedCookies(['_fbp' => 'fb.1.1700000000.123', '_fbc' => 'fb.1.1700000000.abc'])
             ->post('/en/register/fair', array_merge([
@@ -55,7 +55,7 @@ class MetaEventsTest extends TestCase
                 'email' => 'Pixel.Student@Example.com',
                 'password' => 'a-good-password',
                 'consent_terms' => '1',
-            ], $this->captcha()));
+            ], $extra, $this->captcha()));
 
         $response->assertRedirect();
         $this->followingRedirect = $response->headers->get('Location');
@@ -135,8 +135,7 @@ class MetaEventsTest extends TestCase
     public function test_registering_from_the_scholarship_page_still_counts(): void
     {
         Bus::fake();
-        $this->get('/en/register/fair?type=student&next=scholarship')->assertOk();
-        $registration = $this->register();
+        $registration = $this->register(['next' => 'scholarship']);
 
         $this->assertStringContainsString('/scholarship/apply', $this->followingRedirect);
         $this->get($this->followingRedirect)->assertOk()

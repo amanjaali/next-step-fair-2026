@@ -411,6 +411,33 @@ class ScholarshipTest extends TestCase
             ->assertSee('(Optional)', false);
     }
 
+    public function test_a_second_submit_lands_on_the_application_not_an_error(): void
+    {
+        $student = $this->student();
+        $application = $this->pass($student);
+        $application->forceFill(['region_code' => 'SLM', 'district' => 'Chamchamal', 'exam_status' => 'published', 'exam_average' => 92.5, 'step' => 4])->save();
+
+        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/submit', ['confirm' => '1'])
+            ->assertRedirect(route('scholarship.status', ['locale' => 'en']));
+        $submittedAt = $application->fresh()->submitted_at;
+
+        $this->actingAs($student, 'attendee')->post('/en/scholarship/apply/submit', ['confirm' => '1'])
+            ->assertRedirect(route('scholarship.status', ['locale' => 'en']));
+        $this->assertEquals($submittedAt, $application->fresh()->submitted_at);
+    }
+
+    public function test_the_submit_button_disables_itself_after_one_click(): void
+    {
+        $student = $this->student();
+        $application = $this->pass($student);
+        $application->forceFill(['region_code' => 'SLM', 'district' => 'Chamchamal', 'exam_status' => 'published', 'exam_average' => 92.5, 'step' => 4])->save();
+
+        $this->actingAs($student, 'attendee')->get('/en/scholarship/apply/form?step=4')
+            ->assertOk()
+            ->assertSee('@submit="sending = true"', false)
+            ->assertSee(':disabled="sending"', false);
+    }
+
     public function test_a_short_statement_is_accepted(): void
     {
         $student = $this->student();

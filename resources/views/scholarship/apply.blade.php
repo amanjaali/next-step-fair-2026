@@ -97,7 +97,7 @@
                     @endforeach
                 </dl>
 
-                <form method="POST" action="{{ route('scholarship.apply.submit') }}">
+                <form method="POST" action="{{ route('scholarship.apply.submit') }}" x-data="{ sending: false }" @submit="sending = true">
                     @csrf
                     <label class="flex gap-[14px] items-start cursor-pointer mb-7">
                         <input type="checkbox" name="confirm" value="1" class="sr-only">
@@ -107,7 +107,7 @@
                         </span>
                     </label>
 
-                    <button type="submit" class="ns-btn ns-btn-magenta">{{ __('scholarship.apply.submit_final') }}</button>
+                    <button type="submit" class="ns-btn ns-btn-magenta" :disabled="sending" :class="sending && 'opacity-60 cursor-wait'">{{ __('scholarship.apply.submit_final') }}</button>
                     <p class="ns-meta text-[12.5px] mt-4 max-w-[54ch]">{{ __('scholarship.apply.submit_note') }}</p>
                 </form>
             @else
