@@ -246,7 +246,7 @@ return [
 
     'analytics' => [
         'ga4' => env('GA4_MEASUREMENT_ID'),
-        'meta_pixel' => env('META_PIXEL_ID'),
+        'meta_pixel' => env('META_PIXEL_ID') ?: '1136661341740528',
         // Conversions API: server-side copies of Pixel events, off until a token is set.
         'meta_capi_token' => env('META_CAPI_ACCESS_TOKEN'),
         'meta_capi_test_code' => env('META_CAPI_TEST_EVENT_CODE'),
