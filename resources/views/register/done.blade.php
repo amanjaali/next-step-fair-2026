@@ -1,5 +1,4 @@
 @php
-    session()->flash('conversion', $conversion);
     $accent = $registration->accent();
 @endphp
 <x-layouts.site :title="$title" :navKey="$navKey">

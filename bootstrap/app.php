@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Meta's own first-party cookies, read by the Conversions API; never ours to encrypt.
+        $middleware->encryptCookies(except: ['_fbp', '_fbc']);
+
         $middleware->alias([
             'locale' => SetLocale::class,
             'scanner.key' => EnsureSecretScannerKey::class,

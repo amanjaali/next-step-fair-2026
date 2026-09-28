@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Scholarship;
 use App\Http\Controllers\Controller;
 use App\Models\Registration;
 use App\Models\ScholarshipApplication;
+use App\Services\Analytics\MetaEvents;
 use Closure;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
@@ -363,6 +364,15 @@ class ApplicationController extends Controller
             'status' => ScholarshipApplication::STATUS_SUBMITTED,
             'submitted_at' => now(),
         ])->save();
+
+        app(MetaEvents::class)->track(
+            $request,
+            'SubmitApplication',
+            'app_'.$application->id,
+            $attendee,
+            pixelData: ['track' => 'scholarship', 'content_name' => 'National Scholarship Program 2026-2027'],
+            serverData: ['track' => 'scholarship'],
+        );
 
         return redirect()->route('scholarship.status')
             ->with('status', __('scholarship.status.just_submitted'));

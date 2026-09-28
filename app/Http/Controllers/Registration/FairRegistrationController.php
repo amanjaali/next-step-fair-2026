@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Registration;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFairRegistrationRequest;
 use App\Models\Registration;
+use App\Services\Analytics\MetaEvents;
 use App\Services\Messaging\OtpService;
 use App\Services\RegistrationConfirmer;
 use App\Services\TicketService;
@@ -263,11 +264,30 @@ class FairRegistrationController extends Controller
     /** Back to where the registrant came from (only the scholarship), else the badge page. */
     private function afterRegistration(Request $request, Registration $registration): RedirectResponse
     {
+        $this->recordConversion($request, $registration);
+
         if ($request->session()->pull('register.next') === 'scholarship') {
             return redirect()->route('scholarship.apply');
         }
 
         return redirect()->route('register.fair.done', $registration->ticket_id);
+    }
+
+    /** CompleteRegistration, once, on the request where "Get my badge" succeeded. */
+    private function recordConversion(Request $request, Registration $registration): void
+    {
+        $conversion = ['track' => 'fair', 'type' => $registration->type, 'value' => 0, 'currency' => 'IQD'];
+
+        $request->session()->flash('conversion', $conversion);
+
+        app(MetaEvents::class)->track(
+            $request,
+            'CompleteRegistration',
+            'reg_'.$registration->id,
+            $registration,
+            pixelData: $conversion,
+            serverData: $conversion,
+        );
     }
 
     /**
@@ -337,12 +357,6 @@ class FairRegistrationController extends Controller
             'title' => __('register.done.kicker').' — '.config('nextstep.event.name'),
             'registration' => $record,
             'qrUrl' => route('ticket.qr', $record->ticket_id),
-            'conversion' => [
-                'track' => 'fair',
-                'type' => $record->type,
-                'value' => 0,
-                'currency' => 'IQD',
-            ],
         ]);
     }
 

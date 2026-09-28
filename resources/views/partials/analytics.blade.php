@@ -42,8 +42,20 @@
         window.addEventListener('load', function () {
             var value = @json($conversion);
             if (window.gtag) gtag('event', 'registration_complete', value);
+            @unless (session('meta_event'))
             if (window.fbq) fbq('track', 'CompleteRegistration', value);
+            @endunless
             if (window.ttq) ttq.track('CompleteRegistration', value);
+        });
+    </script>
+@endif
+
+{{-- A Meta event with its eventID, so the Conversions API copy is deduplicated. --}}
+@if (session('meta_event') && config('nextstep.analytics.meta_pixel'))
+    @php $metaEvent = session('meta_event'); @endphp
+    <script>
+        window.addEventListener('load', function () {
+            if (window.fbq) fbq('track', @json($metaEvent['name']), @json($metaEvent['data']), { eventID: @json($metaEvent['event_id']) });
         });
     </script>
 @endif
