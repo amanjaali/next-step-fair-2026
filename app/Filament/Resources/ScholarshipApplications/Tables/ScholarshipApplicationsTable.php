@@ -9,6 +9,7 @@ use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use App\Filament\Filters\DateRangeFilter;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -116,6 +117,8 @@ class ScholarshipApplicationsTable
                     ->toggle()
                     ->default(true)
                     ->query(fn (Builder $query) => $query->submitted()),
+
+                DateRangeFilter::make('submitted_between', 'submitted_at', 'Submitted'),
             ])
             ->recordActions([
                 ViewAction::make(),

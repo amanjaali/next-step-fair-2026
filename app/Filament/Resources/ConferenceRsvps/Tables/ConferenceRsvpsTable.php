@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ConferenceRsvps\Tables;
 use App\Filament\Exports\RegistrationExporter;
 use App\Filament\Support\RegistrationActions;
 use App\Models\Registration;
+use App\Filament\Filters\DateRangeFilter;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\ExportBulkAction;
@@ -102,6 +103,7 @@ class ConferenceRsvpsTable
                         true: fn (Builder $query) => $query->has('checkIns'),
                         false: fn (Builder $query) => $query->doesntHave('checkIns'),
                     ),
+                DateRangeFilter::make('rsvp_between', 'created_at', 'RSVP received'),
             ])
             ->recordActions([
                 ViewAction::make(),

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Registrations\Tables;
 use App\Filament\Exports\RegistrationExporter;
 use App\Filament\Support\RegistrationActions;
 use App\Models\Registration;
+use App\Filament\Filters\DateRangeFilter;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\ExportBulkAction;
@@ -149,14 +150,7 @@ class RegistrationsTable
                         ? $query->whereJsonContains('days', (int) $data['day'])
                         : $query),
 
-                Filter::make('registered_between')
-                    ->schema([
-                        DatePicker::make('from')->label('Registered from'),
-                        DatePicker::make('until')->label('Registered until'),
-                    ])
-                    ->query(fn (Builder $query, array $data) => $query
-                        ->when($data['from'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
-                        ->when($data['until'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '<=', $date))),
+                DateRangeFilter::make('registered_between', 'created_at', 'Registered'),
 
                 TernaryFilter::make('checked_in')
                     ->label(__('admin.fields.checked_in'))

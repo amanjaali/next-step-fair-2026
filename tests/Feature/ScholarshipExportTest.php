@@ -183,6 +183,50 @@ class ScholarshipExportTest extends TestCase
         $this->assertSame(92.5, ScholarshipApplicationExporter::safeCell(92.5));
     }
 
+    public function test_the_submitted_date_filter_narrows_the_table_and_the_export(): void
+    {
+        Storage::fake('local');
+        $new = $this->application(['submitted_at' => now()->subDays(2)]);
+        $old = ScholarshipApplication::create(array_merge($new->only([
+            'cycle', 'status', 'step', 'eligibility', 'eligibility_passed_at', 'region_code', 'district', 'exam_status', 'exam_average',
+        ]), [
+            'registration_id' => Registration::create([
+                'track' => Registration::TRACK_FAIR, 'type' => Registration::TYPE_STUDENT, 'status' => Registration::STATUS_CONFIRMED,
+                'locale' => 'en', 'full_name' => 'Old Applicant', 'phone' => '7701230001', 'phone_country' => '+964',
+                'city' => 'Sulaimani', 'days' => [1], 'email' => 'old.applicant@example.com', 'password' => 'a-good-password',
+                'confirmed_at' => now()->subDays(20),
+            ])->id,
+            'submitted_at' => now()->subDays(20),
+        ]));
+
+        $page = Livewire::actingAs($this->superAdmin())
+            ->test(ListScholarshipApplications::class)
+            ->filterTable('submitted_between', ['period' => 'last_7'])
+            ->assertCanSeeTableRecords([$new])
+            ->assertCanNotSeeTableRecords([$old]);
+
+        $page->callAction('export_summary', data: ['format' => 'csv']);
+
+        $export = Export::latest('id')->firstOrFail();
+        $csv = collect(Storage::disk($export->file_disk)->allFiles($export->getFileDirectory()))
+            ->filter(fn (string $f) => str_ends_with($f, '.csv'))
+            ->map(fn (string $f) => Storage::disk($export->file_disk)->get($f))
+            ->implode('');
+
+        $this->assertStringContainsString('Export Student', $csv);
+        $this->assertStringNotContainsString('Old Applicant', $csv);
+
+        Livewire::actingAs($this->superAdmin())
+            ->test(ListScholarshipApplications::class)
+            ->filterTable('submitted_between', [
+                'period' => 'custom',
+                'from' => now()->subDays(25)->toDateString(),
+                'until' => now()->subDays(15)->toDateString(),
+            ])
+            ->assertCanSeeTableRecords([$old])
+            ->assertCanNotSeeTableRecords([$new]);
+    }
+
     public function test_document_links_open_only_for_signed_in_reviewers(): void
     {
         Storage::fake('local');
