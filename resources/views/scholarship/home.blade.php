@@ -81,7 +81,15 @@
         </div>
 
         <div class="grid gap-px bg-[rgba(5,7,8,0.14)] border border-[rgba(5,7,8,0.14)] sm:grid-cols-2">
-            @foreach (array_slice($universities, 0, 4) as $university)
+            {{-- Lutka leads; the rest keep their order. Matched by name too, as its
+                 card can come from either the catalogue or an Opportunity. --}}
+            @php
+                $isLutka = fn (array $u) => \Illuminate\Support\Str::contains(
+                    mb_strtolower($u['slug'].' '.$u['name']),
+                    ['lutka', 'lutke', 'lotka', 'لووتکە', 'لوتکە', 'لوتكه'],
+                );
+            @endphp
+            @foreach (collect($universities)->sortBy(fn ($u) => $isLutka($u) ? 0 : 1)->take(4) as $university)
                 <a href="{{ route('scholarship.university', ['slug' => $university['slug']]) }}"
                    class="bg-white px-6 py-5 block no-underline hover:bg-bone-50">
                     <div class="ns-eyebrow !text-[9.5px] !text-magenta mb-2">{{ __("scholarship.tiers.{$university['tier']}") }}</div>
